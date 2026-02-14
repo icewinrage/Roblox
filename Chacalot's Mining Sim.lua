@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
+local Lighting = game:GetService("Lighting")
 
 local Theme = {
 	Background = Color3.fromRGB(61, 60, 124), 
@@ -39,16 +40,17 @@ local function TeleportVehicle(CoordinateFrame: CFrame)
 	end
 end
 
-
 local vehiclePage = Venyx:addPage("Vehicle", 8356815386)
 local usageSection = vehiclePage:addSection("Usage")
 local velocityEnabled = true;
 usageSection:addToggle("Keybinds Active", velocityEnabled, function(v) velocityEnabled = v end)
+
 local flightSection = vehiclePage:addSection("Flight")
 local flightEnabled = false
 local flightSpeed = 1
 flightSection:addToggle("Enabled", false, function(v) flightEnabled = v end)
 flightSection:addSlider("Speed", 100, 0, 800, function(v) flightSpeed = v / 100 end)
+
 local defaultCharacterParent 
 RunService.Stepped:Connect(function()
 	local Character = LocalPlayer.Character
@@ -83,14 +85,13 @@ RunService.Stepped:Connect(function()
 		end
 	end
 end)
+
 local speedSection = vehiclePage:addSection("Acceleration")
 local velocityMult = 0.025;
 speedSection:addSlider("Multiplier (Thousandths)", 25, 0, 50, function(v) velocityMult = v / 1000; end)
 local velocityEnabledKeyCode = Enum.KeyCode.W;
 speedSection:addKeybind("Velocity Enabled", velocityEnabledKeyCode, function()
-	if not velocityEnabled then
-		return
-	end
+	if not velocityEnabled then return end
 	while UserInputService:IsKeyDown(velocityEnabledKeyCode) do
 		task.wait(0)
 		local Character = LocalPlayer.Character
@@ -103,19 +104,16 @@ speedSection:addKeybind("Velocity Enabled", velocityEnabledKeyCode, function()
 				end
 			end
 		end
-		if not velocityEnabled then
-			break
-		end
+		if not velocityEnabled then break end
 	end
 end, function(v) velocityEnabledKeyCode = v.KeyCode end)
+
 local decelerateSelection = vehiclePage:addSection("Deceleration")
 local qbEnabledKeyCode = Enum.KeyCode.S
 local velocityMult2 = 150e-3
 decelerateSelection:addSlider("Brake Force (Thousandths)", velocityMult2*1e3, 0, 300, function(v) velocityMult2 = v / 1000; end)
 decelerateSelection:addKeybind("Quick Brake Enabled", qbEnabledKeyCode, function()
-	if not velocityEnabled then
-		return
-	end
+	if not velocityEnabled then return end
 	while UserInputService:IsKeyDown(qbEnabledKeyCode) do
 		task.wait(0)
 		local Character = LocalPlayer.Character
@@ -128,27 +126,25 @@ decelerateSelection:addKeybind("Quick Brake Enabled", qbEnabledKeyCode, function
 				end
 			end
 		end
-		if not velocityEnabled then
-			break
-		end
+		if not velocityEnabled then break end
 	end
 end, function(v) qbEnabledKeyCode = v.KeyCode end)
+
 decelerateSelection:addKeybind("Stop the Vehicle", Enum.KeyCode.P, function(v)
-	if not velocityEnabled then
-		return
-	end
+	if not velocityEnabled then return end
 	local Character = LocalPlayer.Character
 	if Character and typeof(Character) == "Instance" then
 		local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
 		if Humanoid and typeof(Humanoid) == "Instance" then
 			local SeatPart = Humanoid.SeatPart
 			if SeatPart and typeof(SeatPart) == "Instance" and SeatPart:IsA("VehicleSeat") then
-				SeatPart.AssemblyLinearVelocity *= Vector3.new(0, 0, 0)
-				SeatPart.AssemblyAngularVelocity *= Vector3.new(0, 0, 0)
+				SeatPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+				SeatPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
 			end
 		end
 	end
 end)
+
 local springSection = vehiclePage:addSection("Springs")
 springSection:addToggle("Visible", false, function(v)
 	local Character = LocalPlayer.Character
@@ -167,9 +163,9 @@ springSection:addToggle("Visible", false, function(v)
 		end
 	end
 end)
-repeat
-	task.wait(0)
-until game:IsLoaded() and game.PlaceId > 0
+
+repeat task.wait(0) until game:IsLoaded() and game.PlaceId > 0
+
 if game.PlaceId == 3351674303 then
 	local drivingEmpirePage = Venyx:addPage("Wayfort", 8357222903)
 	local dealershipSection = drivingEmpirePage:addSection("Vehicle Dealership")
@@ -187,7 +183,35 @@ elseif game.PlaceId == 54865335 then
 elseif game.PlaceId == 5232896677 then
 	local pacificoPage = Venyx:addPage("Pacifico", 3028235557)
 end
+
 local infoPage = Venyx:addPage("Information", 8356778308)
+
+-- Добавляем секцию Visuals с Fullbright в Information
+local visualsSection = infoPage:addSection("Visuals")
+
+local fbEnabled = true
+
+local function dofullbright()
+	Lighting.Ambient = Color3.new(1, 1, 1)
+	Lighting.ColorShift_Bottom = Color3.new(1, 1, 1)
+	Lighting.ColorShift_Top = Color3.new(1, 1, 1)
+end
+
+local function updateFullbright()
+	if fbEnabled then
+		dofullbright()
+	end
+end
+
+visualsSection:addToggle("Fullbright", fbEnabled, function(value)
+	fbEnabled = value
+	updateFullbright()
+end)
+
+-- Начальное применение и поддержка изменений от игры
+updateFullbright()
+Lighting.LightingChanged:Connect(updateFullbright)
+
 local discordSection = infoPage:addSection("Discord")
 discordSection:addButton(syn and "Join the Discord server" or "Copy Discord Link", function()
 	if syn then
@@ -208,9 +232,8 @@ discordSection:addButton(syn and "Join the Discord server" or "Copy Discord Link
 		})
 		return
 	end
-	setclipboard("https://www.discord.com/invite/ENHYznSPmM")
+	setclipboard("https://www.discord.com/invite/TYDUFMGTyw")
 end)
-
 
 local function CloseGUI()
     Venyx:toggle()
@@ -221,16 +244,3 @@ UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
         CloseGUI()
     end
 end)
-
--- Добавленный блок Fullbright
-local Light = game:GetService("Lighting")
-
-function dofullbright()
-    Light.Ambient = Color3.new(1, 1, 1)
-    Light.ColorShift_Bottom = Color3.new(1, 1, 1)
-    Light.ColorShift_Top = Color3.new(1, 1, 1)
-end
-
-dofullbright()
-
-Light.LightingChanged:Connect(dofullbright)
