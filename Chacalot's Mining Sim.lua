@@ -46,7 +46,7 @@ local flightSpeed = 1
 flightSection:addToggle("Enabled", false, function(v) flightEnabled = v end)
 flightSection:addSlider("Speed", 100, 0, 800, function(v) flightSpeed = v / 100 end)
 
-local defaultCharacterParent
+local defaultCharacterParent 
 RunService.Stepped:Connect(function()
 	local Character = LocalPlayer.Character
 	if not Character then return end
@@ -346,6 +346,3 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 		Venyx:toggle()
 	end
 end)
-
--- GUI открывается и остаётся открытым
-Venyx:toggle()
