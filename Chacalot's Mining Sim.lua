@@ -1,12 +1,11 @@
 local VenyxLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/Documantation12/Universal-Vehicle-Script/main/Library.lua"))()
-local Venyx = VenyxLibrary.new("Universal Vehicle Script", 5013109572)
+local Venyx = VenyxLibrary.new("Universal Vehicle + Mining Script", 5013109572)
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 local Lighting = game:GetService("Lighting")
-local Camera = workspace.CurrentCamera
 
 local Theme = {
 	Background = Color3.fromRGB(61, 60, 124), 
@@ -21,236 +20,332 @@ for index, value in pairs(Theme) do
 	pcall(Venyx.setTheme, Venyx, index, value)
 end
 
--- ─────────────── Vehicle Functions (оригинал) ───────────────
+-- Сохранение дефолтного освещения
+local defaultAmbient = Lighting.Ambient
+local defaultColorBottom = Lighting.ColorShift_Bottom
+local defaultColorTop = Lighting.ColorShift_Top
+
 local function GetVehicleFromDescendant(Descendant)
-	return Descendant:FindFirstAncestor(LocalPlayer.Name .. "\'s Car") or
+	if not Descendant then return nil end
+	return
+		Descendant:FindFirstAncestor(LocalPlayer.Name .. "\'s Car") or
 		(Descendant:FindFirstAncestor("Body") and Descendant:FindFirstAncestor("Body").Parent) or
 		(Descendant:FindFirstAncestor("Misc") and Descendant:FindFirstAncestor("Misc").Parent) or
 		Descendant:FindFirstAncestorWhichIsA("Model")
 end
 
-local function TeleportVehicle(cf)
-	local char = LocalPlayer.Character
-	if not char then return end
-	local seat = char:FindFirstChildWhichIsA("Humanoid") and char.Humanoid.SeatPart
-	if not seat then return end
-	local veh = GetVehicleFromDescendant(seat)
-	if not veh then return end
-	
-	char.Parent = veh
-	pcall(function()
-		veh:SetPrimaryPartCFrame(cf)
-	end)
-end
-
--- ─────────────── Original Tabs ───────────────
 local vehiclePage = Venyx:addPage("Vehicle", 8356815386)
 
-local usage = vehiclePage:addSection("Usage")
-local keybindsActive = true
-usage:addToggle("Keybinds Active", true, function(v) keybindsActive = v end)
+local usageSection = vehiclePage:addSection("Usage")
+local velocityEnabled = true
+usageSection:addToggle("Keybinds Active", velocityEnabled, function(v) velocityEnabled = v end)
 
-local flightSec = vehiclePage:addSection("Flight")
+local flightSection = vehiclePage:addSection("Flight")
 local flightEnabled = false
 local flightSpeed = 1
-flightSec:addToggle("Enabled", false, function(v) flightEnabled = v end)
-flightSec:addSlider("Speed", 100, 0, 800, function(v) flightSpeed = v/100 end)
+flightSection:addToggle("Enabled", false, function(v) flightEnabled = v end)
+flightSection:addSlider("Speed", 100, 0, 800, function(v) flightSpeed = v / 100 end)
 
-local defaultCharParent
+local defaultCharacterParent
 RunService.Stepped:Connect(function()
-	if not flightEnabled then
-		if LocalPlayer.Character then
-			LocalPlayer.Character.Parent = defaultCharParent or workspace
-		end
-		return
+	local Character = LocalPlayer.Character
+	if not Character then return end
+
+	if flightEnabled then
+		local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
+		if not Humanoid or not Humanoid.SeatPart or not Humanoid.SeatPart:IsA("VehicleSeat") then return end
+
+		local SeatPart = Humanoid.SeatPart
+		local Vehicle = GetVehicleFromDescendant(SeatPart)
+		if not Vehicle or not Vehicle:IsA("Model") then return end
+
+		pcall(function()
+			Character.Parent = Vehicle
+			if not Vehicle.PrimaryPart then
+				Vehicle.PrimaryPart = SeatPart or Vehicle:FindFirstChildWhichIsA("BasePart")
+			end
+
+			local PrimaryPartCFrame = Vehicle:GetPrimaryPartCFrame()
+			local look = workspace.CurrentCamera.CFrame.LookVector
+
+			local moveX = (UserInputService:IsKeyDown(Enum.KeyCode.D) and flightSpeed or 0) - (UserInputService:IsKeyDown(Enum.KeyCode.A) and flightSpeed or 0)
+			local moveY = (UserInputService:IsKeyDown(Enum.KeyCode.E) and flightSpeed/2 or 0) - (UserInputService:IsKeyDown(Enum.KeyCode.Q) and flightSpeed/2 or 0)
+			local moveZ = (UserInputService:IsKeyDown(Enum.KeyCode.S) and flightSpeed or 0) - (UserInputService:IsKeyDown(Enum.KeyCode.W) and flightSpeed or 0)
+
+			Vehicle:SetPrimaryPartCFrame(CFrame.new(PrimaryPartCFrame.Position, PrimaryPartCFrame.Position + look) * CFrame.new(moveX, moveY, moveZ))
+			SeatPart.AssemblyLinearVelocity = Vector3.new(0,0,0)
+			SeatPart.AssemblyAngularVelocity = Vector3.new(0,0,0)
+		end)
+	else
+		Character.Parent = defaultCharacterParent or workspace
+		defaultCharacterParent = Character.Parent
 	end
-	
-	local char = LocalPlayer.Character
-	if not char then return end
-	local hum = char:FindFirstChildWhichIsA("Humanoid")
-	if not hum or not hum.SeatPart or not hum.SeatPart:IsA("VehicleSeat") then return end
-	
-	local veh = GetVehicleFromDescendant(hum.SeatPart)
-	if not veh or not veh:IsA("Model") then return end
-	
-	char.Parent = veh
-	if not veh.PrimaryPart then
-		veh.PrimaryPart = hum.SeatPart or veh:FindFirstChildWhichIsA("BasePart")
-	end
-	
-	local camLook = workspace.CurrentCamera.CFrame.LookVector
-	local move = Vector3.new(
-		(UserInputService:IsKeyDown(Enum.KeyCode.D) and flightSpeed or 0) - (UserInputService:IsKeyDown(Enum.KeyCode.A) and flightSpeed or 0),
-		(UserInputService:IsKeyDown(Enum.KeyCode.E) and flightSpeed/2 or 0) - (UserInputService:IsKeyDown(Enum.KeyCode.Q) and flightSpeed/2 or 0),
-		(UserInputService:IsKeyDown(Enum.KeyCode.S) and flightSpeed or 0) - (UserInputService:IsKeyDown(Enum.KeyCode.W) and flightSpeed or 0)
-	)
-	
-	veh:SetPrimaryPartCFrame(CFrame.new(veh:GetPrimaryPartCFrame().Position, veh:GetPrimaryPartCFrame().Position + camLook) * CFrame.new(move))
-	hum.SeatPart.AssemblyLinearVelocity = Vector3.zero
-	hum.SeatPart.AssemblyAngularVelocity = Vector3.zero
 end)
 
--- Acceleration / Deceleration / Stop (оставил как было, сократил для читаемости)
--- ... (вставь сюда свой оригинальный код Acceleration, Deceleration, Stop Vehicle, Springs)
+local speedSection = vehiclePage:addSection("Acceleration")
+local velocityMult = 0.025
+speedSection:addSlider("Multiplier (Thousandths)", 25, 0, 50, function(v) velocityMult = v / 1000 end)
 
--- ─────────────── New Tabs ───────────────
+local velocityEnabledKeyCode = Enum.KeyCode.W
+speedSection:addKeybind("Velocity Enabled", velocityEnabledKeyCode, function()
+	if not velocityEnabled then return end
+	while UserInputService:IsKeyDown(velocityEnabledKeyCode) do
+		task.wait()
+		local Character = LocalPlayer.Character
+		if not Character then continue end
+		local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
+		if not Humanoid or not Humanoid.SeatPart or not Humanoid.SeatPart:IsA("VehicleSeat") then continue end
 
-local visualsPage = Venyx:addPage("Visuals", 8356778308)
+		pcall(function()
+			Humanoid.SeatPart.AssemblyLinearVelocity *= Vector3.new(1 + velocityMult, 1, 1 + velocityMult)
+		end)
+	end
+end, function(v) velocityEnabledKeyCode = v.KeyCode end)
 
-local fbSec = visualsPage:addSection("Lighting")
-local fbEnabled = true
-local function doFullbright()
+local decelerateSection = vehiclePage:addSection("Deceleration")
+local qbEnabledKeyCode = Enum.KeyCode.S
+local velocityMult2 = 0.150
+decelerateSection:addSlider("Brake Force (Thousandths)", 150, 0, 300, function(v) velocityMult2 = v / 1000 end)
+
+decelerateSection:addKeybind("Quick Brake Enabled", qbEnabledKeyCode, function()
+	if not velocityEnabled then return end
+	while UserInputService:IsKeyDown(qbEnabledKeyCode) do
+		task.wait()
+		local Character = LocalPlayer.Character
+		if not Character then continue end
+		local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
+		if not Humanoid or not Humanoid.SeatPart or not Humanoid.SeatPart:IsA("VehicleSeat") then continue end
+
+		pcall(function()
+			Humanoid.SeatPart.AssemblyLinearVelocity *= Vector3.new(1 - velocityMult2, 1, 1 - velocityMult2)
+		end)
+	end
+end, function(v) qbEnabledKeyCode = v.KeyCode end)
+
+decelerateSection:addKeybind("Stop the Vehicle", Enum.KeyCode.P, function()
+	if not velocityEnabled then return end
+	local Character = LocalPlayer.Character
+	if not Character then return end
+	local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
+	if not Humanoid or not Humanoid.SeatPart or not Humanoid.SeatPart:IsA("VehicleSeat") then return end
+
+	pcall(function()
+		Humanoid.SeatPart.AssemblyLinearVelocity = Vector3.new(0,0,0)
+		Humanoid.SeatPart.AssemblyAngularVelocity = Vector3.new(0,0,0)
+	end)
+end)
+
+local springSection = vehiclePage:addSection("Springs")
+springSection:addToggle("Visible", false, function(v)
+	local Character = LocalPlayer.Character
+	if not Character then return end
+	local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
+	if not Humanoid or not Humanoid.SeatPart then return end
+
+	local Vehicle = GetVehicleFromDescendant(Humanoid.SeatPart)
+	if not Vehicle then return end
+
+	for _, SpringConstraint in pairs(Vehicle:GetDescendants()) do
+		if SpringConstraint:IsA("SpringConstraint") then
+			SpringConstraint.Visible = v
+		end
+	end
+end)
+
+local fuelSection = vehiclePage:addSection("Fuel")
+local infFuelEnabled = false
+fuelSection:addToggle("Infinite Fuel", false, function(v) infFuelEnabled = v end)
+
+RunService.Heartbeat:Connect(function()
+	if not infFuelEnabled then return end
+	local veh = GetVehicleFromDescendant(LocalPlayer.Character and LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid") and LocalPlayer.Character.Humanoid.SeatPart)
+	if not veh then return end
+
+	for _, value in pairs(veh:GetDescendants()) do
+		if (value:IsA("NumberValue") or value:IsA("IntValue")) then
+			local name = value.Name:lower()
+			if name:find("fuel") or name:find("gas") or name:find("energy") or name:find("battery") then
+				value.Value = math.huge
+			end
+		end
+	end
+end)
+
+-- Visuals Page
+local visualsPage = Venyx:addPage("Visuals")
+
+local fbSection = visualsPage:addSection("Lighting")
+local fbEnabled = false
+
+local function dofullbright()
 	Lighting.Ambient = Color3.new(1,1,1)
 	Lighting.ColorShift_Bottom = Color3.new(1,1,1)
 	Lighting.ColorShift_Top = Color3.new(1,1,1)
 end
-fbSec:addToggle("Fullbright", true, function(v)
+
+local function resetLighting()
+	Lighting.Ambient = defaultAmbient
+	Lighting.ColorShift_Bottom = defaultColorBottom
+	Lighting.ColorShift_Top = defaultColorTop
+end
+
+fbSection:addToggle("Fullbright", false, function(v)
 	fbEnabled = v
-	if v then doFullbright() end
-end)
-Lighting.LightingChanged:Connect(function()
-	if fbEnabled then doFullbright() end
+	if v then
+		dofullbright()
+	else
+		resetLighting()
+	end
 end)
 
-local espSec = visualsPage:addSection("ESP")
+Lighting:GetPropertyChangedSignal("Ambient"):Connect(function()
+	if fbEnabled then dofullbright() end
+end)
+
 local oreEspEnabled = false
-local playerEspEnabled = false
-
-espSec:addToggle("Ore ESP (Highlight)", false, function(v)
+visualsPage:addSection("ESP"):addToggle("Ore ESP (1 на тип)", false, function(v)
 	oreEspEnabled = v
-end)
-
-espSec:addToggle("Player ESP (Boxes)", false, function(v)
-	playerEspEnabled = v
-end)
-
--- Простой ESP loop
-RunService.RenderStepped:Connect(function()
-	for _, obj in pairs(workspace:GetDescendants()) do
-		if oreEspEnabled and obj:IsA("BasePart") and (obj.Name:lower():find("ore") or obj.Name:lower():find("rock") or obj.Name:lower():find("resource")) then
-			if not obj:FindFirstChild("OreHighlight") then
-				local hl = Instance.new("Highlight")
-				hl.Name = "OreHighlight"
-				hl.FillColor = Color3.fromRGB(255, 215, 0)
-				hl.OutlineColor = Color3.fromRGB(255, 255, 0)
-				hl.Parent = obj
-			end
-		elseif not oreEspEnabled and obj:FindFirstChild("OreHighlight") then
-			obj.OreHighlight:Destroy()
+	if not v then
+		for _, obj in pairs(workspace:GetDescendants()) do
+			if obj:FindFirstChild("OreHighlight") then obj.OreHighlight:Destroy() end
+			if obj:FindFirstChild("OreLabel") then obj.OreLabel:Destroy() end
 		end
-	end
-	
-	-- Player ESP (очень базовый)
-	for _, plr in pairs(Players:GetPlayers()) do
-		if plr ~= LocalPlayer and plr.Character and playerEspEnabled then
-			local root = plr.Character:FindFirstChild("HumanoidRootPart")
-			if root and not root:FindFirstChild("PlayerESP") then
-				local box = Instance.new("BoxHandleAdornment")
-				box.Name = "PlayerESP"
-				box.Adornee = root
-				box.Size = Vector3.new(4,6,4)
-				box.Color3 = Color3.fromRGB(255,0,0)
-				box.Transparency = 0.7
-				box.AlwaysOnTop = true
-				box.ZIndex = 10
-				box.Parent = root
-				
-				local name = Instance.new("BillboardGui", root)
-				name.Name = "NameESP"
-				name.Size = UDim2.new(0,100,0,30)
-				name.AlwaysOnTop = true
-				name.StudsOffset = Vector3.new(0,4,0)
-				local txt = Instance.new("TextLabel", name)
-				txt.Size = UDim2.new(1,0,1,0)
-				txt.BackgroundTransparency = 1
-				txt.Text = plr.Name
-				txt.TextColor3 = Color3.new(1,1,1)
-				txt.TextScaled = true
-			end
-		elseif not playerEspEnabled then
-			if plr.Character then
-				local root = plr.Character:FindFirstChild("HumanoidRootPart")
-				if root then
-					if root:FindFirstChild("PlayerESP") then root.PlayerESP:Destroy() end
-					if root:FindFirstChild("NameESP") then root.NameESP:Destroy() end
-				end
-			end
-		end
+		seenOreTypes = {}
 	end
 end)
 
-local miningPage = Venyx:addPage("Mining", 8357222903)
+-- Оптимизированный ESP: одна метка на уникальное имя руды
+local seenOreTypes = {}
 
-local helpers = miningPage:addSection("Helpers")
-local infFuel = false
-helpers:addToggle("Infinite Fuel", false, function(v) infFuel = v end)
-
-local fasterMine = false
-helpers:addToggle("Faster Mining", false, function(v) fasterMine = v end)
-
-local autoSell = false
-helpers:addToggle("Auto Sell Ore (try)", false, function(v) autoSell = v end)
+local ESP_UPDATE_INTERVAL = 3
+local lastCheck = 0
 
 RunService.Heartbeat:Connect(function()
-	if infFuel then
-		-- Пример: ищи NumberValue "Fuel" в машине
-		local veh = GetVehicleFromDescendant(LocalPlayer.Character and LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid") and LocalPlayer.Character.Humanoid.SeatPart)
-		if veh then
-			for _, v in pairs(veh:GetDescendants()) do
-				if v:IsA("NumberValue") and (v.Name:lower():find("fuel") or v.Name:lower():find("gas")) then
-					v.Value = math.huge
-				end
-			end
+	if not oreEspEnabled then return end
+	if tick() - lastCheck < ESP_UPDATE_INTERVAL then return end
+	lastCheck = tick()
+
+	for _, obj in pairs(workspace:GetDescendants()) do
+		local nameLower = obj.Name:lower()
+		if (obj:IsA("BasePart") or obj:IsA("MeshPart")) and
+		   (nameLower:find("ore") or nameLower:find("rock") or nameLower:find("resource") or nameLower:find("mineral")) and
+		   not seenOreTypes[obj.Name] and
+		   not obj:FindFirstChild("OreHighlight") then
+
+			seenOreTypes[obj.Name] = true
+
+			local hl = Instance.new("Highlight")
+			hl.Name = "OreHighlight"
+			hl.FillColor = Color3.fromRGB(255,215,0)
+			hl.OutlineColor = Color3.fromRGB(255,255,0)
+			hl.FillTransparency = 0.6
+			hl.Parent = obj
+
+			local bb = Instance.new("BillboardGui")
+			bb.Name = "OreLabel"
+			bb.AlwaysOnTop = true
+			bb.Size = UDim2.new(0, 160, 0, 40)
+			bb.StudsOffset = Vector3.new(0, 5, 0)
+			bb.Parent = obj
+
+			local frame = Instance.new("Frame", bb)
+			frame.Size = UDim2.new(1,0,1,0)
+			frame.BackgroundColor3 = Color3.new(0,0,0)
+			frame.BackgroundTransparency = 0.65
+			frame.BorderSizePixel = 0
+
+			local txt = Instance.new("TextLabel", frame)
+			txt.Size = UDim2.new(1, -10, 1, -4)
+			txt.Position = UDim2.new(0,5,0,2)
+			txt.BackgroundTransparency = 1
+			txt.Text = obj.Name
+			txt.TextColor3 = Color3.fromRGB(255,255,100)
+			txt.TextScaled = true
+			txt.Font = Enum.Font.GothamBold
+			txt.TextStrokeTransparency = 0.4
+			txt.TextStrokeColor3 = Color3.new(0,0,0)
 		end
 	end
-	
-	if fasterMine then
-		-- Пример: если в инструменте/машине есть "MiningSpeed"
-		-- доработай под реальные свойства
-	end
-	
-	if autoSell then
-		-- Ищи RemoteEvent на продажу (часто в ReplicatedStorage.Remotes)
-		-- Пример: game.ReplicatedStorage.Remotes.SellOre:FireServer()
-		-- пока заглушка — добавь реальный путь
-	end
-end)
 
-local vehicleExtra = Venyx:addPage("Vehicle Extra")
-
-local extraSec = vehicleExtra:addSection("Tweaks")
-local noFlip = false
-extraSec:addToggle("No Flip / Always Stable", false, function(v)
-	noFlip = v
-end)
-
-RunService.Stepped:Connect(function()
-	if noFlip then
-		local veh = -- получи машину как выше
-		if veh and veh.PrimaryPart then
-			local cf = veh.PrimaryPart.CFrame
-			veh.PrimaryPart.CFrame = CFrame.new(cf.Position) * CFrame.Angles(0, cf:ToEulerAnglesXYZ())
-			-- или используй AlignOrientation / другие constraints
+	for name, _ in pairs(seenOreTypes) do
+		local found = false
+		for _, obj in pairs(workspace:GetDescendants()) do
+			if obj.Name == name then found = true break end
 		end
+		if not found then seenOreTypes[name] = nil end
 	end
 end)
 
--- ─────────────── Information + Hide Button ───────────────
+-- Information Page
 local infoPage = Venyx:addPage("Information", 8356778308)
+local discordSection = infoPage:addSection("Discord")
+discordSection:addButton("Copy Discord Link", function()
+	setclipboard("https://discord.com/invite/ENHYznSPmM")
+end)
 
-local miscSec = infoPage:addSection("Misc")
-miscSec:addButton("Hide Menu", function()
+-- Перетаскиваемая кнопка (мобильная)
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ToggleButtonGui"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 60, 0, 60)
+toggleButton.Position = UDim2.new(1, -80, 1, -80)
+toggleButton.Text = "M"
+toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+toggleButton.BackgroundTransparency = 0.6
+toggleButton.TextColor3 = Color3.fromRGB(220, 220, 220)
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextSize = 28
+toggleButton.BorderSizePixel = 0
+toggleButton.Parent = screenGui
+
+-- Drag logic (ПК + мобильный)
+local dragging, dragInput, dragStart, startPos
+
+local function updateDrag(input)
+	local delta = input.Position - dragStart
+	toggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end
+
+toggleButton.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = toggleButton.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+toggleButton.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		updateDrag(input)
+	end
+end)
+
+toggleButton.MouseButton1Click:Connect(function()
 	Venyx:toggle()
 end)
 
--- Discord (оставил как было)
-
--- ─────────────── GUI Toggle Keys ───────────────
-UserInputService.InputBegan:Connect(function(input, gpe)
-	if gpe then return end
-	if input.KeyCode == Enum.KeyCode.RightBracket or input.KeyCode == Enum.KeyCode.LeftAlt then
+-- Toggle on Left Alt
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if gameProcessed then return end
+	if input.KeyCode == Enum.KeyCode.LeftAlt then
 		Venyx:toggle()
 	end
 end)
 
-print("Universal Vehicle Script + Mining features loaded for Chacalot's Mining Sim")
+-- GUI открывается и остаётся открытым
+Venyx:toggle()
