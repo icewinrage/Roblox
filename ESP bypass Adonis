@@ -1,0 +1,46 @@
+--// Esp \\--
+
+local esp1 = loadstring(game:HttpGet("https://raw.githubusercontent.com/VaxKs/gfe/main/Esp.lua"))()
+
+getgenv().ESP = {
+    Main = {
+        Enabled = false,
+        Name = {
+            Enabled = false,
+            Color = Color3.fromRGB(255, 255, 255),
+        },
+        Box = {
+            Enabled = false,
+            BoxColor = Color3.fromRGB(75, 175, 175),
+            BoxFillColor = Color3.fromRGB(100, 75, 175),
+        },
+        HealthBar = {
+            Enabled = false,
+            Number = false,
+            HighHealthColor = Color3.fromRGB(0, 255, 0),
+            LowHealthColor = Color3.fromRGB(255, 0, 0),
+        },
+        Tool = {
+            Enabled = false,
+            Color = Color3.fromRGB(255, 255, 255),
+        },
+        Distance = {
+            Enabled = false,
+            Color = Color3.fromRGB(255, 255, 255),
+        },
+        Chams = false,
+        AutomaticColor = false,
+        Type = "AlwaysOnTop", --// "AlwaysOnTop", "Occluded"
+    },
+    Checks = {
+        WallCheck = false,
+        VisibleCheck = false,
+        ForceField = false,
+        AliveCheck = false,
+    },
+    Extra = {
+        UseDisplayName = false,
+        EspFadeOut = 400,
+        PriorityOnly = false,
+    }
+}
