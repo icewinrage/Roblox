@@ -1,0 +1,267 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("Gunfight Arena Ultimate", "DarkTheme")
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local Camera = Workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+repeat task.wait() until LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+local Settings = {
+    InfiniteAmmo = false,
+    Aimbot = { Enabled = false, TeamCheck = true, FOV = 180, TargetPart = "Head", Smoothness = 5, Keybind = "E" },
+    ESP = { Enabled = false, TeamCheck = true, Boxes = false, Tracers = false, Names = false, Distance = false, Health = false, MaxDistance = 5000, Color = Color3.new(1,0,0) },
+    Misc = { Walkspeed = 16, JumpPower = 50, ThirdPerson = false, AntiAFK = false }
+}
+
+local function IsEnemy(player)
+    if player == LocalPlayer then return false end
+    if not player.Character then return false end
+    if LocalPlayer.Team and player.Team then return LocalPlayer.Team ~= player.Team end
+    local localRoot = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local targetRoot = player.Character:FindFirstChild("HumanoidRootPart")
+    if localRoot and targetRoot then return localRoot.BrickColor ~= targetRoot.BrickColor end
+    return true
+end
+
+local function IsVisible(part)
+    if not part then return false end
+    local ray = Ray.new(Camera.CFrame.Position, (part.Position - Camera.CFrame.Position).Unit * 1000)
+    local hit, _ = Workspace:FindPartOnRayWithIgnoreList(ray, {LocalPlayer.Character})
+    return hit == nil or hit:IsDescendantOf(part.Parent)
+end
+
+-- Infinite Ammo (самая актуальная версия на февраль 2026)
+pcall(function()
+    local vortex = LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("Vortex", 10)
+    if not vortex then warn("[Inf Ammo] Vortex не найден") return end
+
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.Health = 0
+    end
+
+    local oldIndex
+    oldIndex = hookmetamethod(game, "__index", function(self, key)
+        if self and tostring(self) == "StoredAmmo" and key == "Value" then
+            return 999999999999
+        end
+        return oldIndex(self, key)
+    end)
+
+    RunService.RenderStepped:Connect(function()
+        if Settings.InfiniteAmmo and vortex.Enabled then
+            local env = getsenv(vortex)
+            if env and env.Restock then pcall(env.Restock) end
+        end
+    end)
+
+    print("[Infinite Ammo] Загружен (StoredAmmo hook + Restock)")
+end)
+
+local MainTab = Window:NewTab("Main")
+local AimTab = Window:NewTab("Aimbot")
+local VisualsTab = Window:NewTab("Visuals")
+local MiscTab = Window:NewTab("Misc")
+
+local MainSection = MainTab:NewSection("Weapon")
+MainSection:NewToggle("Infinite Ammo", "Never reload", function(v) Settings.InfiniteAmmo = v end)
+
+local AimSection = AimTab:NewSection("Aimbot")
+AimSection:NewToggle("Aimbot", "Enable aimbot", function(v) Settings.Aimbot.Enabled = v end)
+AimSection:NewToggle("Team Check", "Don't target teammates", function(v) Settings.Aimbot.TeamCheck = v end)
+AimSection:NewSlider("FOV", "Aimbot range", 360, 10, function(v) Settings.Aimbot.FOV = v end, 180)
+AimSection:NewDropdown("Target Part", "Body part", {"Head", "Torso", "HumanoidRootPart"}, function(v) Settings.Aimbot.TargetPart = v end)
+AimSection:NewSlider("Smoothness", "Smoothness (1-20)", 20, 1, function(v) Settings.Aimbot.Smoothness = v end, 5)
+AimSection:NewKeybind("Aimbot Key", "Hold to aim", Enum.KeyCode.E, function(k) Settings.Aimbot.Keybind = k.Name end)
+
+local VisualsSection = VisualsTab:NewSection("ESP")
+VisualsSection:NewToggle("ESP", "Enable ESP", function(v) Settings.ESP.Enabled = v end)
+VisualsSection:NewToggle("Team Check", "Don't show teammates", function(v) Settings.ESP.TeamCheck = v end)
+VisualsSection:NewToggle("Boxes", "Draw boxes", function(v) Settings.ESP.Boxes = v end)
+VisualsSection:NewToggle("Tracers", "Draw lines", function(v) Settings.ESP.Tracers = v end)
+VisualsSection:NewToggle("Names", "Show names", function(v) Settings.ESP.Names = v end)
+VisualsSection:NewToggle("Distance", "Show distance", function(v) Settings.ESP.Distance = v end)
+VisualsSection:NewToggle("Health", "Show health", function(v) Settings.ESP.Health = v end)
+VisualsSection:NewSlider("Max Distance", "Max ESP distance", 10000, 100, function(v) Settings.ESP.MaxDistance = v end, 5000)
+
+local MiscSection = MiscTab:NewSection("Movement")
+MiscSection:NewSlider("Walkspeed", "Player speed", 120, 16, function(v)
+    Settings.Misc.Walkspeed = v
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = v
+    end
+end, 16)
+
+MiscSection:NewSlider("Jump Power", "Jump height", 200, 50, function(v)
+    Settings.Misc.JumpPower = v
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.JumpPower = v
+    end
+end, 50)
+
+MiscSection:NewToggle("Third Person", "Third person view", function(v) Settings.Misc.ThirdPerson = v end)
+MiscSection:NewToggle("Anti AFK", "Prevent AFK kick", function(v) Settings.Misc.AntiAFK = v end)
+
+local function GetClosestTarget()
+    local closest, shortestDist = nil, Settings.Aimbot.FOV
+    local center = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local root = player.Character.HumanoidRootPart
+            if not (Settings.Aimbot.TeamCheck and not IsEnemy(player)) then
+                local targetPart = player.Character:FindFirstChild(Settings.Aimbot.TargetPart) or root
+                if targetPart then
+                    local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+                    if onScreen then
+                        local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude
+                        if dist < shortestDist then
+                            shortestDist = dist
+                            closest = player
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+RunService.RenderStepped:Connect(function()
+    if Settings.Aimbot.Enabled and UserInputService:IsKeyDown(Enum.KeyCode[Settings.Aimbot.Keybind]) then
+        local target = GetClosestTarget()
+        if target and target.Character then
+            local part = target.Character:FindFirstChild(Settings.Aimbot.TargetPart) or target.Character:FindFirstChild("HumanoidRootPart")
+            if part then
+                local pos = Camera:WorldToViewportPoint(part.Position)
+                local current = Vector2.new(Mouse.X, Mouse.Y)
+                local targetPos = Vector2.new(pos.X, pos.Y)
+                local newPos = current:Lerp(targetPos, 1 / Settings.Aimbot.Smoothness)
+                mousemoverel((newPos - current).X, (newPos - current).Y)
+            end
+        end
+    end
+end)
+
+local ESPDrawings = {}
+local function ClearESP()
+    for _, d in pairs(ESPDrawings) do pcall(d.Remove, d) end
+    ESPDrawings = {}
+end
+
+RunService.RenderStepped:Connect(function()
+    ClearESP()
+    if not Settings.ESP.Enabled then return end
+    local localRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not localRoot then return end
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and
+           player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+            local root = player.Character.HumanoidRootPart
+            local hum = player.Character.Humanoid
+            if not (Settings.ESP.TeamCheck and not IsEnemy(player)) then
+                local dist = (localRoot.Position - root.Position).Magnitude
+                if dist <= Settings.ESP.MaxDistance then
+                    local pos, onScreen = Camera:WorldToViewportPoint(root.Position)
+                    if onScreen then
+                        local screenPos = Vector2.new(pos.X, pos.Y)
+                        local color = Settings.ESP.Color
+                        if Settings.ESP.Tracers then
+                            local t = Drawing.new("Line")
+                            t.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y)
+                            t.To = screenPos
+                            t.Color = color
+                            t.Thickness = 1
+                            t.Visible = true
+                            table.insert(ESPDrawings, t)
+                        end
+                        if Settings.ESP.Boxes then
+                            local b = Drawing.new("Square")
+                            b.Position = screenPos - Vector2.new(20,40)
+                            b.Size = Vector2.new(40,60)
+                            b.Color = color
+                            b.Thickness = 1
+                            b.Filled = false
+                            b.Visible = true
+                            table.insert(ESPDrawings, b)
+                        end
+                        local texts = {}
+                        if Settings.ESP.Names then table.insert(texts, player.Name) end
+                        if Settings.ESP.Distance then table.insert(texts, math.floor(dist).."m") end
+                        if Settings.ESP.Health then table.insert(texts, math.floor(hum.Health).."HP") end
+                        local offset = 0
+                        for _, txtStr in ipairs(texts) do
+                            local txt = Drawing.new("Text")
+                            txt.Text = txtStr
+                            txt.Color = color
+                            txt.Position = screenPos - Vector2.new(0, 30 + offset)
+                            txt.Size = 14
+                            txt.Center = true
+                            txt.Outline = true
+                            txt.Visible = true
+                            table.insert(ESPDrawings, txt)
+                            offset = offset + 18
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if Settings.Misc.ThirdPerson and LocalPlayer.Character then
+        local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if root then
+            Camera.CFrame = CFrame.new(root.Position - (Camera.CFrame.LookVector * 8))
+        end
+    end
+end)
+
+if Settings.Misc.AntiAFK then
+    local vu = game:GetService("VirtualUser")
+    LocalPlayer.Idled:Connect(function()
+        vu:Button2Down(Vector2.new(), Camera.CFrame)
+        task.wait(1)
+        vu:Button2Up(Vector2.new())
+    end)
+end
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    repeat task.wait() until char:FindFirstChild("Humanoid")
+    char.Humanoid.WalkSpeed = Settings.Misc.Walkspeed
+    char.Humanoid.JumpPower = Settings.Misc.JumpPower
+end)
+
+local guiContainer
+local function FindKavoGui()
+    for _, v in ipairs(game:GetService("CoreGui"):GetChildren()) do
+        if v:IsA("ScreenGui") and v.Name == "KavoUI" then return v end
+    end
+    for _, v in ipairs(LocalPlayer.PlayerGui:GetChildren()) do
+        if v:IsA("ScreenGui") and v.Name == "KavoUI" then return v end
+    end
+end
+
+task.wait(1)
+guiContainer = FindKavoGui()
+
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.P then
+        if not guiContainer then guiContainer = FindKavoGui() end
+        if guiContainer then guiContainer.Enabled = not guiContainer.Enabled end
+    end
+end)
+
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Gunfight Arena Ultimate",
+    Text = "Loaded! Press P → menu",
+    Duration = 6
+})
+
+print("Gunfight Arena Ultimate загружен")
