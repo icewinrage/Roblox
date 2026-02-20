@@ -1,0 +1,557 @@
+--[[
+    Gunfight Arena Ultimate (Rayfield)
+    Автор: Data
+    Discord: https://discord.gg/TYDUFMGTyw
+    Фикс Infinite Ammo: Memory Write (урон работает!)
+]]
+
+-- Загружаем Rayfield
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Сервисы
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local Camera = Workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+-- Ждём загрузки персонажа
+repeat task.wait() until LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+-- =============================================
+-- НАСТРОЙКИ
+-- =============================================
+local Settings = {
+    InfiniteAmmo = false,
+    Aimbot = {
+        Enabled = false,
+        TeamCheck = true,
+        FOV = 180,
+        TargetPart = "Head",
+        Smoothness = 5
+    },
+    ESP = {
+        Enabled = false,
+        TeamCheck = true,
+        Boxes = false,
+        Tracers = false,
+        Names = false,
+        Distance = false,
+        Health = false,
+        MaxDistance = 5000,
+        Color = Color3.new(1, 0, 0)
+    },
+    Misc = {
+        Walkspeed = 16,
+        JumpPower = 50,
+        NoRecoil = false,
+        NoSpread = false,
+        AntiAFK = false,
+        AutoRespawn = false
+    }
+}
+
+-- =============================================
+-- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+-- =============================================
+
+-- Проверка врага (по команде или цвету)
+local function IsEnemy(player)
+    if player == LocalPlayer then return false end
+    if not player.Character then return false end
+    if LocalPlayer.Team and player.Team then
+        return LocalPlayer.Team ~= player.Team
+    end
+    local localRoot = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local targetRoot = player.Character:FindFirstChild("HumanoidRootPart")
+    if localRoot and targetRoot then
+        return localRoot.BrickColor ~= targetRoot.BrickColor
+    end
+    return true
+end
+
+-- Проверка видимости (raycast)
+local function IsVisible(part)
+    if not part then return false end
+    local ray = Ray.new(Camera.CFrame.Position, (part.Position - Camera.CFrame.Position).Unit * 1000)
+    local hit, _ = Workspace:FindPartOnRayWithIgnoreList(ray, {LocalPlayer.Character})
+    return hit == nil or hit:IsDescendantOf(part.Parent)
+end
+
+-- =============================================
+-- БЕСКОНЕЧНЫЕ ПАТРОНЫ (MEMORY WRITE)
+-- =============================================
+local ammoValue = nil
+
+-- Функция поиска значения патронов
+local function FindAmmoValue()
+    if LocalPlayer.Character then
+        for _, v in ipairs(LocalPlayer.Character:GetDescendants()) do
+            if (v:IsA("NumberValue") or v:IsA("IntValue")) and v.Name:lower():find("ammo") then
+                ammoValue = v
+                return
+            end
+        end
+    end
+end
+
+-- Поиск при старте и при смене персонажа
+FindAmmoValue()
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(1)
+    FindAmmoValue()
+end)
+
+-- Основной цикл восстановления патронов (каждый кадр)
+RunService.RenderStepped:Connect(function()
+    if Settings.InfiniteAmmo and ammoValue then
+        ammoValue.Value = 999
+    end
+end)
+
+if not ammoValue then
+    warn("Ammo value not found. Infinite Ammo may not work.")
+end
+
+-- =============================================
+-- AIMBOT
+-- =============================================
+local function GetClosestTarget()
+    local closest = nil
+    local shortestDist = Settings.Aimbot.FOV
+    local center = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local root = player.Character:FindFirstChild("HumanoidRootPart")
+            if not (Settings.Aimbot.TeamCheck and not IsEnemy(player)) then
+                local targetPart = player.Character:FindFirstChild(Settings.Aimbot.TargetPart) or root
+                if targetPart then
+                    local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+                    if onScreen then
+                        local dist = (Vector2.new(pos.X, pos.Y) - center).Magnitude
+                        if dist < shortestDist then
+                            shortestDist = dist
+                            closest = player
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return closest
+end
+
+RunService.RenderStepped:Connect(function()
+    if Settings.Aimbot.Enabled then
+        local target = GetClosestTarget()
+        if target and target.Character then
+            local targetPart = target.Character:FindFirstChild(Settings.Aimbot.TargetPart) or
+                               target.Character:FindFirstChild("HumanoidRootPart")
+            if targetPart then
+                local pos = Camera:WorldToViewportPoint(targetPart.Position)
+                local currentPos = Vector2.new(Mouse.X, Mouse.Y)
+                local targetPos = Vector2.new(pos.X, pos.Y)
+                local newPos = currentPos:Lerp(targetPos, 1 / Settings.Aimbot.Smoothness)
+                mousemoveabs(newPos.X, newPos.Y)
+            end
+        end
+    end
+end)
+
+-- =============================================
+-- ESP (через Drawing)
+-- =============================================
+local ESPDrawings = {}
+local function ClearESP()
+    for _, d in pairs(ESPDrawings) do
+        pcall(d.Remove, d)
+    end
+    ESPDrawings = {}
+end
+
+RunService.RenderStepped:Connect(function()
+    ClearESP()
+    if not Settings.ESP.Enabled then return end
+
+    local localRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not localRoot then return end
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and
+           player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+            local root = player.Character:FindFirstChild("HumanoidRootPart")
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            if not (Settings.ESP.TeamCheck and not IsEnemy(player)) then
+                local dist = (localRoot.Position - root.Position).Magnitude
+                if dist <= Settings.ESP.MaxDistance then
+                    local pos, onScreen = Camera:WorldToViewportPoint(root.Position)
+                    if onScreen then
+                        local screenPos = Vector2.new(pos.X, pos.Y)
+                        local color = Settings.ESP.Color
+
+                        if Settings.ESP.Tracers then
+                            local tracer = Drawing.new("Line")
+                            tracer.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                            tracer.To = screenPos
+                            tracer.Color = color
+                            tracer.Thickness = 1
+                            tracer.Visible = true
+                            table.insert(ESPDrawings, tracer)
+                        end
+
+                        if Settings.ESP.Boxes then
+                            local box = Drawing.new("Square")
+                            box.Position = screenPos - Vector2.new(20, 40)
+                            box.Size = Vector2.new(40, 60)
+                            box.Color = color
+                            box.Thickness = 1
+                            box.Filled = false
+                            box.Visible = true
+                            table.insert(ESPDrawings, box)
+                        end
+
+                        local textLines = {}
+                        if Settings.ESP.Names then table.insert(textLines, player.Name) end
+                        if Settings.ESP.Distance then table.insert(textLines, math.floor(dist) .. "m") end
+                        if Settings.ESP.Health then table.insert(textLines, math.floor(humanoid.Health) .. "HP") end
+
+                        local yOffset = 0
+                        for _, line in ipairs(textLines) do
+                            local txt = Drawing.new("Text")
+                            txt.Text = line
+                            txt.Color = color
+                            txt.Position = screenPos - Vector2.new(0, 30 + yOffset)
+                            txt.Size = 14
+                            txt.Center = true
+                            txt.Outline = true
+                            txt.Visible = true
+                            table.insert(ESPDrawings, txt)
+                            yOffset = yOffset + 18
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- =============================================
+-- MISC
+-- =============================================
+
+-- Применение скорости при респавне
+LocalPlayer.CharacterAdded:Connect(function(char)
+    repeat task.wait() until char:FindFirstChild("Humanoid")
+    local hum = char:FindFirstChild("Humanoid")
+    hum.WalkSpeed = Settings.Misc.Walkspeed
+    hum.JumpPower = Settings.Misc.JumpPower
+    FindAmmoValue()
+end)
+
+-- Auto Respawn
+if Settings.Misc.AutoRespawn then
+    LocalPlayer.Character:FindFirstChild("Humanoid").Died:Connect(function()
+        task.wait(1)
+        LocalPlayer:LoadCharacter()
+    end)
+end
+
+-- Anti AFK
+if Settings.Misc.AntiAFK then
+    local vu = game:GetService("VirtualUser")
+    LocalPlayer.Idled:Connect(function()
+        vu:Button2Down(Vector2.new(0,0), Camera.CFrame)
+        task.wait(1)
+        vu:Button2Up(Vector2.new(0,0))
+    end)
+end
+
+-- No Recoil / No Spread
+RunService.RenderStepped:Connect(function()
+    if (Settings.Misc.NoRecoil or Settings.Misc.NoSpread) and LocalPlayer.Character then
+        for _, v in ipairs(LocalPlayer.Character:GetDescendants()) do
+            if v:IsA("NumberValue") then
+                if Settings.Misc.NoRecoil and v.Name:lower():find("recoil") then
+                    v.Value = 0
+                end
+                if Settings.Misc.NoSpread and v.Name:lower():find("spread") then
+                    v.Value = 0
+                end
+            end
+        end
+    end
+end)
+
+-- =============================================
+-- СОЗДАНИЕ ИНТЕРФЕЙСА (RAYFIELD)
+-- =============================================
+local Window = Rayfield:CreateWindow({
+    Name = "Gunfight Arena Ultimate",
+    LoadingTitle = "Gunfight Arena Cheat",
+    LoadingSubtitle = "by Data",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "GunfightConfig",
+        FileName = "Settings"
+    },
+    Discord = {
+        Enabled = true,
+        Invite = "TYDUFMGTyw", -- твой инвайт-код
+        RememberJoins = true
+    },
+    KeySystem = false
+})
+
+-- Вкладка Main
+local MainTab = Window:CreateTab("Main", "rbxassetid://4483345998")
+local MainSection = MainTab:CreateSection("Weapon")
+
+MainSection:CreateToggle({
+    Name = "Infinite Ammo",
+    CurrentValue = false,
+    Flag = "InfiniteAmmo",
+    Callback = function(Value)
+        Settings.InfiniteAmmo = Value
+    end
+})
+
+-- Вкладка Aimbot
+local AimTab = Window:CreateTab("Aimbot", "rbxassetid://4483345998")
+local AimSection = AimTab:CreateSection("Aimbot Settings")
+
+AimSection:CreateToggle({
+    Name = "Aimbot",
+    CurrentValue = false,
+    Flag = "Aimbot",
+    Callback = function(Value)
+        Settings.Aimbot.Enabled = Value
+    end
+})
+
+AimSection:CreateToggle({
+    Name = "Team Check",
+    CurrentValue = true,
+    Flag = "TeamCheck",
+    Callback = function(Value)
+        Settings.Aimbot.TeamCheck = Value
+    end
+})
+
+AimSection:CreateSlider({
+    Name = "FOV",
+    Range = {10, 360},
+    Increment = 5,
+    Suffix = "degrees",
+    CurrentValue = 180,
+    Flag = "FOV",
+    Callback = function(Value)
+        Settings.Aimbot.FOV = Value
+    end
+})
+
+AimSection:CreateDropdown({
+    Name = "Target Part",
+    Options = {"Head", "Torso", "HumanoidRootPart"},
+    CurrentOption = "Head",
+    Flag = "TargetPart",
+    Callback = function(Option)
+        Settings.Aimbot.TargetPart = Option
+    end
+})
+
+AimSection:CreateSlider({
+    Name = "Smoothness",
+    Range = {1, 20},
+    Increment = 1,
+    Suffix = "x",
+    CurrentValue = 5,
+    Flag = "Smoothness",
+    Callback = function(Value)
+        Settings.Aimbot.Smoothness = Value
+    end
+})
+
+-- Вкладка Visuals
+local VisualsTab = Window:CreateTab("Visuals", "rbxassetid://4483345998")
+local VisualsSection = VisualsTab:CreateSection("ESP")
+
+VisualsSection:CreateToggle({
+    Name = "ESP",
+    CurrentValue = false,
+    Flag = "ESP",
+    Callback = function(Value)
+        Settings.ESP.Enabled = Value
+    end
+})
+
+VisualsSection:CreateToggle({
+    Name = "Team Check",
+    CurrentValue = true,
+    Flag = "ESPTeamCheck",
+    Callback = function(Value)
+        Settings.ESP.TeamCheck = Value
+    end
+})
+
+VisualsSection:CreateToggle({
+    Name = "Boxes",
+    CurrentValue = false,
+    Flag = "ESPBoxes",
+    Callback = function(Value)
+        Settings.ESP.Boxes = Value
+    end
+})
+
+VisualsSection:CreateToggle({
+    Name = "Tracers",
+    CurrentValue = false,
+    Flag = "ESPTracers",
+    Callback = function(Value)
+        Settings.ESP.Tracers = Value
+    end
+})
+
+VisualsSection:CreateToggle({
+    Name = "Names",
+    CurrentValue = false,
+    Flag = "ESPNames",
+    Callback = function(Value)
+        Settings.ESP.Names = Value
+    end
+})
+
+VisualsSection:CreateToggle({
+    Name = "Distance",
+    CurrentValue = false,
+    Flag = "ESPDistance",
+    Callback = function(Value)
+        Settings.ESP.Distance = Value
+    end
+})
+
+VisualsSection:CreateToggle({
+    Name = "Health",
+    CurrentValue = false,
+    Flag = "ESPHealth",
+    Callback = function(Value)
+        Settings.ESP.Health = Value
+    end
+})
+
+VisualsSection:CreateSlider({
+    Name = "Max Distance",
+    Range = {100, 10000},
+    Increment = 100,
+    Suffix = "studs",
+    CurrentValue = 5000,
+    Flag = "ESPMaxDistance",
+    Callback = function(Value)
+        Settings.ESP.MaxDistance = Value
+    end
+})
+
+-- Вкладка Misc
+local MiscTab = Window:CreateTab("Misc", "rbxassetid://4483345998")
+local MiscSection = MiscTab:CreateSection("Movement & Other")
+
+MiscSection:CreateSlider({
+    Name = "Walkspeed",
+    Range = {16, 120},
+    Increment = 1,
+    Suffix = "studs/s",
+    CurrentValue = 16,
+    Flag = "Walkspeed",
+    Callback = function(Value)
+        Settings.Misc.Walkspeed = Value
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.WalkSpeed = Value
+        end
+    end
+})
+
+MiscSection:CreateSlider({
+    Name = "Jump Power",
+    Range = {50, 200},
+    Increment = 5,
+    Suffix = "",
+    CurrentValue = 50,
+    Flag = "JumpPower",
+    Callback = function(Value)
+        Settings.Misc.JumpPower = Value
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid.JumpPower = Value
+        end
+    end
+})
+
+MiscSection:CreateToggle({
+    Name = "No Recoil",
+    CurrentValue = false,
+    Flag = "NoRecoil",
+    Callback = function(Value)
+        Settings.Misc.NoRecoil = Value
+    end
+})
+
+MiscSection:CreateToggle({
+    Name = "No Spread",
+    CurrentValue = false,
+    Flag = "NoSpread",
+    Callback = function(Value)
+        Settings.Misc.NoSpread = Value
+    end
+})
+
+MiscSection:CreateToggle({
+    Name = "Anti AFK",
+    CurrentValue = false,
+    Flag = "AntiAFK",
+    Callback = function(Value)
+        Settings.Misc.AntiAFK = Value
+    end
+})
+
+MiscSection:CreateToggle({
+    Name = "Auto Respawn",
+    CurrentValue = false,
+    Flag = "AutoRespawn",
+    Callback = function(Value)
+        Settings.Misc.AutoRespawn = Value
+    end
+})
+
+-- Вкладка Info
+local InfoTab = Window:CreateTab("Info", "rbxassetid://4483345998")
+local InfoSection = InfoTab:CreateSection("About")
+
+InfoSection:CreateLabel("Author: Data")
+InfoSection:CreateLabel("Discord: https://discord.gg/TYDUFMGTyw")
+InfoSection:CreateLabel("Press P to toggle menu")
+
+-- =============================================
+-- УПРАВЛЕНИЕ МЕНЮ (КЛАВИША P)
+-- =============================================
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Enum.KeyCode.P then
+        -- Rayfield обычно создает ScreenGui с именем "Rayfield"
+        local coreGui = game:GetService("CoreGui")
+        for _, v in ipairs(coreGui:GetChildren()) do
+            if v.Name == "Rayfield" then
+                v.Enabled = not v.Enabled
+            end
+        end
+    end
+end)
+
+-- Уведомление
+Rayfield:Notify({
+    Title = "Gunfight Arena",
+    Content = "Loaded! Press P for menu.",
+    Duration = 5
+})
+
+print("=== Gunfight Arena Ultimate (Rayfield) loaded ===")
