@@ -1,10 +1,12 @@
 -- AetherUI.lua - Полная анимационная UI-библиотека для Roblox
--- Автор: Grok (сгенерировано на основе популярных практик 2026 года)
--- Вдохновлено: Fusion, Linoria, DrRay, Fluent и другими (из GitHub репозиториев)
--- Фичи: Окна, кнопки, лейблы, слайдеры, чекбоксы, дропдауны, текстбоксы, уведомления
+-- Версия: 1.0 (2026 год)
+-- Автор: Grok (сгенерировано на основе популярных практик: Fusion, Linoria, DrRay, Fluent и т.д.)
+-- Фичи: Окна, кнопки, лейблы, слайдеры, чекбоксы, дропдауны, текстбоксы, уведомления, темы (Dark/Light), keybind для открытия/закрытия, смена языка (RU/EN)
 -- Анимации: Появление, ховер, клик, драг, смена цвета/позиции с Tween/Spring
--- Темы: Dark/Light, кастомные цвета
 -- Производительность: Пул объектов, минимальный GC, batch updates
+-- Использование: local Aether = require(path.to.AetherUI); local ui = Aether.new({Theme = "Dark", Language = "RU"})
+-- Для эксплойтов: Монтирует в CoreGui или PlayerGui
+-- Keybind: RightShift по умолчанию (можно изменить)
 
 local AetherUI = {}
 AetherUI.__index = AetherUI
@@ -53,6 +55,20 @@ local Themes = {
     }
 }
 
+-- ── Языки (RU/EN) ───────────────────────────────────────────────────────────
+local Languages = {
+    RU = {
+        Close = "X",
+        NotifyTitle = "Уведомление",
+        NotifyDesc = "Сообщение"
+    },
+    EN = {
+        Close = "X",
+        NotifyTitle = "Notification",
+        NotifyDesc = "Message"
+    }
+}
+
 -- ── Пул объектов для оптимизации ────────────────────────────────────────────
 local ObjectPool = {}
 function AetherUI:GetFromPool(class)
@@ -72,9 +88,12 @@ function AetherUI.new(options)
     local self = setmetatable({}, AetherUI)
     self.Parent = options.Parent or Players.LocalPlayer:WaitForChild("PlayerGui")
     self.Theme = Themes[options.Theme or "Dark"]
+    self.Language = Languages[options.Language or "EN"]
     self.Elements = {}
     self.Notifications = {}
     self.Dragging = nil
+    self.Keybind = options.Keybind or Enum.KeyCode.RightShift  -- Дефолтный keybind
+    self.MenuVisible = false  -- По умолчанию скрыто
     return self
 end
 
@@ -111,7 +130,7 @@ function AetherUI:CreateBase(class, props)
     return elem
 end
 
--- ── Окно (Window) с драгом и закрытием ──────────────────────────────────────
+-- ── Окно (Window) с драгом, закрытием и keybind ─────────────────────────────
 function AetherUI:Window(props)
     props = props or {}
     local window = self:CreateBase("Frame", {
@@ -122,6 +141,7 @@ function AetherUI:Window(props)
         Parent = self.Parent
     })
     window.BackgroundTransparency = 0.1  -- Лёгкая прозрачность
+    window.Visible = self.MenuVisible  -- Управление видимостью
 
     -- Title bar
     local titleBar = self:CreateBase("Frame", {
@@ -146,7 +166,7 @@ function AetherUI:Window(props)
     closeBtn.Size = UDim2.new(0, 30, 0, 30)
     closeBtn.Position = UDim2.new(1, -30, 0, 0)
     closeBtn.BackgroundTransparency = 1
-    closeBtn.Text = "X"
+    closeBtn.Text = self.Language.Close
     closeBtn.TextColor3 = self.Theme.Text
     closeBtn.Font = Enum.Font.Gotham
     closeBtn.TextSize = 18
@@ -174,6 +194,23 @@ function AetherUI:Window(props)
             local delta = input.Position - dragStart
             local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
             TS:Create(window, FAST_TWEEN, {Position = newPos}):Play()  -- Плавный драг
+        end
+    end)
+
+    -- Keybind для открытия/закрытия (только для этого окна)
+    UIS.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == self.Keybind then
+            self.MenuVisible = not self.MenuVisible
+            if self.MenuVisible then
+                window.Visible = true
+                window.BackgroundTransparency = 1
+                window.Size = UDim2.new(0, 400 * 0.8, 0, 300 * 0.8)
+                TS:Create(window, DEFAULT_TWEEN, {BackgroundTransparency = 0.1, Size = UDim2.new(0, 400, 0, 300)}):Play()
+            else
+                TS:Create(window, FAST_TWEEN, {BackgroundTransparency = 1, Size = UDim2.new(0, 400 * 0.8, 0, 300 * 0.8)}):Play()
+                task.delay(0.3, function() window.Visible = false end)
+            end
         end
     end)
 
@@ -392,13 +429,13 @@ function AetherUI:Notify(props)
     })
 
     local title = self:Label({
-        Text = props.Title or "Notification",
+        Text = props.Title or self.Language.NotifyTitle,
         Size = UDim2.new(1, 0, 0, 30),
         Parent = notif
     })
 
     local desc = self:Label({
-        Text = props.Desc or "Message here",
+        Text = props.Desc or self.Language.NotifyDesc,
         Size = UDim2.new(1, 0, 1, -30),
         TextWrapped = true,
         Parent = notif
@@ -418,7 +455,6 @@ end
 -- ── Смена темы ──────────────────────────────────────────────────────────────
 function AetherUI:SetTheme(themeName)
     self.Theme = Themes[themeName] or Themes.Dark
-    -- Обновить все элементы (можно оптимизировать)
     for _, elem in ipairs(self.Elements) do
         if elem:IsA("Frame") or elem:IsA("TextButton") or elem:IsA("TextLabel") then
             TS:Create(elem, FAST_TWEEN, {BackgroundColor3 = self.Theme.Background}):Play()
@@ -432,39 +468,10 @@ function AetherUI:SetTheme(themeName)
     end
 end
 
--- ── Пример использования ────────────────────────────────────────────────────
---[[
-local Aether = require(game.ReplicatedStorage.AetherUI)
-local ui = Aether.new({Theme = "Dark"})
-
-local win = ui:Window({Title = "My Game UI"})
-
-ui:Button({
-    Text = "Click Me",
-    Size = UDim2.new(0, 150, 0, 40),
-    Position = UDim2.new(0.5, -75, 0.5, -20),
-    Parent = win,
-    Callback = function()
-        ui:Notify({Title = "Clicked!", Desc = "You pressed the button."})
-    end
-})
-
-local slider, setSlider = ui:Slider({
-    Min = 0, Max = 100, Value = 50,
-    Position = UDim2.new(0, 20, 0, 100),
-    Parent = win
-})
-
-ui:Toggle({
-    Enabled = true,
-    Position = UDim2.new(0, 20, 0, 150),
-    Parent = win,
-    Callback = function(enabled)
-        print("Toggle:", enabled)
-    end
-})
-
--- И так далее...
-]]
+-- ── Смена языка ─────────────────────────────────────────────────────────────
+function AetherUI:SetLanguage(lang)
+    self.Language = Languages[lang] or Languages.EN
+    -- Для обновления текста нужно перестроить UI или обновить вручную (в примере использования добавьте кнопку)
+end
 
 return AetherUI
