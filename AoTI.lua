@@ -10,7 +10,6 @@ local Window = Rayfield:CreateWindow({
 
 local MainTab = Window:CreateTab("Main", 4483362458)
 
--- ==================== РЕМОТЫ ====================
 local Remotes = game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
 local CastFish          = Remotes:WaitForChild("CastFish")
 local StartTraining     = Remotes:WaitForChild("StartTraining")
@@ -19,14 +18,12 @@ local BuyUpgrade        = Remotes:WaitForChild("BuyUpgrade")
 local ClaimDailyReward  = Remotes:WaitForChild("ClaimDailyReward")
 local Rebirth           = Remotes:WaitForChild("Rebirth")
 
--- ==================== ФЛАГИ ====================
 local autoScouting = false
 local autoTraining = false
 local autoClick    = false
 local autoUpgrade  = false
 local spamDelay    = 0.05
 
--- ==================== ЕДИНЫЙ ЦИКЛ (0 ЛАГОВ) ====================
 task.spawn(function()
     while true do
         local fired = false
@@ -49,9 +46,9 @@ task.spawn(function()
         end
         
         if fired then
-            task.wait(spamDelay)      -- скорость для всех авто-фармов
+            task.wait(spamDelay)      
         else
-            task.wait(0.1)            -- спим когда всё выключено
+            task.wait(0.1)          
         end
     end
 end)
@@ -66,7 +63,7 @@ MainTab:CreateToggle({
 })
 
 MainTab:CreateToggle({
-    Name = "🏋️ Auto Training (StartTraining) — для Soldier & Mage",
+    Name = "🏋️ Auto Training",
     CurrentValue = false,
     Callback = function(Value) autoTraining = Value end,
 })
@@ -124,7 +121,6 @@ MainTab:CreateButton({
     end,
 })
 
--- ==================== ГОТОВО ====================
 Rayfield:Notify({
     Title = "Loaded ✓",
     Content = "Join discord server!",
