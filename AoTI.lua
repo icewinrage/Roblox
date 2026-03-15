@@ -1,1 +1,133 @@
-local a=loadstring;local b=game:GetService;local c=b("Players").LocalPlayer;local d=b("ReplicatedStorage"):WaitForChild("Remotes");local e={}for f,g in next,{CastFish="d7f3a",StartTraining="e8b4c",ClickAttack="f9c5d",BuyUpgrade="g0d6e",ClaimDailyReward="h1e7f",Rebirth="i2f8g"}do e[f]=d:WaitForChild(g)end;local h=function(i,j)return i[j]end;local k=false;local l=false;local m=false;local n=false;local o=0.05;local p=task.spawn;local q=task.wait;p(function()while true do local r=false;if k then pcall(function()h(e,"CastFish"):FireServer()end)r=true end;if l then pcall(function()h(e,"StartTraining"):FireServer()end)r=true end;if m then pcall(function()h(e,"ClickAttack"):FireServer()end)r=true end;if n then pcall(function()h(e,"BuyUpgrade"):FireServer()end)r=true end;if r then q(o)else q(0.1)end end end);local s=loadstring(game:HttpGet('https://sirius.menu/rayfield'))();local t=s:CreateWindow({Name=((function()local u,v="Attack On Titans Incremental","";for w=1,#u do local x=u:sub(w,w);v=v..(x==x and x or"")end;return v end)()),LoadingTitle=((function()local y,z="Loading...","";for A=1,#y do local B=y:sub(A,A);z=z..(B==B and B or"")end;return z end)()),LoadingSubtitle=((function()local C,D="by Data","";for E=1,#C do local F=C:sub(E,E);D=D..(F==F and F or"")end;return D end)()),ConfigurationSaving=false,KeySystem=false});local G=t:CreateTab(((function()local H,I="Main","";for J=1,#H do local K=H:sub(J,J);I=I..(K==K and K or"")end;return I end)()),4483362458);local L=function(M,N)G:CreateSection(N)end;L(G,((function()local O,P="🚀 Auto Farm","";for Q=1,#O do local R=O:sub(Q,Q);P=P..(R==R and R or"")end;return P end)()));G:CreateToggle({Name=((function()local S,T="🔄 Auto Scouting","";for U=1,#S do local V=S:sub(U,U);T=T..(V==V and V or"")end;return T end)()),CurrentValue=false,Callback=function(W)k=W end});G:CreateToggle({Name=((function()local X,Y="🏋️ Auto Training","";for Z=1,#X do local _=X:sub(Z,Z);Y=Y..(_==_ and _ or"")end;return Y end)()),CurrentValue=false,Callback=function(a0)l=a0 end});G:CreateToggle({Name=((function()local a1,a2="⚔️ Auto Click Attack","";for a3=1,#a1 do local a4=a1:sub(a3,a3);a2=a2..(a4==a4 and a4 or"")end;return a2 end)()),CurrentValue=false,Callback=function(a5)m=a5 end});G:CreateToggle({Name=((function()local a6,a7="⬆️ Auto Buy Upgrade","";for a8=1,#a6 do local a9=a6:sub(a8,a8);a7=a7..(a9==a9 and a9 or"")end;return a7 end)()),CurrentValue=false,Callback=function(aa)n=aa end});G:CreateSlider({Name=((function()local ab,ac="⚡ Auto - Speed (yall features)","";for ad=1,#ab do local ae=ab:sub(ad,ad);ac=ac..(ae==ae and ae or"")end;return ac end)()),Range={0.01,0.2},Increment=0.01,CurrentValue=0.05,Callback=function(af)o=af end});L(G,((function()local ag,ah="🛠 Utilities","";for ai=1,#ag do local aj=ag:sub(ai,ai);ah=ah..(aj==aj and aj or"")end;return ah end)()));G:CreateButton({Name=((function()local ak,al="📅 Claim Daily Reward (per day)","";for am=1,#ak do local an=ak:sub(am,am);al=al..(an==an and an or"")end;return al end)()),Callback=function()pcall(function()h(e,"ClaimDailyReward"):FireServer()end);s:Notify({Title=((function()local ao,ap="Daily Claimed","";for aq=1,#ao do local ar=ao:sub(aq,aq);ap=ap..(ar==ar and ar or"")end;return ap end)()),Content=((function()local as,at="Check Reward","";for au=1,#as do local av=as:sub(au,au);at=at..(av==av and av or"")end;return at end)()),Duration=4})end});G:CreateButton({Name=((function()local aw,ax="♻️ Rebirth","";for ay=1,#aw do local az=aw:sub(ay,ay);ax=ax..(az==az and az or"")end;return ax end)()),Callback=function()pcall(function()h(e,"Rebirth"):FireServer()end);s:Notify({Title=((function()local aA,aB="Rebirth enabled","";for aC=1,#aA do local aD=aA:sub(aC,aC);aB=aB..(aD==aD and aD or"")end;return aB end)()),Content=((function()local aE,aF="Good luck","";for aG=1,#aE do local aH=aE:sub(aG,aG);aF=aF..(aH==aH and aH or"")end;return aF end)()),Duration=5})end});G:CreateButton({Name=((function()local aI,aJ="🔄 Anti-AFK (never kick)","";for aK=1,#aI do local aL=aI:sub(aK,aK);aJ=aJ..(aL==aL and aL or"")end;return aJ end)()),Callback=function()p(function()while task.wait(30)do local aM=game:GetService("VirtualUser");aM:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame);task.wait(0.1);aM:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)end end);s:Notify({Title=((function()local aN,aO="Anti-AFK ON","";for aP=1,#aN do local aQ=aN:sub(aP,aP);aO=aO..(aQ==aQ and aQ or"")end;return aO end)()),Content=((function()local aR,aS="Work infinite","";for aT=1,#aR do local aU=aR:sub(aT,aT);aS=aS..(aU==aU and aU or"")end;return aS end)()),Duration=4})end});s:Notify({Title=((function()local aV,aW="Hack loaded ✓","";for aX=1,#aV do local aY=aV:sub(aX,aX);aW=aW..(aY==aY and aY or"")end;return aW end)()),Content=((function()local aZ,ba="Thanks for using by Data join discord","";for bb=1,#aZ do local bc=aZ:sub(bb,bb);ba=ba..(bc==bc and bc or"")end;return ba end)()),Duration=10,Image=4483362458})
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Attack On Titans Incremental",
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "by Data",
+    ConfigurationSaving = false,
+    KeySystem = false
+})
+
+local MainTab = Window:CreateTab("Main", 4483362458)
+
+-- ==================== РЕМОТЫ ====================
+local Remotes = game:GetService("ReplicatedStorage"):WaitForChild("Remotes")
+local CastFish          = Remotes:WaitForChild("CastFish")
+local StartTraining     = Remotes:WaitForChild("StartTraining")
+local ClickAttack       = Remotes:WaitForChild("ClickAttack")
+local BuyUpgrade        = Remotes:WaitForChild("BuyUpgrade")
+local ClaimDailyReward  = Remotes:WaitForChild("ClaimDailyReward")
+local Rebirth           = Remotes:WaitForChild("Rebirth")
+
+-- ==================== ФЛАГИ ====================
+local autoScouting = false
+local autoTraining = false
+local autoClick    = false
+local autoUpgrade  = false
+local spamDelay    = 0.05
+
+-- ==================== ЕДИНЫЙ ЦИКЛ (0 ЛАГОВ) ====================
+task.spawn(function()
+    while true do
+        local fired = false
+        
+        if autoScouting then
+            pcall(function() CastFish:FireServer() end)
+            fired = true
+        end
+        if autoTraining then
+            pcall(function() StartTraining:FireServer() end)
+            fired = true
+        end
+        if autoClick then
+            pcall(function() ClickAttack:FireServer() end)
+            fired = true
+        end
+        if autoUpgrade then
+            pcall(function() BuyUpgrade:FireServer() end)
+            fired = true
+        end
+        
+        if fired then
+            task.wait(spamDelay)      -- скорость для всех авто-фармов
+        else
+            task.wait(0.1)            -- спим когда всё выключено
+        end
+    end
+end)
+-- ============================================================
+
+MainTab:CreateSection("🚀 Auto Farm")
+
+MainTab:CreateToggle({
+    Name = "🔄 Auto Scouting",
+    CurrentValue = false,
+    Callback = function(Value) autoScouting = Value end,
+})
+
+MainTab:CreateToggle({
+    Name = "🏋️ Auto Training (StartTraining) — для Soldier & Mage",
+    CurrentValue = false,
+    Callback = function(Value) autoTraining = Value end,
+})
+
+MainTab:CreateToggle({
+    Name = "⚔️ Auto Click Attack",
+    CurrentValue = false,
+    Callback = function(Value) autoClick = Value end,
+})
+
+MainTab:CreateToggle({
+    Name = "⬆️ Auto Buy Upgrade",
+    CurrentValue = false,
+    Callback = function(Value) autoUpgrade = Value end,
+})
+
+MainTab:CreateSlider({
+    Name = "⚡ Auto - Speed (yall auto)",
+    Range = {0.01, 0.2},
+    Increment = 0.01,
+    CurrentValue = 0.05,
+    Callback = function(Value) spamDelay = Value end,
+})
+
+MainTab:CreateSection("🛠 Utilities")
+
+MainTab:CreateButton({
+    Name = "📅 Claim Daily Reward",
+    Callback = function()
+        pcall(function() ClaimDailyReward:FireServer() end)
+        Rayfield:Notify({Title = "Daily Claimed", Content = "Check reward!", Duration = 4})
+    end,
+})
+
+MainTab:CreateButton({
+    Name = "♻️ Rebirth",
+    Callback = function()
+        pcall(function() Rebirth:FireServer() end)
+        Rayfield:Notify({Title = "Rebirth enabled", Content = "Good luck!", Duration = 5})
+    end,
+})
+
+MainTab:CreateButton({
+    Name = "🔄 Anti-AFK",
+    Callback = function()
+        task.spawn(function()
+            while task.wait(30) do
+                local vu = game:GetService("VirtualUser")
+                vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+                task.wait(0.1)
+                vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            end
+        end)
+        Rayfield:Notify({Title = "Anti-AFK ON", Content = "Working infinite", Duration = 4})
+    end,
+})
+
+-- ==================== ГОТОВО ====================
+Rayfield:Notify({
+    Title = "Loaded ✓",
+    Content = "Join discord server!",
+    Duration = 10,
+    Image = 4483362458
+})
