@@ -1,6 +1,3 @@
---// Venture | 12_AntiMod.lua
--- Защита от модераторов: полноэкранный баннер + кик
-
 local Shared = _G.Venture.Shared
 local Config = _G.Venture.Config
 
@@ -17,9 +14,6 @@ AntiMod.Triggered = false
 local KICK_TITLE = "FUCK YOU MOD"
 local KICK_SUB   = "you noob"
 
---====================================================
--- ПРОВЕРКА: Я МОДЕР?
---====================================================
 local function AmIMod()
     local checks = {}
 
@@ -53,9 +47,6 @@ local function AmIMod()
     return #checks > 0, checks
 end
 
---====================================================
--- ПОЛНОЭКРАННЫЙ БАННЕР
---====================================================
 local function ShowFullscreenBanner(reasons)
     pcall(function()
         local gui = Instance.new("ScreenGui")
@@ -188,9 +179,6 @@ local function ShowFullscreenBanner(reasons)
     end)
 end
 
---====================================================
--- ВЫХОД
---====================================================
 local function KickSelf(reasons)
     pcall(function()
         StarterGui:SetCore("SendNotification", {
@@ -210,11 +198,6 @@ local function KickSelf(reasons)
 
     ShowFullscreenBanner(reasons)
 
-    warn("[AntiMod] ================================")
-    warn("[AntiMod] " .. KICK_TITLE .. ", " .. KICK_SUB)
-    for _, r in ipairs(reasons) do warn("  - " .. r) end
-    warn("[AntiMod] ================================")
-
     task.wait(2.0)
 
     pcall(function() TeleportService:Teleport(0) end)
@@ -226,13 +209,10 @@ local function KickSelf(reasons)
     end)
     task.wait(0.3)
     pcall(function()
-        if syn and syn.kill then syn.kill() end
+        if syn and syn.kill then syn:kill() end
     end)
 end
 
---====================================================
--- ПРОВЕРКА
---====================================================
 function AntiMod.Check()
     if AntiMod.Triggered then return true end
     local isMod, reasons = AmIMod()
@@ -246,7 +226,6 @@ end
 
 function AntiMod.Init()
     if AntiMod.Check() then return end
-    print("[Venture] AntiMod: you are not a moderator, OK")
 end
 
 _G.Venture = _G.Venture or {}
