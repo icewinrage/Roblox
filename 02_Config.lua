@@ -1,19 +1,11 @@
---// Venture | 02_Config.lua
--- Все настройки, темы, ключи и константы
-
 local HttpService = game:GetService("HttpService")
 
 local Config = {}
 
---====================================================
--- ГЛАВНЫЕ НАСТРОЙКИ
---====================================================
 Config.Settings = {
-    -- TP / Release
     BackOffset = 100, UpOffset = 2, SideOffset = 0, MaxDistance = 2000,
     ReleaseUpVelocity = 150, ReleaseSideVelocity = 100,
 
-    -- ESP
     ESP = false,
     ESPColor = Color3.fromRGB(255, 60, 60),
     NapeColor = Color3.fromRGB(80, 255, 120),
@@ -22,7 +14,6 @@ Config.Settings = {
     PlayerESP = false,
     ShifterESP = false,
 
-    -- Hitbox
     HitboxExpand = false,
     HitboxSize = Vector3.new(300, 200, 300),
     HitboxShape = "Block",
@@ -31,10 +22,8 @@ Config.Settings = {
     HitboxTransparency = 0.7,
     HitboxParts = {Nape=true, Eyes=false, LeftArm=false, LeftLeg=false, RightArm=false, RightLeg=false},
 
-    -- Noclip
     Noclip = false,
 
-    -- AutoFarm
     AutoFarmEnabled = false,
     AutoFarmOrbitSpeed = 300,
     AutoFarmHoverHeight = 80,
@@ -43,31 +32,23 @@ Config.Settings = {
     AutoFarmDelay = 0.5,
     AutoFarmResponsiveness = 25,
 
-    -- AutoHeal
     AutoHealEnabled = false,
     AutoHealThreshold = 50,
 
-    -- AutoQuest
     AutoQuestEnabled = false,
     AutoQuestSelected = nil,
 
-    -- AutoRefill
     AutoRefillEnabled = false,
     AutoBladeRefillThreshold = 1,
     AutoBladeRefillReturnDelay = 5,
     BladeStateValue = nil,
 
-    -- Прочее
     FPSBoosterEnabled = false,
     AutoKickOnMod = false,
 
-    -- Тема интерфейса
     Theme = "Dark",
 }
 
---====================================================
--- БИНДЫ ПО УМОЛЧАНИЮ
---====================================================
 Config.DefaultBinds = {
     TPTitan = nil,
     SafeRelease = nil,
@@ -82,26 +63,18 @@ Config.DefaultBinds = {
     AutoRefillToggle = nil,
 }
 
---====================================================
--- КОНСТАНТЫ
---====================================================
 Config.MOD_GROUP_ID = 853580851
 Config.OWNER_NAME = "eru_bleu"
 
--- Supabase
 Config.SUPABASE_URL = "https://ilbxpnyeyhimlyxnmibx.supabase.co"
 Config.SUPABASE_KEY = "sb_publishable_5U3FsKotLEcidCucVDGVPw_LTDeNYEt"
 Config.SUPABASE_TABLE = "venture_beacons"
 
--- Интервалы (сек)
 Config.BEACON_INTERVAL = 15
 Config.FETCH_INTERVAL = 10
 Config.TIMEOUT_SECONDS = 60
 Config.CLEANUP_INTERVAL = 300
 
---====================================================
--- 4 ТЕМЫ ИНТЕРФЕЙСА
---====================================================
 Config.Themes = {
     Dark = {
         Name = "Dark",
@@ -241,9 +214,6 @@ Config.Themes = {
     },
 }
 
---====================================================
--- ЗАГРУЗКА СОХРАНЁННЫХ НАСТРОЕК
---====================================================
 function Config.LoadTheme()
     if not (isfile and readfile) then return end
     if not isfile("VentureAOT_Theme.json") then return end
@@ -302,7 +272,6 @@ function Config.SaveKeybinds(keybinds)
     end)
 end
 
--- Автозагрузка при первом обращении
 Config.LoadTheme()
 Config.LoadSecurity()
 
