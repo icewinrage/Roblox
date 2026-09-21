@@ -1,6 +1,3 @@
---// Venture | 07_Keybinds.lua
--- Система кастомных биндов + заполнение вкладки KEYBINDS
-
 local Shared = _G.Venture.Shared
 local Config = _G.Venture.Config
 local Utils  = _G.Venture.Utils
@@ -24,9 +21,6 @@ Keybinds.Listening = nil
 Keybinds.Buttons = {}
 Keybinds.Rows = {}
 
---====================================================
--- ЗАГРУЗКА / СОХРАНЕНИЕ
---====================================================
 function Keybinds.Load()
     for k, v in pairs(Config.DefaultBinds) do
         Keybinds.Data[k] = v
@@ -61,9 +55,6 @@ end
 
 Keybinds.Load()
 
---====================================================
--- ОБНОВЛЕНИЕ KEYBIND LIST (слева)
---====================================================
 local function BuildKeybindList()
     local listData = {
         {"TP Titan", Keybinds.Data.TPTitan},
@@ -109,9 +100,6 @@ local function BuildKeybindList()
 end
 Keybinds.BuildList = BuildKeybindList
 
---====================================================
--- КНОПКИ БИНДОВ ВО ВКЛАДКЕ KEYBINDS
---====================================================
 local function UpdateBindButtonLabel(action)
     local btn = Keybinds.Buttons[action]
     if not btn then return end
@@ -128,7 +116,7 @@ local function MakeBindRow(parent, action, label, yPos)
         BorderSizePixel = 0, ZIndex = 8,
     }, parent)
     New("UICorner", {CornerRadius = UDim.new(0,10)}, row)
-    New("UIStroke", {Color = T.BtnStroke, Thickness = 1, Transparency = 0.2}, row)
+    local rowStroke = New("UIStroke", {Color = T.BtnStroke, Thickness = 1, Transparency = 0.2}, row)
     local mainLabel = New("TextLabel", {
         Position = UDim2.new(0,16,0,0), Size = UDim2.new(1,-130,1,0),
         BackgroundTransparency = 1, Text = label,
@@ -148,8 +136,7 @@ local function MakeBindRow(parent, action, label, yPos)
     New("UICorner", {CornerRadius = UDim.new(0,8)}, kb)
     Keybinds.Buttons[action] = kb
 
-    -- Регистрируем для темы
-    Theme.Register("Buttons", {Btn = row, Stroke = row:FindFirstChildOfClass("UIStroke"), Label = mainLabel, Sub = nil})
+    Theme.Register("Buttons", {Btn = row, Stroke = rowStroke, Label = mainLabel, Sub = nil})
 
     kb.MouseButton1Click:Connect(function()
         Keybinds.Listening = action
@@ -162,7 +149,6 @@ end
 function Keybinds.PopulateTab()
     local panel = GUI.KeybindTabPanel
     if not panel then return end
-    -- Очищаем старые элементы (кроме первого заголовка)
     for _, child in ipairs(panel:GetChildren()) do
         if not child:IsA("UIListLayout") and not child:IsA("UIPadding") then
             child:Destroy()
@@ -205,9 +191,6 @@ function Keybinds.PopulateTab()
     panel.CanvasSize = UDim2.new(0,0,0,ky+20)
 end
 
---====================================================
--- ВЫПОЛНЕНИЕ БИНДА
---====================================================
 local function ExecuteBind(action)
     if action == "TPTitan" then
         local t = Funcs.GetTitans()
@@ -250,16 +233,12 @@ local function ExecuteBind(action)
     end
 end
 
---====================================================
--- LISTENER
---====================================================
 function Keybinds.Init()
     BuildKeybindList()
 
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
 
-        -- Режим назначения бинда
         if Keybinds.Listening then
             local action = Keybinds.Listening
             Keybinds.Listening = nil
@@ -274,7 +253,6 @@ function Keybinds.Init()
             return
         end
 
-        -- Обычное нажатие
         local key = input.KeyCode
         for action, bindKey in pairs(Keybinds.Data) do
             if bindKey and key == bindKey then
