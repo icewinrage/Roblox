@@ -21,7 +21,9 @@ local MODULES = {
     "07_Keybinds",
     "08_Security",
     "09_Supabase",
-    "10_Init",
+    "11_Cursor",
+    "12_AntiMod",
+    "10_Init",       -- Init загружаем ПОСЛЕДНИМ, чтобы _G.Venture.Cursor и AntiMod уже были
 }
 
 _G.Venture = _G.Venture or {}
@@ -30,22 +32,18 @@ _G.Venture = _G.Venture or {}
 -- HTTP GET (универсальный, работает на всех экзекьюторах)
 --====================================================
 local function httpGet(url)
-    -- Synapse / Script-Ware
     if syn and syn.request then
         local ok, res = pcall(syn.request, {Url = url, Method = "GET"})
         if ok and res and res.Body then return res.Body end
     end
-    -- Fluxus, Krnl, Delta, Arceus X, Solara, Xeno
     if request then
         local ok, res = pcall(request, {Url = url, Method = "GET"})
         if ok and res and res.Body then return res.Body end
     end
-    -- Старый Synapse
     if http_request then
         local ok, res = pcall(http_request, {Url = url, Method = "GET"})
         if ok and res and res.Body then return res.Body end
     end
-    -- HttpService fallback (не для raw.githubusercontent, но пусть будет)
     local ok, res = pcall(function()
         return game:GetService("HttpService"):GetAsync(url)
     end)
@@ -65,7 +63,6 @@ local function loadModule(name)
         return nil
     end
 
-    -- Проверка на 404 от GitHub
     if #code < 60 and code:lower():find("404") then
         warn("[Venture] Module not found on GitHub: " .. name)
         return nil
@@ -98,7 +95,7 @@ for _, name in ipairs(MODULES) do
     else
         print("[Venture] ✓ Loaded " .. name)
     end
-    task.wait(0.05)  -- небольшая пауза между запросами (чтобы не забанили за спам)
+    task.wait(0.05)
 end
 
 --====================================================
@@ -113,5 +110,5 @@ if Init and Init.Run then
         warn("[Venture] Init.Run failed: " .. tostring(err))
     end
 else
-    warn("[Venture] Init module missing — check console for load errors")
+    warn("[Venture] Init module missing")
 end
