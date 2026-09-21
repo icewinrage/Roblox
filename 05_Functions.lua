@@ -1,6 +1,3 @@
---// Venture | 05_Functions.lua
--- Вся игровая логика: TP, AutoFarm, ESP, Noclip, AutoHeal, AutoRefill, AutoQuest, Hitbox
-
 local Shared = _G.Venture.Shared
 local Config = _G.Venture.Config
 local Utils  = _G.Venture.Utils
@@ -16,9 +13,6 @@ local Settings = Config.Settings
 
 local Functions = {}
 
---====================================================
--- СОСТОЯНИЕ
---====================================================
 Functions.State = {
     currentTarget = nil,
     currentAlignPos = nil,
@@ -40,9 +34,6 @@ Functions.State = {
 
 local S = Functions.State
 
---====================================================
--- TITANS / REFILLS
---====================================================
 function Functions.GetTitans()
     local titans = {}
     local titansFolder = Workspace:FindFirstChild("Titans")
@@ -123,9 +114,6 @@ function Functions.FindBladeState()
     return nil
 end
 
---====================================================
--- HITBOX EXPANDER
---====================================================
 local function ApplyHitboxToPart(part, partName)
     if not Settings.HitboxParts[partName] then return end
     if not part or not part.Parent or not part:IsA("BasePart") then return end
@@ -200,9 +188,6 @@ task.spawn(function()
     end
 end)
 
---====================================================
--- NOCLIP
---====================================================
 function Functions.StartNoclip()
     if S.noclipConnection then return end
     S.noclipConnection = RunService.Stepped:Connect(function()
@@ -232,9 +217,6 @@ function Functions.StopNoclip()
     end
 end
 
---====================================================
--- FPS BOOSTER
---====================================================
 function Functions.EnableFPSBooster()
     for _, e in ipairs(Lighting:GetChildren()) do
         if e:IsA("PostEffect") or e:IsA("Atmosphere") then
@@ -283,9 +265,6 @@ function Functions.DisableFPSBooster()
     S.fpsOriginalData = {}
 end
 
---====================================================
--- PRESS E / PROMPT
---====================================================
 function Functions.PressE()
     local ch = LocalPlayer.Character
     local root = ch and ch:FindFirstChild("HumanoidRootPart")
@@ -319,9 +298,6 @@ function Functions.PressE()
     end)
 end
 
---====================================================
--- AUTO HEAL
---====================================================
 local function FindHealer()
     local map = Workspace:FindFirstChild("Map")
     if not map then return nil end
@@ -378,9 +354,6 @@ task.spawn(function()
     end
 end)
 
---====================================================
--- CLEANUP FARM
---====================================================
 function Functions.CleanupFarm()
     if S.FarmState.AlignPos and S.FarmState.AlignPos.Parent then
         S.FarmState.AlignPos:Destroy()
@@ -393,9 +366,6 @@ function Functions.CleanupFarm()
     S.FarmState.OrbitAngle = 0
 end
 
---====================================================
--- AUTO REFILL
---====================================================
 function Functions.TriggerAutoRefill()
     if S.RefillState.IsRefilling then return false end
     local ch = LocalPlayer.Character
@@ -446,9 +416,6 @@ task.spawn(function()
     end
 end)
 
---====================================================
--- AUTO QUEST
---====================================================
 local function FindQuestNPCs()
     local q = Workspace:FindFirstChild("Quests")
     if not q then return {} end
@@ -524,9 +491,6 @@ task.spawn(function()
     end
 end)
 
---====================================================
--- AUTO FARM
---====================================================
 local function GetNearestTitanDist()
     local ch = LocalPlayer.Character
     local root = ch and ch:FindFirstChild("HumanoidRootPart")
@@ -657,9 +621,6 @@ task.spawn(function()
     end
 end)
 
---====================================================
--- CONSTRAINT LOGIC (TP)
---====================================================
 function Functions.ForceResetState()
     local ch = LocalPlayer.Character
     if ch then
