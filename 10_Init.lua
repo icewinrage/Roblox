@@ -287,6 +287,17 @@ end
 function Init.Run()
     print("=== Venture AOT | Modular v1.7 ===")
     print("Executor:", GUI.ExecutorName or "Unknown")
+
+    -- 0. АНТИ-МОД (читаем из _G в момент запуска)
+    local AntiMod = _G.Venture.AntiMod
+    if AntiMod then
+        if AntiMod.Check() then
+            return  -- модер — дальше не запускаемся
+        end
+    else
+        warn("[Venture] AntiMod not loaded")
+    end
+
     print("Theme:", Settings.Theme)
     print("Drawing API:", HAS_DRAWING and "Yes" or "No")
     print("Owner:", Config.OWNER_NAME)
@@ -298,19 +309,19 @@ function Init.Run()
     -- 2. GUI интро + показ окна
     if GUI.Boot then GUI.Boot() end
 
-    -- 3. Keybinds — заполнить вкладку + listener
+    -- 3. Keybinds
     if Keybinds then
         pcall(Keybinds.PopulateTab)
         pcall(Keybinds.Init)
     end
 
-    -- 4. Security — заполнить вкладку + запустить мониторинг
+    -- 4. Security
     if Security then
         pcall(Security.PopulateTab)
         pcall(Security.Init)
     end
 
-    -- 5. Supabase — бейджи + heartbeat
+    -- 5. Supabase
     if Supa then
         pcall(Supa.Init)
     end
@@ -319,6 +330,14 @@ function Init.Run()
     RunService.RenderStepped:Connect(function()
         pcall(UpdateESP)
     end)
+
+    -- 7. Курсор
+    local Cursor = _G.Venture.Cursor
+    if Cursor then
+        pcall(Cursor.Init)
+    else
+        warn("[Venture] Cursor not loaded")
+    end
 
     print("[Venture] All systems initialized.")
 end
