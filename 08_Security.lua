@@ -1,6 +1,3 @@
---// Venture | 08_Security.lua
--- Mod Detector + заполнение вкладки SECURITY
-
 local Shared = _G.Venture.Shared
 local Config = _G.Venture.Config
 local Utils  = _G.Venture.Utils
@@ -17,9 +14,6 @@ local Notify = Utils.Notify
 
 local Security = {}
 
---====================================================
--- ПРОВЕРКА МОДЕРАТОРА
---====================================================
 local function IsModerator(player)
     if not player or player == LocalPlayer then return false, 0 end
     local ok, rank = pcall(function() return player:GetRankInGroup(Config.MOD_GROUP_ID) end)
@@ -27,9 +21,6 @@ local function IsModerator(player)
     return false, 0
 end
 
---====================================================
--- СКАНИРОВАНИЕ
---====================================================
 function Security.CheckMods()
     local found = {}
     for _, pl in ipairs(Players:GetPlayers()) do
@@ -48,13 +39,8 @@ function Security.CheckMods()
     if cnt > 0 then
         if not Funcs.State.SecurityState.IsPaused then
             Funcs.State.SecurityState.IsPaused = true
-            print("[SECURITY] MODERATOR DETECTED — ALL PAUSED")
-            for n, r in pairs(found) do
-                print("  - " .. n .. " (Rank " .. r .. ")")
-            end
             Notify("MODERATOR DETECTED", "Switch server! All functions paused.", 15)
 
-            -- Стоп всего
             Settings.AutoFarmEnabled = false
             Settings.AutoHealEnabled = false
             Settings.AutoQuestEnabled = false
@@ -77,19 +63,14 @@ function Security.CheckMods()
     else
         if Funcs.State.SecurityState.IsPaused then
             Funcs.State.SecurityState.IsPaused = false
-            print("[SECURITY] No moderators — resumed")
         end
     end
 end
 
---====================================================
--- ЗАПОЛНЕНИЕ ВКЛАДКИ SECURITY
---====================================================
 function Security.PopulateTab()
     local panel = GUI.SecurityTabPanel
     if not panel then return end
 
-    -- Очистка
     for _, child in ipairs(panel:GetChildren()) do
         if not child:IsA("UIListLayout") and not child:IsA("UIPadding") then
             child:Destroy()
@@ -111,7 +92,6 @@ function Security.PopulateTab()
     }, panel)
     sy = sy + 66
 
-    -- Статус
     local statusLabel = New("TextLabel", {
         Position = UDim2.new(0,4,0,sy), Size = UDim2.new(1,-8,0,40),
         BackgroundTransparency = 1, Text = "Status: OK",
@@ -122,7 +102,6 @@ function Security.PopulateTab()
     }, panel)
     sy = sy + 46
 
-    -- Обновление статуса
     task.spawn(function()
         while statusLabel.Parent do
             task.wait(1)
@@ -163,10 +142,8 @@ function Security.PopulateTab()
     sy = GUI.MakeButton(panel, "Copy Server ID", "To clipboard", sy, function()
         if setclipboard then
             setclipboard(game.JobId)
-            print("[Security] Copied:", game.JobId)
         elseif toclipboard then
             toclipboard(game.JobId)
-            print("[Security] Copied:", game.JobId)
         else
             Notify("No clipboard", game.JobId:sub(1,12) .. "...", 8)
         end
@@ -175,11 +152,7 @@ function Security.PopulateTab()
     panel.CanvasSize = UDim2.new(0,0,0,sy+20)
 end
 
---====================================================
--- ИНИЦИАЛИЗАЦИЯ
---====================================================
 function Security.Init()
-    -- Подключения
     Players.PlayerAdded:Connect(function(pl)
         task.wait(2)
         pcall(Security.CheckMods)
@@ -192,7 +165,6 @@ function Security.Init()
         end
     end)
 
-    -- Периодическая проверка
     task.spawn(function()
         while true do
             task.wait(15)
@@ -200,7 +172,6 @@ function Security.Init()
         end
     end)
 
-    -- Первая проверка
     task.wait(1)
     pcall(Security.CheckMods)
 end
