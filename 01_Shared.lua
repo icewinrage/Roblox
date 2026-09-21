@@ -1,6 +1,3 @@
---// Venture | 01_Shared.lua
--- Общие ссылки, которые используются всеми модулями
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
