@@ -1,6 +1,3 @@
---// Venture | 04_Theme.lua
--- Система тем: реестр элементов + Apply
-
 local Shared = _G.Venture.Shared
 local Config = _G.Venture.Config
 
@@ -8,18 +5,15 @@ local TweenService = Shared.TweenService
 
 local Theme = {}
 
---====================================================
--- РЕЕСТР ВСЕХ GUI-ЭЛЕМЕНТОВ ДЛЯ ПЕРЕКРАСКИ
---====================================================
 Theme.Registry = {
-    Buttons = {},     -- {Btn, Stroke, Label, Sub}
-    Toggles = {},     -- {Btn, Pill, Knob, Label, State}
-    Sliders = {},     -- {Frame, Fill, BarBG, Label, Val}
-    Tabs = {},        -- {Btn, IsActive}
-    Sections = {},    -- {Label}
-    Dropdowns = {},   -- {Frame, Label, Btn}
-    Misc = {},        -- {Obj, Keys}
-    MainFrame = nil,  -- ссылка на основной Frame
+    Buttons = {},
+    Toggles = {},
+    Sliders = {},
+    Tabs = {},
+    Sections = {},
+    Dropdowns = {},
+    Misc = {},
+    MainFrame = nil,
 }
 
 function Theme.Register(kind, data)
@@ -31,16 +25,10 @@ function Theme.RegisterMain(mainFrame)
     Theme.Registry.MainFrame = mainFrame
 end
 
---====================================================
--- ПОЛУЧИТЬ АКТИВНУЮ ТЕМУ
---====================================================
 function Theme.Get()
     return Config.Themes[Config.Settings.Theme] or Config.Themes.Dark
 end
 
---====================================================
--- ЗАГРУЗКА / СОХРАНЕНИЕ
---====================================================
 function Theme.Load()
     Config.LoadTheme()
 end
@@ -49,9 +37,6 @@ function Theme.Save()
     Config.SaveTheme()
 end
 
---====================================================
--- ПРИМЕНИТЬ ТЕМУ
---====================================================
 function Theme.Apply(name, save)
     if name and Config.Themes[name] then
         Config.Settings.Theme = name
@@ -59,7 +44,6 @@ function Theme.Apply(name, save)
     local T = Theme.Get()
     local R = Theme.Registry
 
-    -- Main окно
     if R.MainFrame then
         pcall(function()
             R.MainFrame.BackgroundColor3 = T.MainBg
@@ -77,7 +61,6 @@ function Theme.Apply(name, save)
         end)
     end
 
-    -- Buttons
     for _, d in ipairs(R.Buttons) do
         pcall(function()
             d.Btn.BackgroundColor3 = T.BtnBg
@@ -87,7 +70,6 @@ function Theme.Apply(name, save)
         end)
     end
 
-    -- Toggles
     for _, d in ipairs(R.Toggles) do
         pcall(function()
             d.Btn.BackgroundColor3 = T.BtnBg
@@ -97,7 +79,6 @@ function Theme.Apply(name, save)
         end)
     end
 
-    -- Sliders
     for _, d in ipairs(R.Sliders) do
         pcall(function()
             d.Frame.BackgroundColor3 = T.BtnBg
@@ -108,7 +89,6 @@ function Theme.Apply(name, save)
         end)
     end
 
-    -- Tabs
     for _, d in ipairs(R.Tabs) do
         pcall(function()
             d.Btn.BackgroundColor3 = d.IsActive and T.TabBgActive or T.TabBg
@@ -122,14 +102,12 @@ function Theme.Apply(name, save)
         end)
     end
 
-    -- Sections
     for _, d in ipairs(R.Sections) do
         pcall(function()
             d.Label.TextColor3 = T.SectionText
         end)
     end
 
-    -- Dropdowns
     for _, d in ipairs(R.Dropdowns) do
         pcall(function()
             d.Frame.BackgroundColor3 = T.BtnBg
@@ -139,7 +117,6 @@ function Theme.Apply(name, save)
         end)
     end
 
-    -- Misc
     for _, d in ipairs(R.Misc) do
         pcall(function()
             for _, key in ipairs(d.Keys) do
@@ -151,9 +128,6 @@ function Theme.Apply(name, save)
     if save ~= false then Theme.Save() end
 end
 
---====================================================
--- ОБНОВИТЬ СОСТОЯНИЕ АКТИВНОЙ ВКЛАДКИ
---====================================================
 function Theme.SetActiveTab(index)
     for i, d in ipairs(Theme.Registry.Tabs) do
         d.IsActive = (i == index)
@@ -161,9 +135,6 @@ function Theme.SetActiveTab(index)
     Theme.Apply(nil, false)
 end
 
---====================================================
--- ОБНОВИТЬ СОСТОЯНИЕ КОНКРЕТНОГО TOGGLE
---====================================================
 function Theme.UpdateToggle(toggleData, state)
     toggleData.State = state
     local T = Theme.Get()
