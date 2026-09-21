@@ -1,6 +1,3 @@
---// Venture | 11_Cursor.lua
--- Кастомный курсор (только для ПК)
-
 local Shared = _G.Venture.Shared
 local Utils  = _G.Venture.Utils
 
@@ -11,10 +8,8 @@ local New = Utils.New
 local Cursor = {}
 
 function Cursor.Init()
-    -- На мобиле курсор не нужен
     if UserInputService.TouchEnabled then return end
 
-    -- Скрываем системный курсор
     UserInputService.MouseIconEnabled = false
 
     local CursorGui = New("ScreenGui", {
@@ -34,8 +29,7 @@ function Cursor.Init()
         ZIndex = 9999,
     }, CursorGui)
 
-    -- Обводка вокруг курсора (для видимости на белом фоне)
-    local stroke = New("UIStroke", {
+    New("UIStroke", {
         Color = Color3.fromRGB(125, 92, 255),
         Thickness = 2,
         Transparency = 0.3,
@@ -50,12 +44,8 @@ function Cursor.Init()
 
     Cursor.Gui = CursorGui
     Cursor.Image = CursorImage
-    Cursor.Stroke = stroke
-
-    print("[Venture] Cursor initialized")
 end
 
--- Возврат системного курсора (при закрытии скрипта)
 function Cursor.Restore()
     if UserInputService.TouchEnabled then return end
     UserInputService.MouseIconEnabled = true
