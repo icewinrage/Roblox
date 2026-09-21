@@ -19,6 +19,8 @@ local Tween = Utils.Tween
 
 local GUI = {}
 
+GUI.ExecutorName = Utils.DetectExecutor()
+
 --====================================================
 -- КОРНЕВОЙ SCREENGUI
 --====================================================
