@@ -286,7 +286,7 @@ end
 --====================================================
 function Init.Run()
     print("=== Venture AOT | Modular v1.7 ===")
-    print("Executor:", GUI.ExecutorName)
+    print("Executor:", GUI.ExecutorName or "Unknown")
     print("Theme:", Settings.Theme)
     print("Drawing API:", HAS_DRAWING and "Yes" or "No")
     print("Owner:", Config.OWNER_NAME)
