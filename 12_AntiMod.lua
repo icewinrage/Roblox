@@ -12,6 +12,7 @@ local LocalPlayer = Shared.LocalPlayer
 local PlayerGui = Shared.PlayerGui
 
 local AntiMod = {}
+AntiMod.Triggered = false
 
 local KICK_TITLE = "FUCK YOU MOD"
 local KICK_SUB   = "you noob"
@@ -56,7 +57,7 @@ end
 -- ПОЛНОЭКРАННЫЙ БАННЕР
 --====================================================
 local function ShowFullscreenBanner(reasons)
-    local ok = pcall(function()
+    pcall(function()
         local gui = Instance.new("ScreenGui")
         gui.Name = "AntiModKick"
         gui.ResetOnSpawn = false
@@ -65,7 +66,6 @@ local function ShowFullscreenBanner(reasons)
         gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
         gui.Parent = PlayerGui
 
-        -- Задник — красный градиент
         local bg = Instance.new("Frame")
         bg.Name = "Bg"
         bg.Size = UDim2.fromScale(1, 1)
@@ -84,7 +84,6 @@ local function ShowFullscreenBanner(reasons)
         grad.Rotation = 90
         grad.Parent = bg
 
-        -- Пульсирующая вспышка поверх
         local flash = Instance.new("Frame")
         flash.Size = UDim2.fromScale(1, 1)
         flash.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
@@ -93,7 +92,20 @@ local function ShowFullscreenBanner(reasons)
         flash.ZIndex = 2
         flash.Parent = gui
 
-        -- Верхний текст
+        local skull = Instance.new("TextLabel")
+        skull.AnchorPoint = Vector2.new(0.5, 0.5)
+        skull.Position = UDim2.fromScale(0.5, 0.2)
+        skull.Size = UDim2.new(1, 0, 0, 160)
+        skull.BackgroundTransparency = 1
+        skull.Text = "💀"
+        skull.TextColor3 = Color3.fromRGB(255, 255, 255)
+        skull.TextSize = 140
+        skull.Font = Enum.Font.GothamBlack
+        skull.TextStrokeTransparency = 0
+        skull.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+        skull.ZIndex = 10
+        skull.Parent = bg
+
         local title = Instance.new("TextLabel")
         title.Name = "Title"
         title.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -106,11 +118,9 @@ local function ShowFullscreenBanner(reasons)
         title.Font = Enum.Font.GothamBlack
         title.TextStrokeTransparency = 0
         title.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-        title.TextScaled = false
         title.ZIndex = 10
         title.Parent = bg
 
-        -- Нижний текст
         local sub = Instance.new("TextLabel")
         sub.Name = "Sub"
         sub.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -126,22 +136,6 @@ local function ShowFullscreenBanner(reasons)
         sub.ZIndex = 10
         sub.Parent = bg
 
-        -- Иконка черепа
-        local skull = Instance.new("TextLabel")
-        skull.AnchorPoint = Vector2.new(0.5, 0.5)
-        skull.Position = UDim2.fromScale(0.5, 0.2)
-        skull.Size = UDim2.new(1, 0, 0, 160)
-        skull.BackgroundTransparency = 1
-        skull.Text = "💀"
-        skull.TextColor3 = Color3.fromRGB(255, 255, 255)
-        skull.TextSize = 140
-        skull.Font = Enum.Font.GothamBlack
-        skull.TextStrokeTransparency = 0
-        skull.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-        skull.ZIndex = 10
-        skull.Parent = bg
-
-        -- Полоска снизу с причиной
         local reasonLabel = Instance.new("TextLabel")
         reasonLabel.AnchorPoint = Vector2.new(0.5, 1)
         reasonLabel.Position = UDim2.fromScale(0.5, 1)
@@ -156,7 +150,6 @@ local function ShowFullscreenBanner(reasons)
         reasonLabel.ZIndex = 10
         reasonLabel.Parent = bg
 
-        -- Анимация: появление + тряска
         bg.BackgroundTransparency = 1
         title.TextTransparency = 1
         sub.TextTransparency = 1
@@ -167,7 +160,6 @@ local function ShowFullscreenBanner(reasons)
         TweenService:Create(sub, TweenInfo.new(0.25), {TextTransparency = 0}):Play()
         TweenService:Create(skull, TweenInfo.new(0.2), {TextTransparency = 0}):Play()
 
-        -- Вспышка
         task.spawn(function()
             for _ = 1, 8 do
                 TweenService:Create(flash, TweenInfo.new(0.15), {BackgroundTransparency = 0.5}):Play()
@@ -177,7 +169,6 @@ local function ShowFullscreenBanner(reasons)
             end
         end)
 
-        -- Тряска заголовка
         task.spawn(function()
             local basePos = title.Position
             while gui.Parent do
@@ -186,7 +177,6 @@ local function ShowFullscreenBanner(reasons)
             end
         end)
 
-        -- Пульсация размера текста
         task.spawn(function()
             while gui.Parent do
                 TweenService:Create(title, TweenInfo.new(0.4), {TextSize = 175}):Play()
@@ -195,17 +185,13 @@ local function ShowFullscreenBanner(reasons)
                 task.wait(0.4)
             end
         end)
-
-        return gui
     end)
-    return ok
 end
 
 --====================================================
 -- ВЫХОД
 --====================================================
 local function KickSelf(reasons)
-    -- Уведомление сверху
     pcall(function()
         StarterGui:SetCore("SendNotification", {
             Title = KICK_TITLE,
@@ -214,7 +200,6 @@ local function KickSelf(reasons)
         })
     end)
 
-    -- Системное сообщение в чат
     pcall(function()
         StarterGui:SetCore("ChatMakeSystemMessage", {
             Text = "[Venture] " .. KICK_TITLE .. ", " .. KICK_SUB,
@@ -223,22 +208,15 @@ local function KickSelf(reasons)
         })
     end)
 
-    -- Полноэкранный баннер
     ShowFullscreenBanner(reasons)
 
-    -- Логи
     warn("[AntiMod] ================================")
     warn("[AntiMod] " .. KICK_TITLE .. ", " .. KICK_SUB)
-    warn("[AntiMod] Reasons:")
-    for _, r in ipairs(reasons) do
-        warn("  - " .. r)
-    end
+    for _, r in ipairs(reasons) do warn("  - " .. r) end
     warn("[AntiMod] ================================")
 
-    -- Даём игроку полюбоваться баннером
     task.wait(2.0)
 
-    -- Способы выхода (что-то да сработает)
     pcall(function() TeleportService:Teleport(0) end)
     task.wait(0.3)
     if kickSelf then pcall(kickSelf) end
@@ -256,8 +234,10 @@ end
 -- ПРОВЕРКА
 --====================================================
 function AntiMod.Check()
+    if AntiMod.Triggered then return true end
     local isMod, reasons = AmIMod()
     if isMod then
+        AntiMod.Triggered = true
         KickSelf(reasons)
         return true
     end
