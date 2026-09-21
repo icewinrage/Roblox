@@ -1,6 +1,3 @@
---// Venture | 09_Supabase.lua
--- HTTP-бейджи через Supabase: SCRIPT USER / SCRIPT OWNER
-
 local Shared = _G.Venture.Shared
 local Config = _G.Venture.Config
 local Utils  = _G.Venture.Utils
@@ -21,9 +18,6 @@ local ISOTime = Utils.ISOTime
 
 local Supa = {}
 
---====================================================
--- КОНФИГ
---====================================================
 local TABLE_URL = Config.SUPABASE_URL .. "/rest/v1/" .. Config.SUPABASE_TABLE
 local HEADERS = {
     ["apikey"] = Config.SUPABASE_KEY,
@@ -32,20 +26,14 @@ local HEADERS = {
     ["Prefer"] = "resolution=merge-duplicates",
 }
 
---====================================================
--- СОСТОЯНИЕ
---====================================================
-Supa.Users = {}          -- [Player] = {Role, LastSeen}
-Supa.BadgeData = {}      -- [BillboardGui] = {BaseWidth, BaseHeight, BaseInfoSize, Head, Owner, Label, Icon, Info}
-Supa.BadgeByPlayer = {}  -- [Player] = BillboardGui
+Supa.Users = {}
+Supa.BadgeData = {}
+Supa.BadgeByPlayer = {}
 Supa.MY_UID = Utils.GetUserId()
 Supa.MY_NAME = LocalPlayer.Name
 Supa.MY_ROLE = (LocalPlayer.Name == Config.OWNER_NAME) and "Owner" or "User"
 Supa.MY_JOB = game.JobId
 
---====================================================
--- СОЗДАНИЕ БЕЙДЖА
---====================================================
 local function SafeMakeBadge(pl, role)
     if not pl or not pl.Parent then return nil end
     local ch = pl.Character
@@ -89,7 +77,6 @@ local function SafeMakeBadge(pl, role)
     grad.Rotation = 30
     grad.Parent = container
 
-    -- Блик
     local shine = Instance.new("Frame")
     shine.Name = "Shine"
     shine.Size = UDim2.new(0.35, 0, 1, 0)
@@ -109,7 +96,6 @@ local function SafeMakeBadge(pl, role)
     })
     shineGrad.Parent = shine
 
-    -- Обводки
     local stroke = Instance.new("UIStroke")
     stroke.Color = isOwner and Color3.fromRGB(240,180,255) or Color3.fromRGB(200,150,255)
     stroke.Thickness = isOwner and 1.8 or 1.5
@@ -123,7 +109,6 @@ local function SafeMakeBadge(pl, role)
     glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     glow.Parent = container
 
-    -- Иконка
     local icon = Instance.new("TextLabel")
     icon.Name = "Icon"
     icon.AnchorPoint = Vector2.new(0, 0.5)
@@ -137,7 +122,6 @@ local function SafeMakeBadge(pl, role)
     icon.ZIndex = 5
     icon.Parent = container
 
-    -- Основной текст
     local label = Instance.new("TextLabel")
     label.Name = "Text"
     label.Position = UDim2.new(0, isOwner and 28 or 24, 0, 0)
@@ -153,7 +137,6 @@ local function SafeMakeBadge(pl, role)
     label.ZIndex = 5
     label.Parent = container
 
-    -- Подпись снизу
     local info = Instance.new("TextLabel")
     info.Name = "Info"
     info.AnchorPoint = Vector2.new(0.5, 0)
@@ -178,7 +161,6 @@ local function SafeMakeBadge(pl, role)
     }
     Supa.BadgeByPlayer[pl] = bg
 
-    -- Пульсация обводки
     task.spawn(function()
         while bg.Parent do
             pcall(function()
@@ -194,7 +176,6 @@ local function SafeMakeBadge(pl, role)
         end
     end)
 
-    -- Мерцание короны
     if isOwner then
         task.spawn(function()
             while bg.Parent do
@@ -210,7 +191,6 @@ local function SafeMakeBadge(pl, role)
         end)
     end
 
-    -- Блик
     task.spawn(function()
         while bg.Parent do
             pcall(function() shine.Position = UDim2.new(-0.5, 0, 0, 0) end)
@@ -227,9 +207,6 @@ local function SafeMakeBadge(pl, role)
     return bg
 end
 
---====================================================
--- УДАЛЕНИЕ
---====================================================
 local function RemoveBadge(pl)
     if not pl then return end
     local bg = Supa.BadgeByPlayer[pl]
@@ -265,9 +242,6 @@ local function RefreshBadge(pl)
     end
 end
 
---====================================================
--- HTTP ЛОГИКА
---====================================================
 local function SendBeacon()
     HttpPost(TABLE_URL, {
         user_id = Supa.MY_UID,
@@ -293,15 +267,10 @@ local function Cleanup()
     HttpDelete(TABLE_URL .. "?last_seen=lt." .. cutoff, HEADERS)
 end
 
---====================================================
--- ИНИЦИАЛИЗАЦИЯ
---====================================================
 function Supa.Init()
-    -- Себя сразу
     Supa.Users[LocalPlayer] = {Role = Supa.MY_ROLE, LastSeen = tick()}
     SafeMakeBadge(LocalPlayer, Supa.MY_ROLE)
 
-    -- HEARTBEAT
     task.spawn(function()
         while true do
             pcall(SendBeacon)
@@ -309,7 +278,6 @@ function Supa.Init()
         end
     end)
 
-    -- FETCH
     task.spawn(function()
         while true do
             task.wait(Config.FETCH_INTERVAL)
@@ -344,7 +312,6 @@ function Supa.Init()
         end
     end)
 
-    -- CLEANUP
     task.spawn(function()
         while true do
             task.wait(Config.CLEANUP_INTERVAL)
@@ -352,7 +319,6 @@ function Supa.Init()
         end
     end)
 
-    -- DYNAMIC SCALE (уменьшение по дистанции)
     RunService.RenderStepped:Connect(function()
         pcall(CleanBadgeData)
         local myChar = LocalPlayer.Character
@@ -386,7 +352,6 @@ function Supa.Init()
         end
     end)
 
-    -- RESPAWN
     local function OnCharAdded(pl)
         if not pl then return end
         task.wait(0.5)
@@ -412,8 +377,6 @@ function Supa.Init()
         Supa.Users[pl] = nil
         RemoveBadge(pl)
     end)
-
-    print("[Venture] Supabase beacon active | Role:", Supa.MY_ROLE, "| UID:", Supa.MY_UID)
 end
 
 _G.Venture = _G.Venture or {}
