@@ -510,4 +510,321 @@ do
     y = MakeButton(tabPanels[1], "Find Nearest Titan", "Lock onto the nearest available target", y, function()
         local t = Funcs.GetTitans()
         if #t == 0 then return end
-       
+        Funcs.StickToTitan(t[1])
+    end)
+    y = MakeButton(tabPanels[1], "Safe Release", "Detach and boost upward + sideways", y, function()
+        Funcs.CleanupStick(true); Funcs.State.currentTarget = nil
+    end)
+    y = MakeButton(tabPanels[1], "Force Reset", "Clear current TP / camera state", y, function()
+        Funcs.ForceResetState()
+    end)
+    y = y + 6
+    y = MakeSectionLabel(tabPanels[1], "BLADE REFILL", y)
+    y = MakeButton(tabPanels[1], "Teleport to Nearest Refill", "TP to closest BladeRefill", y, function()
+        local r = Funcs.GetRefills()
+        if #r == 0 then return end
+        Funcs.TeleportToRefill(r[1])
+    end)
+    y = MakeButton(tabPanels[1], "Trigger Auto Refill", "TP + pause + wait + return", y, function()
+        Funcs.TriggerAutoRefill()
+    end)
+    tabPanels[1].CanvasSize = UDim2.new(0,0,0,y+20)
+end
+
+do
+    local vy = 0
+    vy = MakeSectionLabel(tabPanels[2], "ESP", vy)
+    vy = MakeToggle(tabPanels[2], "Titan + Refill ESP", vy, false, function(v) Settings.ESP = v end)
+    vy = MakeToggle(tabPanels[2], "Player ESP (HP + Name + PvP)", vy, false, function(v) Settings.PlayerESP = v end)
+    vy = MakeToggle(tabPanels[2], "Shifter ESP", vy, false, function(v) Settings.ShifterESP = v end)
+    vy = vy + 6
+    vy = MakeSectionLabel(tabPanels[2], "HITBOX EXPANDER", vy)
+    vy = MakeToggle(tabPanels[2], "Expand Hitbox", vy, false, function(v)
+        Settings.HitboxExpand = v
+        if v then Funcs.ApplyHitboxToAll() else Funcs.ResetAllHitboxes() end
+    end)
+    vy = MakeSlider(tabPanels[2], "Size X", vy, 50, 500, 300, " studs", function(v)
+        Settings.HitboxSize = Vector3.new(v, Settings.HitboxSize.Y, Settings.HitboxSize.Z)
+        Funcs.ApplyHitboxToAll()
+    end)
+    vy = MakeSlider(tabPanels[2], "Size Y", vy, 50, 500, 200, " studs", function(v)
+        Settings.HitboxSize = Vector3.new(Settings.HitboxSize.X, v, Settings.HitboxSize.Z)
+        Funcs.ApplyHitboxToAll()
+    end)
+    vy = MakeSlider(tabPanels[2], "Size Z", vy, 50, 500, 300, " studs", function(v)
+        Settings.HitboxSize = Vector3.new(Settings.HitboxSize.X, Settings.HitboxSize.Y, v)
+        Funcs.ApplyHitboxToAll()
+    end)
+    vy = MakeMultiSelect(tabPanels[2], "TARGET PARTS", {"Nape","Eyes","LeftArm","LeftLeg","RightArm","RightLeg"}, vy)
+    vy = MakeDropdown(tabPanels[2], "Shape", {"Block","Ball","Cylinder"}, vy, "Block", function(v)
+        Settings.HitboxShape = v
+        Funcs.ApplyHitboxToAll()
+    end)
+    vy = MakeToggle(tabPanels[2], "Show Hitbox Visual", vy, false, function(v)
+        Settings.HitboxShowVisual = v
+        Funcs.ApplyHitboxToAll()
+    end)
+    vy = MakeButton(tabPanels[2], "Reset All Hitboxes", "Restore original sizes", vy, function()
+        Funcs.ResetAllHitboxes()
+    end)
+    vy = vy + 6
+    vy = MakeSectionLabel(tabPanels[2], "NOCLIP", vy)
+    vy = MakeToggle(tabPanels[2], "Noclip (walk through walls)", vy, false, function(v)
+        Settings.Noclip = v
+        if v then Funcs.StartNoclip() else Funcs.StopNoclip() end
+    end)
+    vy = vy + 6
+    vy = MakeSectionLabel(tabPanels[2], "FPS BOOSTER", vy)
+    vy = MakeToggle(tabPanels[2], "FPS Booster (aggressive)", vy, false, function(v)
+        Settings.FPSBoosterEnabled = v
+        if v then Funcs.EnableFPSBooster() else Funcs.DisableFPSBooster() end
+    end)
+    tabPanels[2].CanvasSize = UDim2.new(0,0,0,vy+20)
+end
+
+do
+    local fy = 0
+    fy = MakeSectionLabel(tabPanels[3], "AUTO FARM (SMOOTH ORBIT)", fy)
+    fy = MakeToggle(tabPanels[3], "Enable AutoFarm", fy, false, function(v)
+        Settings.AutoFarmEnabled = v
+        if v then
+            if not Settings.HitboxExpand then Settings.HitboxExpand = true; Funcs.ApplyHitboxToAll() end
+            if not Settings.Noclip then Settings.Noclip = true; Funcs.StartNoclip() end
+        else
+            Funcs.ResetAllHitboxes(); Funcs.StopNoclip(); Funcs.CleanupFarm()
+            Funcs.State.FarmState.IsAttacking = false
+            Funcs.State.FarmState.CurrentTitan = nil
+        end
+    end)
+    fy = MakeSlider(tabPanels[3], "Orbit Speed", fy, 100, 500, 300, " s/s", function(v) Settings.AutoFarmOrbitSpeed = v end)
+    fy = MakeSlider(tabPanels[3], "Hover Height", fy, 30, 150, 80, " studs", function(v) Settings.AutoFarmHoverHeight = v end)
+    fy = MakeSlider(tabPanels[3], "Orbit Radius", fy, 30, 150, 80, " studs", function(v) Settings.AutoFarmOrbitRadius = v end)
+    fy = MakeSlider(tabPanels[3], "Safe Distance", fy, 50, 200, 100, " studs", function(v) Settings.AutoFarmSafeDistance = v end)
+    fy = MakeSlider(tabPanels[3], "Responsiveness", fy, 5, 100, 25, "", function(v) Settings.AutoFarmResponsiveness = v end)
+    fy = fy + 6
+    fy = MakeSectionLabel(tabPanels[3], "AUTO HEAL", fy)
+    fy = MakeToggle(tabPanels[3], "Enable Auto Heal", fy, false, function(v) Settings.AutoHealEnabled = v end)
+    fy = MakeSlider(tabPanels[3], "HP Threshold %", fy, 10, 90, 50, "%", function(v) Settings.AutoHealThreshold = v end)
+    fy = MakeButton(tabPanels[3], "Heal Now", "Manual trigger", fy, function() Funcs.TriggerAutoHeal() end)
+    fy = fy + 6
+    fy = MakeSectionLabel(tabPanels[3], "AUTO QUEST", fy)
+    fy = MakeToggle(tabPanels[3], "Enable Auto Quest", fy, false, function(v) Settings.AutoQuestEnabled = v end)
+    fy = MakeDropdown(tabPanels[3], "Quest Type", {"Slay Titans","Save Players","Auto (first)"}, fy, "Auto (first)", function(v)
+        Settings.AutoQuestSelected = v
+    end)
+    fy = fy + 6
+    fy = MakeSectionLabel(tabPanels[3], "AUTO BLADE REFILL", fy)
+    fy = MakeToggle(tabPanels[3], "Enable Auto Refill", fy, false, function(v) Settings.AutoRefillEnabled = v end)
+    fy = MakeSlider(tabPanels[3], "Blade Threshold", fy, 0, 100, 1, "%", function(v) Settings.AutoBladeRefillThreshold = v end)
+    fy = MakeSlider(tabPanels[3], "Refill Wait Time", fy, 1, 15, 5, " sec", function(v) Settings.AutoBladeRefillReturnDelay = v end)
+    fy = MakeButton(tabPanels[3], "Trigger Refill Now", "Manual trigger", fy, function() Funcs.TriggerAutoRefill() end)
+    tabPanels[3].CanvasSize = UDim2.new(0,0,0,fy+20)
+end
+
+GUI.KeybindTabPanel = tabPanels[4]
+GUI.SecurityTabPanel = tabPanels[5]
+
+do
+    local dy = 0
+    dy = MakeSectionLabel(tabPanels[6], "DEBUG", dy)
+    dy = MakeButton(tabPanels[6], "List Titans", "Print", dy, function()
+        local t = Funcs.GetTitans()
+        print("Titans:", #t)
+        for i, x in ipairs(t) do if i > 15 then break end; print(i..". "..x.Model.Name.." | "..math.floor(x.Distance)) end
+    end)
+    dy = MakeButton(tabPanels[6], "List Refills", "Print", dy, function()
+        local r = Funcs.GetRefills()
+        print("Refills:", #r)
+        for i, x in ipairs(r) do if i > 15 then break end; print(i..". "..x.Model.Name.." | "..math.floor(x.Distance)) end
+    end)
+    dy = MakeButton(tabPanels[6], "Executor Info", "Print", dy, function()
+        print("Executor:", GUI.ExecutorName)
+        print("Mod Group:", Config.MOD_GROUP_ID)
+    end)
+    dy = MakeButton(tabPanels[6], "Find Blade State", "Auto-detect", dy, function()
+        local f = Funcs.FindBladeState()
+        if f then print("Found:", f:GetFullName(), "=", f.Value)
+        else print("Not found") end
+    end)
+    tabPanels[6].CanvasSize = UDim2.new(0,0,0,dy+20)
+end
+
+do
+    local sy = 0
+    sy = MakeSectionLabel(tabPanels[7], "INTERFACE THEME", sy)
+
+    local themeDescriptions = {
+        Dark = "Dark - classic dark theme",
+        Purple = "Purple - neon purple",
+        Red = "Red - aggressive red",
+        White = "White - light minimalist",
+    }
+
+    local currentLabel = New("TextLabel", {
+        Position = UDim2.new(0,4,0,sy), Size = UDim2.new(1,-8,0,26),
+        BackgroundTransparency = 1,
+        Text = "Current theme: " .. Settings.Theme,
+        TextColor3 = Theme.Get().SectionText,
+        Font = Enum.Font.GothamBold, TextSize = 14,
+        TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 8,
+    }, tabPanels[7])
+    sy = sy + 32
+
+    local themeNames = {"Dark", "Purple", "Red", "White"}
+    for _, tname in ipairs(themeNames) do
+        sy = MakeButton(tabPanels[7], tname, themeDescriptions[tname], sy, function()
+            Theme.Apply(tname, true)
+            currentLabel.Text = "Current theme: " .. tname
+        end)
+    end
+
+    sy = sy + 10
+    sy = MakeSectionLabel(tabPanels[7], "INFO", sy)
+    New("TextLabel", {
+        Position = UDim2.new(0,4,0,sy), Size = UDim2.new(1,-8,0,60),
+        BackgroundTransparency = 1,
+        Text = "Theme saved automatically to\nVentureAOT_Theme.json\nand applied on next launch.",
+        TextColor3 = Theme.Get().SubText,
+        Font = Enum.Font.Gotham, TextSize = 11,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        TextWrapped = true, ZIndex = 8,
+    }, tabPanels[7])
+    sy = sy + 70
+
+    tabPanels[7].CanvasSize = UDim2.new(0,0,0,sy+20)
+end
+
+do
+    local dragging, dragStart, startPos = false, nil, nil
+    Main.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = Main.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    Main.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+
+local function FadeOutIntro()
+    Tween(LoadingGlass, 0.8, {BackgroundTransparency = 0.4})
+    CutscenePanel.Size = UDim2.fromOffset(360, 200)
+    Tween(CutscenePanel, 0.8, {Size = UDim2.fromOffset(460, 260), BackgroundTransparency = 0.08}, Enum.EasingStyle.Back)
+    Tween(CutsceneStroke, 0.8, {Transparency = 0.15})
+    task.wait(0.4)
+    Tween(Logo, 0.9, {TextTransparency = 0})
+    task.wait(0.3)
+    Tween(LogoSub, 0.8, {TextTransparency = 0})
+    task.wait(0.3)
+    Tween(AuthorLabel, 0.8, {TextTransparency = 0})
+    task.wait(0.2)
+    Tween(DiscordLabel, 0.8, {TextTransparency = 0})
+    task.wait(0.2)
+    Tween(VersionLabel, 0.8, {TextTransparency = 0})
+    task.wait(2.0)
+    Tween(CutscenePanel, 0.8, {BackgroundTransparency = 1})
+    Tween(CutsceneStroke, 0.6, {Transparency = 1})
+    for _, l in ipairs({Logo, LogoSub, AuthorLabel, DiscordLabel, VersionLabel}) do
+        Tween(l, 0.5, {TextTransparency = 1})
+    end
+    Tween(LoadingGlass, 0.9, {BackgroundTransparency = 1})
+    task.wait(1)
+    Loading:Destroy()
+end
+
+GUI.ShowMain = function()
+    Main.Visible = true
+    Main.Size = UDim2.fromOffset(400, 300)
+    Main.Position = UDim2.fromScale(0.5, 0.56)
+    Main.BackgroundTransparency = 1
+    MainStroke.Transparency = 1
+    Glow.BackgroundTransparency = 1
+    Tween(Main, 0.9, {
+        Size = IsMobile and UDim2.fromOffset(480,400) or UDim2.fromOffset(620,480),
+        Position = UDim2.fromScale(0.5,0.5),
+        BackgroundTransparency = 0.06,
+    }, Enum.EasingStyle.Back)
+    Tween(MainStroke, 0.85, {Transparency = 0.2})
+    Tween(Glow, 0.55, {BackgroundTransparency = 0})
+    RefreshTabVisuals()
+end
+
+GUI.HideToIcon = function()
+    Tween(Main, 0.4, {Size = UDim2.fromOffset(300,200), BackgroundTransparency = 1}, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+    Tween(MainStroke, 0.35, {Transparency = 1})
+    Tween(Glow, 0.35, {BackgroundTransparency = 1})
+    task.delay(0.4, function()
+        Main.Visible = false
+        OpenBtn.Visible = true
+        OpenBtn.BackgroundTransparency = 1
+        OpenBtn.TextTransparency = 1
+        Tween(OpenBtn, 0.35, {BackgroundTransparency = 0.1, TextTransparency = 0}, Enum.EasingStyle.Back)
+    end)
+end
+
+GUI.OpenFromIcon = function()
+    Tween(OpenBtn, 0.25, {BackgroundTransparency = 1, TextTransparency = 1})
+    task.delay(0.2, function()
+        OpenBtn.Visible = false
+        Main.Visible = true
+        Main.Size = UDim2.fromOffset(300, 200)
+        Main.Position = UDim2.fromScale(0.5, 0.5)
+        Main.BackgroundTransparency = 1
+        MainStroke.Transparency = 1
+        Glow.BackgroundTransparency = 1
+        Tween(Main, 0.6, {
+            Size = IsMobile and UDim2.fromOffset(480,400) or UDim2.fromOffset(620,480),
+            BackgroundTransparency = 0.06,
+        }, Enum.EasingStyle.Back)
+        Tween(MainStroke, 0.6, {Transparency = 0.2})
+        Tween(Glow, 0.4, {BackgroundTransparency = 0})
+        RefreshTabVisuals()
+    end)
+end
+
+HideBtn.MouseButton1Click:Connect(GUI.HideToIcon)
+OpenBtn.MouseButton1Click:Connect(GUI.OpenFromIcon)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    Funcs.ResetAllHitboxes()
+    Funcs.StopNoclip()
+    Settings.AutoFarmEnabled = false
+    Settings.Noclip = false
+    Settings.HitboxExpand = false
+    Tween(Main, 0.6, {Size = UDim2.fromOffset(280,170), Position = UDim2.fromScale(0.5,0.47), BackgroundTransparency = 1}, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+    Tween(MainStroke, 0.5, {Transparency = 1, Thickness = 4})
+    Tween(Glow, 0.35, {BackgroundTransparency = 1})
+    task.wait(0.6)
+    ScreenGui:Destroy()
+    KeybindListGui:Destroy()
+    if not UserInputService.TouchEnabled then UserInputService.MouseIconEnabled = true end
+end)
+
+CloseBtn.MouseEnter:Connect(function() Tween(CloseBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(52,39,65)}); Tween(CloseBtn, 0.18, {TextColor3 = Color3.fromRGB(255,125,170)}) end)
+CloseBtn.MouseLeave:Connect(function() Tween(CloseBtn, 0.18, {BackgroundColor3 = Theme.Get().CloseBtnBg}); Tween(CloseBtn, 0.18, {TextColor3 = Theme.Get().CloseBtnText}) end)
+HideBtn.MouseEnter:Connect(function() Tween(HideBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(39,45,65)}); Tween(HideBtn, 0.18, {TextColor3 = Color3.fromRGB(150,180,255)}) end)
+HideBtn.MouseLeave:Connect(function() Tween(HideBtn, 0.18, {BackgroundColor3 = Theme.Get().CloseBtnBg}); Tween(HideBtn, 0.18, {TextColor3 = Theme.Get().CloseBtnText}) end)
+OpenBtn.MouseEnter:Connect(function() Tween(OpenBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(35,32,55)}) end)
+OpenBtn.MouseLeave:Connect(function() Tween(OpenBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(20,22,36)}) end)
+
+GUI.Boot = function()
+    task.spawn(FadeOutIntro)
+    task.spawn(function()
+        task.wait(4)
+        GUI.ShowMain()
+    end)
+end
+
+_G.Venture = _G.Venture or {}
+_G.Venture.GUI = GUI
+
+return GUI
