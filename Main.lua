@@ -23,18 +23,43 @@ local MODULES = {
     "10_Init",
 }
 
--- Auto-execute after teleport
+-- ============================================================
+-- AUTO-EXEC AFTER TELEPORT
+-- Скрипт перезапустится автоматически после смены сервера
+-- ============================================================
 local AUTO_EXEC_CODE = [[
-loadstring(game:HttpGet("https://raw.githubusercontent.com/]] .. REPO_USER .. [[/]] .. REPO_NAME .. [[/]] .. REPO_BRANCH .. [[/Main.lua"))()
+    wait(0.5)
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/]] .. REPO_USER .. [[/]] .. REPO_NAME .. [[/]] .. REPO_BRANCH .. [[/Main.lua"))()
 ]]
 
-if queue_on_teleport then
-    pcall(function() queue_on_teleport(AUTO_EXEC_CODE) end)
-elseif syn and syn.queue_on_teleport then
+-- Synapse / Script-Ware
+if syn and syn.queue_on_teleport then
     pcall(function() syn.queue_on_teleport(AUTO_EXEC_CODE) end)
-elseif fluxus and fluxus.queue_on_teleport then
+end
+
+-- Fluxus
+if fluxus and fluxus.queue_on_teleport then
     pcall(function() fluxus.queue_on_teleport(AUTO_EXEC_CODE) end)
 end
+
+-- Krnl
+if Krnl and Krnl.queue_on_teleport then
+    pcall(function() Krnl.queue_on_teleport(AUTO_EXEC_CODE) end)
+end
+
+-- Универсальный вариант (проверяем все варианты)
+if queue_on_teleport then
+    pcall(function() queue_on_teleport(AUTO_EXEC_CODE) end)
+end
+
+-- SX (Sentinel / ScriptX)
+if SX and SX.queue_on_teleport then
+    pcall(function() SX.queue_on_teleport(AUTO_EXEC_CODE) end)
+end
+
+-- ============================================================
+-- ЗАГРУЗКА МОДУЛЕЙ
+-- ============================================================
 
 _G.Venture = _G.Venture or {}
 
@@ -85,39 +110,13 @@ local function loadModule(name)
     return result
 end
 
--- LAYERED LOADING (parallel within groups, ordered between groups)
-local GROUPS = {
-    {"01_Shared"},
-    {"02_Config", "03_Utils"},
-    {"04_Theme"},
-    {"05_Functions"},
-    {"06_GUI", "07_Keybinds", "08_Security", "09_Supabase", "11_Cursor", "12_AntiMod", "13_OnlineTab"},
-    {"10_Init"},
-}
-
-for _, group in ipairs(GROUPS) do
-    local threads = {}
-    for _, name in ipairs(group) do
-        table.insert(threads, task.spawn(function()
-            pcall(loadModule, name)
-        end))
-    end
-    -- Wait for group completion
-    local allDone = false
-    local waitStart = tick()
-    while not allDone and tick() - waitStart < 5 do
-        allDone = true
-        for _, t in ipairs(threads) do
-            if coroutine.status(t) ~= "dead" then
-                allDone = false
-                break
-            end
-        end
-        if not allDone then task.wait(0.02) end
-    end
+-- Последовательная загрузка — стабильная
+for _, name in ipairs(MODULES) do
+    pcall(loadModule, name)
+    task.wait(0.05)
 end
 
-task.wait(0.1)
+task.wait(0.3)
 
 local Init = _G.Venture.Init
 if Init and Init.Run then
