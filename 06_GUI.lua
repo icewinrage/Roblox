@@ -45,7 +45,7 @@ local Logo = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UD
 local LogoSub = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.35), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "Executor: " .. GUI.ExecutorName, TextColor3 = Color3.fromRGB(180,180,200), TextSize = 12, Font = Enum.Font.Gotham, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
 local AuthorLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.5), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "by __TheDark", TextColor3 = Color3.fromRGB(212,175,55), TextSize = 15, Font = Enum.Font.GothamBold, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
 local DiscordLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.58), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "discord.gg/UHCwX78Npc", TextColor3 = Color3.fromRGB(125,160,255), TextSize = 13, Font = Enum.Font.Gotham, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
-local VersionLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.66), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "v1.8", TextColor3 = Color3.fromRGB(180,180,200), TextSize = 12, Font = Enum.Font.Gotham, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
+local VersionLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.66), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "v1.5", TextColor3 = Color3.fromRGB(180,180,200), TextSize = 12, Font = Enum.Font.Gotham, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
 GUI.Loading = Loading
 
 -- KEYBIND LIST (слева снаружи)
@@ -89,7 +89,7 @@ local Main = New("Frame", {
 }, ScreenGui)
 New("UICorner", {CornerRadius = UDim.new(0,22)}, Main)
 local MainStroke = New("UIStroke", {Color = Color3.fromRGB(125,92,255), Thickness = 1.5, Transparency = 0.2}, Main)
-local MainGrad = New("UIGradient", {Color = ColorSequence.new({
+New("UIGradient", {Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0, Color3.fromRGB(24,24,42)),
     ColorSequenceKeypoint.new(0.5, Color3.fromRGB(11,13,22)),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(7,8,14)),
@@ -100,31 +100,14 @@ Theme.RegisterMain(Main)
 Theme.Register("Misc", {Obj = MainStroke, Keys = {"Accent"}})
 
 -- Header
-local Header = New("Frame", {
-    Position = UDim2.new(0,0,0,0),
-    Size = UDim2.new(1,0,0,58),
-    BackgroundTransparency = 1,
-    ZIndex = 6,
-}, Main)
+local Header = New("Frame", {Position = UDim2.new(0,0,0,0), Size = UDim2.new(1,0,0,58), BackgroundTransparency = 1, ZIndex = 6}, Main)
 
-local SidebarToggle = New("TextButton", {
-    Position = UDim2.new(0,16,0,16),
-    Size = UDim2.fromOffset(32,32),
-    BackgroundColor3 = Config.Themes.Dark.TabBgActive,
-    BackgroundTransparency = 0.1,
-    BorderSizePixel = 0,
-    AutoButtonColor = false,
-    Text = "≡",
-    TextColor3 = Color3.fromRGB(255,255,255),
-    TextSize = 20,
-    Font = Enum.Font.GothamBold,
-    ZIndex = 10,
-}, Header)
+local SidebarToggle = New("TextButton", {Position = UDim2.new(0,16,0,16), Size = UDim2.fromOffset(32,32), BackgroundColor3 = Config.Themes.Dark.TabBgActive, BackgroundTransparency = 0.1, BorderSizePixel = 0, AutoButtonColor = false, Text = "≡", TextColor3 = Color3.fromRGB(255,255,255), TextSize = 20, Font = Enum.Font.GothamBold, ZIndex = 10}, Header)
 New("UICorner", {CornerRadius = UDim.new(0,8)}, SidebarToggle)
 local SidebarToggleStroke = New("UIStroke", {Color = Color3.fromRGB(125,92,255), Thickness = 1.2}, SidebarToggle)
 
 local Title = New("TextLabel", {Position = UDim2.new(0,60,0,18), Size = UDim2.new(1,-200,0,24), BackgroundTransparency = 1, Text = "VENTURE  AOT", TextColor3 = Color3.fromRGB(248,247,255), TextSize = 18, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
-local Subtitle = New("TextLabel", {Position = UDim2.new(0,60,0,38), Size = UDim2.new(1,-200,0,14), BackgroundTransparency = 1, Text = "by __TheDark  |  v1.8", TextColor3 = Color3.fromRGB(153,157,178), TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
+local Subtitle = New("TextLabel", {Position = UDim2.new(0,60,0,38), Size = UDim2.new(1,-200,0,14), BackgroundTransparency = 1, Text = "by __TheDark  |  v1.5", TextColor3 = Color3.fromRGB(153,157,178), TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
 GUI.Title = Title
 GUI.Subtitle = Subtitle
 Theme.Register("Misc", {Obj = Title, Keys = {"TitleText"}})
@@ -164,7 +147,7 @@ local Sidebar = New("Frame", {
 }, Main)
 GUI.Sidebar = Sidebar
 
-local SidebarLayout = New("UIListLayout", {
+New("UIListLayout", {
     SortOrder = Enum.SortOrder.LayoutOrder,
     Padding = UDim.new(0, 4),
 }, Sidebar)
@@ -178,7 +161,9 @@ local SIDEBAR_TABS = {
     {Name = "MAIN"},
     {Name = "TITAN"},
     {Name = "AUTO"},
-    {Name = "SOCIAL"},
+    {Name = "CHAT"},
+    {Name = "ONLINE"},
+    {Name = "ANNOUNCE"},
     {Name = "CONFIG"},
 }
 
@@ -269,27 +254,18 @@ end
 tabStates[1] = true
 GUI.RefreshTabVisuals()
 
--- Sidebar toggle animation
 SidebarToggle.MouseButton1Click:Connect(function()
     sidebarExpanded = not sidebarExpanded
-
     local newWidth = sidebarExpanded and SIDEBAR_WIDTH_EXPANDED or SIDEBAR_WIDTH_COLLAPSED
     local newContentX = sidebarExpanded and (SIDEBAR_WIDTH_EXPANDED + 8) or (SIDEBAR_WIDTH_COLLAPSED + 8)
     local newContentW = sidebarExpanded and -(SIDEBAR_WIDTH_EXPANDED + 20) or -(SIDEBAR_WIDTH_COLLAPSED + 20)
-
     Tween(Sidebar, 0.35, {Size = UDim2.fromOffset(newWidth, 0)}, Enum.EasingStyle.Quart)
-    Tween(ContentFrame, 0.35, {
-        Position = UDim2.new(0, newContentX, 0, 62),
-        Size = UDim2.new(1, newContentW, 1, -70),
-    }, Enum.EasingStyle.Quart)
-
+    Tween(ContentFrame, 0.35, {Position = UDim2.new(0, newContentX, 0, 62), Size = UDim2.new(1, newContentW, 1, -70)}, Enum.EasingStyle.Quart)
     for i, btn in ipairs(tabButtons) do
         if sidebarExpanded then
             btn.Text = SIDEBAR_TABS[i].Name
-            Tween(btn, 0.25, {TextTransparency = 0})
         else
-            local firstLetter = SIDEBAR_TABS[i].Name:sub(1, 1)
-            btn.Text = firstLetter
+            btn.Text = SIDEBAR_TABS[i].Name:sub(1, 1)
         end
     end
 end)
@@ -580,48 +556,6 @@ GUI.MakeSlider = MakeSlider
 GUI.MakeMultiSelect = MakeMultiSelect
 GUI.MakeDropdown = MakeDropdown
 
--- Sub-section (для SOCIAL и CONFIG)
-local function MakeSubSection(parent, title)
-    local T = Theme.Get()
-    local wrapper = New("Frame", {
-        Size = UDim2.new(1, 0, 0, 0),
-        BackgroundTransparency = 1,
-        AutomaticSize = Enum.AutomaticSize.Y,
-        ZIndex = 8,
-    }, parent)
-    New("UIListLayout", {
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 6),
-    }, wrapper)
-
-    New("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 18),
-        BackgroundTransparency = 1,
-        Text = "  " .. string.upper(title),
-        TextColor3 = T.SectionText,
-        TextSize = 11,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        LayoutOrder = 1,
-        ZIndex = 9,
-    }, wrapper)
-
-    local content = New("Frame", {
-        Size = UDim2.new(1, 0, 0, 0),
-        BackgroundTransparency = 1,
-        AutomaticSize = Enum.AutomaticSize.Y,
-        LayoutOrder = 2,
-        ZIndex = 9,
-    }, wrapper)
-    New("UIListLayout", {
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 4),
-    }, content)
-
-    return content
-end
-GUI.MakeSubSection = MakeSubSection
-
 -- TAB 1: MAIN
 do
     local y = 0
@@ -668,13 +602,11 @@ do
     y = MakeButton(tabPanels[2], "Reset Hitboxes", "Restore original", y, function()
         Funcs.ResetAllHitboxes()
     end)
-
     y = y + 6
     y = MakeSectionLabel(tabPanels[2], "ESP", y)
     y = MakeToggle(tabPanels[2], "Titan + Refill ESP", y, false, function(v) Settings.ESP = v end)
     y = MakeToggle(tabPanels[2], "Player ESP", y, false, function(v) Settings.PlayerESP = v end)
     y = MakeToggle(tabPanels[2], "Shifter ESP", y, false, function(v) Settings.ShifterESP = v end)
-
     y = y + 6
     y = MakeSectionLabel(tabPanels[2], "MOVEMENT", y)
     y = MakeToggle(tabPanels[2], "Noclip", y, false, function(v)
@@ -703,7 +635,6 @@ do
             Funcs.State.FarmState.CurrentTitan = nil
         end
     end)
-
     y = MakeSectionLabel(tabPanels[3], "BLADE REFILL", y)
     y = MakeButton(tabPanels[3], "TP to Refill", "Teleport to closest refill", y, function()
         local r = Funcs.GetRefills()
@@ -711,64 +642,88 @@ do
         Funcs.TeleportToRefill(r[1])
     end)
     y = MakeToggle(tabPanels[3], "Enable Auto Refill", y, false, function(v) Settings.AutoRefillEnabled = v end)
-
     y = y + 6
     y = MakeSectionLabel(tabPanels[3], "AUTO HEAL", y)
     y = MakeToggle(tabPanels[3], "Enable Auto Heal", y, false, function(v) Settings.AutoHealEnabled = v end)
     y = MakeButton(tabPanels[3], "Heal Now", "Manual trigger", y, function() Funcs.TriggerAutoHeal() end)
-
     y = y + 6
     y = MakeSectionLabel(tabPanels[3], "AUTO QUEST", y)
     y = MakeToggle(tabPanels[3], "Enable Auto Quest", y, false, function(v) Settings.AutoQuestEnabled = v end)
-
     y = y + 6
     y = MakeSectionLabel(tabPanels[3], "SETTINGS", y)
     y = MakeSlider(tabPanels[3], "Orbit Speed", y, 100, 500, 300, " s/s", function(v) Settings.AutoFarmOrbitSpeed = v end)
     y = MakeSlider(tabPanels[3], "Hover Height", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmHoverHeight = v end)
     y = MakeSlider(tabPanels[3], "Orbit Radius", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmOrbitRadius = v end)
     y = MakeSlider(tabPanels[3], "Safe Distance", y, 50, 200, 100, " studs", function(v) Settings.AutoFarmSafeDistance = v end)
-
     tabPanels[3].CanvasSize = UDim2.new(0,0,0,y+20)
 end
 
--- TAB 4: SOCIAL
-GUI.OnlineTabPanel = MakeSubSection(tabPanels[4], "ONLINE")
-GUI.ChatTabPanel = MakeSubSection(tabPanels[4], "CHAT")
-GUI.AnnounceTabPanel = MakeSubSection(tabPanels[4], "ANNOUNCE")
+-- TAB 4: CHAT
+GUI.ChatTabPanel = tabPanels[4]
 
--- TAB 5: CONFIG
-GUI.KeybindTabPanel = MakeSubSection(tabPanels[5], "KEYBINDS")
-GUI.SecurityTabPanel = MakeSubSection(tabPanels[5], "SECURITY")
-GUI.ThemeTabPanel = MakeSubSection(tabPanels[5], "THEME")
-GUI.DebugTabPanel = MakeSubSection(tabPanels[5], "DEBUG")
+-- TAB 5: ONLINE
+GUI.OnlineTabPanel = tabPanels[5]
 
--- THEME panel content
+-- TAB 6: ANNOUNCE
+GUI.AnnounceTabPanel = tabPanels[6]
+
+-- TAB 7: CONFIG
+GUI.KeybindTabPanel = tabPanels[7]
+GUI.SecurityTabPanel = tabPanels[7]  -- будет вставлен ниже как отдельная секция
+GUI.ThemeTabPanel = nil
+GUI.DebugTabPanel = nil
+
+-- CONFIG панель с 4 секциями
 do
-    local panel = GUI.ThemeTabPanel
-    local y = 0
-    y = MakeButton(panel, "Dark", "Classic dark theme", y, function() Theme.Apply("Dark", true) end)
-    y = MakeButton(panel, "Purple", "Neon purple theme", y, function() Theme.Apply("Purple", true) end)
-    y = MakeButton(panel, "Red", "Aggressive red theme", y, function() Theme.Apply("Red", true) end)
-    y = MakeButton(panel, "White", "Light minimalist theme", y, function() Theme.Apply("White", true) end)
-end
+    local panel = tabPanels[7]
+    local T = Theme.Get()
 
--- DEBUG panel content
-do
-    local panel = GUI.DebugTabPanel
-    local y = 0
-    y = MakeButton(panel, "List Titans", "Print to console", y, function()
-        local t = Funcs.GetTitans()
-        print("Titans:", #t)
-        for i, x in ipairs(t) do if i > 15 then break end; print(i..". "..x.Model.Name.." | "..math.floor(x.Distance)) end
-    end)
-    y = MakeButton(panel, "List Refills", "Print to console", y, function()
-        local r = Funcs.GetRefills()
-        print("Refills:", #r)
-        for i, x in ipairs(r) do if i > 15 then break end; print(i..". "..x.Model.Name.." | "..math.floor(x.Distance)) end
-    end)
-    y = MakeButton(panel, "Executor Info", "Print to console", y, function()
-        print("Executor:", GUI.ExecutorName)
-    end)
+    -- SECTION: KEYBINDS
+    local sec1 = New("Frame", {Position = UDim2.new(0,0,0,0), Size = UDim2.new(1,-8,0,0), BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.Y, ZIndex = 8}, panel)
+    New("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4)}, sec1)
+    GUI.KeybindTabPanel = sec1
+
+    -- SECTION: SECURITY
+    local sec2 = New("Frame", {Position = UDim2.new(0,0,0,0), Size = UDim2.new(1,-8,0,0), BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 2, ZIndex = 8}, panel)
+    New("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4)}, sec2)
+    GUI.SecurityTabPanel = sec2
+
+    -- SECTION: THEME
+    local sec3 = New("Frame", {Position = UDim2.new(0,0,0,0), Size = UDim2.new(1,-8,0,0), BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 3, ZIndex = 8}, panel)
+    New("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4)}, sec3)
+    GUI.ThemeTabPanel = sec3
+
+    -- SECTION: DEBUG
+    local sec4 = New("Frame", {Position = UDim2.new(0,0,0,0), Size = UDim2.new(1,-8,0,0), BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 4, ZIndex = 8}, panel)
+    New("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4)}, sec4)
+    GUI.DebugTabPanel = sec4
+
+    -- Заполняем THEME
+    do
+        local y = 0
+        y = MakeButton(sec3, "Dark", "Classic dark theme", y, function() Theme.Apply("Dark", true) end)
+        y = MakeButton(sec3, "Purple", "Neon purple theme", y, function() Theme.Apply("Purple", true) end)
+        y = MakeButton(sec3, "Red", "Aggressive red theme", y, function() Theme.Apply("Red", true) end)
+        y = MakeButton(sec3, "White", "Light minimalist theme", y, function() Theme.Apply("White", true) end)
+    end
+
+    -- Заполняем DEBUG
+    do
+        local y = 0
+        y = MakeButton(sec4, "List Titans", "Print to console", y, function()
+            local t = Funcs.GetTitans()
+            print("Titans:", #t)
+            for i, x in ipairs(t) do if i > 15 then break end; print(i..". "..x.Model.Name.." | "..math.floor(x.Distance)) end
+        end)
+        y = MakeButton(sec4, "List Refills", "Print to console", y, function()
+            local r = Funcs.GetRefills()
+            print("Refills:", #r)
+            for i, x in ipairs(r) do if i > 15 then break end; print(i..". "..x.Model.Name.." | "..math.floor(x.Distance)) end
+        end)
+        y = MakeButton(sec4, "Executor Info", "Print to console", y, function()
+            print("Executor:", GUI.ExecutorName)
+        end)
+    end
 end
 
 -- DRAG
