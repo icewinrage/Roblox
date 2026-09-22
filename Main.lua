@@ -23,6 +23,19 @@ local MODULES = {
     "10_Init",
 }
 
+-- Функция auto-execute после телепорта
+local AUTO_EXEC_CODE = [[
+loadstring(game:HttpGet("https://raw.githubusercontent.com/]] .. REPO_USER .. [[/]] .. REPO_NAME .. [[/]] .. REPO_BRANCH .. [[/Main.lua"))()
+]]
+
+if queue_on_teleport then
+    pcall(function() queue_on_teleport(AUTO_EXEC_CODE) end)
+elseif syn and syn.queue_on_teleport then
+    pcall(function() syn.queue_on_teleport(AUTO_EXEC_CODE) end)
+elseif fluxus and fluxus.queue_on_teleport then
+    pcall(function() fluxus.queue_on_teleport(AUTO_EXEC_CODE) end)
+end
+
 _G.Venture = _G.Venture or {}
 
 local function httpGet(url)
@@ -60,12 +73,26 @@ local function loadModule(name)
     return result
 end
 
+-- ПАРАЛЛЕЛЬНАЯ загрузка
+local threads = {}
+local done = 0
+local total = #MODULES
+
 for _, name in ipairs(MODULES) do
-    pcall(loadModule, name)
-    task.wait(0.05)
+    local thread = task.spawn(function()
+        pcall(loadModule, name)
+        done = done + 1
+    end)
+    table.insert(threads, thread)
 end
 
-task.wait(0.3)
+-- Ждём завершения всех (макс 5 секунд)
+local startWait = tick()
+while done < total and tick() - startWait < 5 do
+    task.wait(0.02)
+end
+
+task.wait(0.1)
 
 local Init = _G.Venture.Init
 if Init and Init.Run then
