@@ -132,7 +132,7 @@ GUI.Subtitle = Subtitle
 Theme.Register("Misc", {Obj = Title, Keys = {"TitleText"}})
 Theme.Register("Misc", {Obj = Subtitle, Keys = {"SubtitleText"}})
 
-local tabs = {"MAIN", "VISUAL", "AUTOFARM", "KEYBINDS", "SECURITY", "DEBUG", "SETTINGS"}
+local tabs = {"MAIN", "VISUAL", "AUTOFARM", "ONLINE", "KEYBINDS", "SECURITY", "DEBUG", "SETTINGS"}
 local tabButtons = {}
 local tabPanels = {}
 local tabStates = {}
@@ -176,7 +176,7 @@ local function MakeTabButton(name, index)
         BackgroundTransparency = 0.3,
         BorderSizePixel = 0, Text = name,
         TextColor3 = Color3.fromRGB(170,172,190),
-        Font = Enum.Font.GothamBold, TextSize = 9,
+        Font = Enum.Font.GothamBold, TextSize = 8,
         AutoButtonColor = false, ZIndex = 7,
     }, TabBar)
     New("UICorner", {CornerRadius = UDim.new(0,8)}, btn)
@@ -504,6 +504,7 @@ GUI.MakeDropdown = MakeDropdown
 GUI.tabPanels = tabPanels
 GUI.tabs = tabs
 
+-- TAB 1: MAIN
 do
     local y = 0
     y = MakeSectionLabel(tabPanels[1], "TITAN CONTROL", y)
@@ -531,6 +532,7 @@ do
     tabPanels[1].CanvasSize = UDim2.new(0,0,0,y+20)
 end
 
+-- TAB 2: VISUAL
 do
     local vy = 0
     vy = MakeSectionLabel(tabPanels[2], "ESP", vy)
@@ -582,6 +584,7 @@ do
     tabPanels[2].CanvasSize = UDim2.new(0,0,0,vy+20)
 end
 
+-- TAB 3: AUTOFARM
 do
     local fy = 0
     fy = MakeSectionLabel(tabPanels[3], "AUTO FARM (SMOOTH ORBIT)", fy)
@@ -621,37 +624,45 @@ do
     tabPanels[3].CanvasSize = UDim2.new(0,0,0,fy+20)
 end
 
-GUI.KeybindTabPanel = tabPanels[4]
-GUI.SecurityTabPanel = tabPanels[5]
+-- TAB 4: ONLINE (populated by 13_OnlineTab.lua)
+GUI.OnlineTabPanel = tabPanels[4]
 
+-- TAB 5: KEYBINDS (populated by 07_Keybinds.lua)
+GUI.KeybindTabPanel = tabPanels[5]
+
+-- TAB 6: SECURITY (populated by 08_Security.lua)
+GUI.SecurityTabPanel = tabPanels[6]
+
+-- TAB 7: DEBUG
 do
     local dy = 0
-    dy = MakeSectionLabel(tabPanels[6], "DEBUG", dy)
-    dy = MakeButton(tabPanels[6], "List Titans", "Print", dy, function()
+    dy = MakeSectionLabel(tabPanels[7], "DEBUG", dy)
+    dy = MakeButton(tabPanels[7], "List Titans", "Print", dy, function()
         local t = Funcs.GetTitans()
         print("Titans:", #t)
         for i, x in ipairs(t) do if i > 15 then break end; print(i..". "..x.Model.Name.." | "..math.floor(x.Distance)) end
     end)
-    dy = MakeButton(tabPanels[6], "List Refills", "Print", dy, function()
+    dy = MakeButton(tabPanels[7], "List Refills", "Print", dy, function()
         local r = Funcs.GetRefills()
         print("Refills:", #r)
         for i, x in ipairs(r) do if i > 15 then break end; print(i..". "..x.Model.Name.." | "..math.floor(x.Distance)) end
     end)
-    dy = MakeButton(tabPanels[6], "Executor Info", "Print", dy, function()
+    dy = MakeButton(tabPanels[7], "Executor Info", "Print", dy, function()
         print("Executor:", GUI.ExecutorName)
         print("Mod Group:", Config.MOD_GROUP_ID)
     end)
-    dy = MakeButton(tabPanels[6], "Find Blade State", "Auto-detect", dy, function()
+    dy = MakeButton(tabPanels[7], "Find Blade State", "Auto-detect", dy, function()
         local f = Funcs.FindBladeState()
         if f then print("Found:", f:GetFullName(), "=", f.Value)
         else print("Not found") end
     end)
-    tabPanels[6].CanvasSize = UDim2.new(0,0,0,dy+20)
+    tabPanels[7].CanvasSize = UDim2.new(0,0,0,dy+20)
 end
 
+-- TAB 8: SETTINGS
 do
     local sy = 0
-    sy = MakeSectionLabel(tabPanels[7], "INTERFACE THEME", sy)
+    sy = MakeSectionLabel(tabPanels[8], "INTERFACE THEME", sy)
 
     local themeDescriptions = {
         Dark = "Dark - classic dark theme",
@@ -667,19 +678,19 @@ do
         TextColor3 = Theme.Get().SectionText,
         Font = Enum.Font.GothamBold, TextSize = 14,
         TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 8,
-    }, tabPanels[7])
+    }, tabPanels[8])
     sy = sy + 32
 
     local themeNames = {"Dark", "Purple", "Red", "White"}
     for _, tname in ipairs(themeNames) do
-        sy = MakeButton(tabPanels[7], tname, themeDescriptions[tname], sy, function()
+        sy = MakeButton(tabPanels[8], tname, themeDescriptions[tname], sy, function()
             Theme.Apply(tname, true)
             currentLabel.Text = "Current theme: " .. tname
         end)
     end
 
     sy = sy + 10
-    sy = MakeSectionLabel(tabPanels[7], "INFO", sy)
+    sy = MakeSectionLabel(tabPanels[8], "INFO", sy)
     New("TextLabel", {
         Position = UDim2.new(0,4,0,sy), Size = UDim2.new(1,-8,0,60),
         BackgroundTransparency = 1,
@@ -689,12 +700,13 @@ do
         TextXAlignment = Enum.TextXAlignment.Left,
         TextYAlignment = Enum.TextYAlignment.Top,
         TextWrapped = true, ZIndex = 8,
-    }, tabPanels[7])
+    }, tabPanels[8])
     sy = sy + 70
 
-    tabPanels[7].CanvasSize = UDim2.new(0,0,0,sy+20)
+    tabPanels[8].CanvasSize = UDim2.new(0,0,0,sy+20)
 end
 
+-- DRAG
 do
     local dragging, dragStart, startPos = false, nil, nil
     Main.InputBegan:Connect(function(input)
@@ -715,6 +727,7 @@ do
     end)
 end
 
+-- INTRO
 local function FadeOutIntro()
     Tween(LoadingGlass, 0.8, {BackgroundTransparency = 0.4})
     CutscenePanel.Size = UDim2.fromOffset(360, 200)
