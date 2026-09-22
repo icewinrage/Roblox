@@ -1,52 +1,53 @@
-local Shared = _G.Venture.Shared
-local Utils  = _G.Venture.Utils
-
-local UserInputService = Shared.UserInputService
-local PlayerGui = Shared.PlayerGui
-local New = Utils.New
-
 local Cursor = {}
 
 function Cursor.Init()
-    if UserInputService.TouchEnabled then return end
+    -- Курсор уже создан в 00_CursorBoot.lua
+    if _G.Venture.CursorBoot then
+        Cursor.Gui = _G.Venture.CursorBoot.Gui
+        Cursor.Image = _G.Venture.CursorBoot.Image
+        return
+    end
 
+    -- Fallback: если по какой-то причине 00_CursorBoot не сработал — создаём свой
+    local UserInputService = game:GetService("UserInputService")
+    local PlayerGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+
+    if UserInputService.TouchEnabled then return end
     UserInputService.MouseIconEnabled = false
 
-    local CursorGui = New("ScreenGui", {
-        Name = "VentureCursor",
-        ResetOnSpawn = false,
-        IgnoreGuiInset = true,
-        DisplayOrder = 2147483647,
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-    }, PlayerGui)
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "VentureCursor"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+    gui.DisplayOrder = 2147483647
+    gui.Parent = PlayerGui
 
-    local CursorImage = New("ImageLabel", {
-        Name = "Cursor",
-        Size = UDim2.fromOffset(28, 28),
-        BackgroundTransparency = 1,
-        Image = "rbxasset://textures/Cursors/KeyboardMouse/ArrowCursor.png",
-        ImageColor3 = Color3.fromRGB(255, 255, 255),
-        ZIndex = 9999,
-    }, CursorGui)
+    local img = Instance.new("ImageLabel")
+    img.Size = UDim2.fromOffset(28, 28)
+    img.BackgroundTransparency = 1
+    img.Image = "rbxasset://textures/Cursors/KeyboardMouse/ArrowCursor.png"
+    img.ZIndex = 9999
+    img.Parent = gui
 
-    New("UIStroke", {
-        Color = Color3.fromRGB(125, 92, 255),
-        Thickness = 2,
-        Transparency = 0.3,
-    }, CursorImage)
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(125, 92, 255)
+    stroke.Thickness = 2
+    stroke.Transparency = 0.3
+    stroke.Parent = img
 
     UserInputService.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement then
             local loc = UserInputService:GetMouseLocation()
-            CursorImage.Position = UDim2.fromOffset(loc.X, loc.Y)
+            img.Position = UDim2.fromOffset(loc.X, loc.Y)
         end
     end)
 
-    Cursor.Gui = CursorGui
-    Cursor.Image = CursorImage
+    Cursor.Gui = gui
+    Cursor.Image = img
 end
 
 function Cursor.Restore()
+    local UserInputService = game:GetService("UserInputService")
     if UserInputService.TouchEnabled then return end
     UserInputService.MouseIconEnabled = true
     if Cursor.Gui then
