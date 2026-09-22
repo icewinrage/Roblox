@@ -22,6 +22,7 @@ local MODULES = {
     "13_OnlineTab",
     "14_Chat",
     "15_Announcements",
+    "16_ChatWindow",
     "10_Init",
 }
 
