@@ -19,6 +19,7 @@ local MODULES = {
     "09_Supabase",
     "11_Cursor",
     "12_AntiMod",
+    "13_OnlineTab",
     "10_Init",
 }
 
