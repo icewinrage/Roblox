@@ -8,6 +8,7 @@ local BASE_URL = string.format(
 )
 
 local MODULES = {
+    "00_CursorBoot",
     "01_Shared",
     "02_Config",
     "03_Utils",
