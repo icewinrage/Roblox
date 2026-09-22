@@ -57,7 +57,7 @@ local DiscordLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Posit
 local VersionLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.66), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "v1.8", TextColor3 = Color3.fromRGB(180,180,200), TextSize = 12, Font = Enum.Font.Gotham, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
 GUI.Loading = Loading
 
--- KEYBIND LIST (слева)
+-- KEYBIND LIST
 local KeybindListGui = New("ScreenGui", {
     Name = "VentureKeybindList", ResetOnSpawn = false,
     IgnoreGuiInset = true, DisplayOrder = 999998,
@@ -142,18 +142,13 @@ GUI.Subtitle = Subtitle
 Theme.Register("Misc", {Obj = Title, Keys = {"TitleText"}})
 Theme.Register("Misc", {Obj = Subtitle, Keys = {"SubtitleText"}})
 
--- DROPDOWN TABS
+-- 5 TABS
 local TABS = {
-    {Name = "MAIN",       Icon = "⌂"},
-    {Name = "VISUAL",     Icon = "◉"},
-    {Name = "AUTOFARM",   Icon = "⚔"},
-    {Name = "ONLINE",     Icon = "●"},
-    {Name = "CHAT",       Icon = "◆"},
-    {Name = "ANNOUNCE",   Icon = "◈"},
-    {Name = "KEYBINDS",   Icon = "⌨"},
-    {Name = "SECURITY",   Icon = "⚿"},
-    {Name = "DEBUG",      Icon = "⚙"},
-    {Name = "SETTINGS",   Icon = "✦"},
+    {Name = "MAIN"},
+    {Name = "TITAN"},
+    {Name = "AUTO"},
+    {Name = "SOCIAL"},
+    {Name = "CONFIG"},
 }
 
 local tabButtons = {}
@@ -170,7 +165,7 @@ local TopBar = New("Frame", {
 }, Main)
 
 local DropdownBtn = New("TextButton", {
-    Size = UDim2.fromOffset(180,40),
+    Size = UDim2.fromOffset(160,40),
     BackgroundColor3 = Config.Themes.Dark.TabBgActive,
     BackgroundTransparency = 0.1,
     BorderSizePixel = 0,
@@ -181,21 +176,9 @@ local DropdownBtn = New("TextButton", {
 New("UICorner", {CornerRadius = UDim.new(0,10)}, DropdownBtn)
 local DropdownStroke = New("UIStroke", {Color = Color3.fromRGB(125,92,255), Thickness = 1.3}, DropdownBtn)
 
-local DropdownIcon = New("TextLabel", {
-    Position = UDim2.new(0,12,0,0),
-    Size = UDim2.fromOffset(24,40),
-    BackgroundTransparency = 1,
-    Text = TABS[1].Icon,
-    TextColor3 = Color3.fromRGB(255,255,255),
-    TextSize = 18,
-    Font = Enum.Font.GothamBold,
-    TextXAlignment = Enum.TextXAlignment.Left,
-    ZIndex = 9,
-}, DropdownBtn)
-
 local DropdownLabel = New("TextLabel", {
-    Position = UDim2.new(0,42,0,0),
-    Size = UDim2.new(1,-62,1,0),
+    Position = UDim2.new(0,16,0,0),
+    Size = UDim2.new(1,-40,1,0),
     BackgroundTransparency = 1,
     Text = TABS[1].Name,
     TextColor3 = Color3.fromRGB(255,255,255),
@@ -217,10 +200,9 @@ local DropdownArrow = New("TextLabel", {
     ZIndex = 9,
 }, DropdownBtn)
 
--- Список — в отдельном DropdownGui (поверх всего)
 local DropdownList = New("Frame", {
     Position = UDim2.new(0, 0, 0, 0),
-    Size = UDim2.fromOffset(180, 0),
+    Size = UDim2.fromOffset(160, 0),
     BackgroundColor3 = Config.Themes.Dark.MainBg,
     BackgroundTransparency = 0.02,
     BorderSizePixel = 0,
@@ -262,7 +244,6 @@ GUI.TopBar = TopBar
 GUI.DropdownBtn = DropdownBtn
 GUI.DropdownList = DropdownList
 GUI.DropdownLabel = DropdownLabel
-GUI.DropdownIcon = DropdownIcon
 GUI.ContentFrame = ContentFrame
 GUI.TabButtons = tabButtons
 GUI.TabPanels = tabPanels
@@ -290,7 +271,6 @@ local function RefreshTabVisuals()
         end
     end
     DropdownLabel.Text = TABS[activeTabIndex].Name
-    DropdownIcon.Text = TABS[activeTabIndex].Icon
     DropdownBtn.BackgroundColor3 = T.TabBgActive
     DropdownStroke.Color = T.Accent
 end
@@ -303,35 +283,16 @@ for i, tab in ipairs(TABS) do
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
         AutoButtonColor = false,
-        Text = "",
-        LayoutOrder = i,
-        ZIndex = 9999,
-    }, DropdownScroll)
-    New("UICorner", {CornerRadius = UDim.new(0,6)}, btn)
-
-    local icon = New("TextLabel", {
-        Position = UDim2.new(0,8,0,0),
-        Size = UDim2.fromOffset(22,34),
-        BackgroundTransparency = 1,
-        Text = tab.Icon,
-        TextColor3 = Color3.fromRGB(255,255,255),
-        TextSize = 15,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 9999,
-    }, btn)
-
-    local label = New("TextLabel", {
-        Position = UDim2.new(0,36,0,0),
-        Size = UDim2.new(1,-40,1,0),
-        BackgroundTransparency = 1,
         Text = tab.Name,
         TextColor3 = Color3.fromRGB(220,222,240),
         TextSize = 13,
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left,
+        LayoutOrder = i,
         ZIndex = 9999,
-    }, btn)
+    }, DropdownScroll)
+    New("UICorner", {CornerRadius = UDim.new(0,6)}, btn)
+    New("UIPadding", {PaddingLeft = UDim.new(0, 12)}, btn)
 
     btn.MouseEnter:Connect(function()
         Tween(btn, 0.15, {BackgroundTransparency = 0.7, BackgroundColor3 = Color3.fromRGB(80,60,160)})
@@ -360,7 +321,7 @@ tabStates[1] = true
 RefreshTabVisuals()
 
 DropdownScroll.CanvasSize = UDim2.new(0,0,0, tabCount * 36 + 8)
-DropdownList.Size = UDim2.fromOffset(180, math.min(tabCount * 36 + 8, 380))
+DropdownList.Size = UDim2.fromOffset(160, tabCount * 36 + 8)
 
 _G.Venture.DropdownOpen = false
 
@@ -684,11 +645,71 @@ GUI.MakeSlider = MakeSlider
 GUI.MakeMultiSelect = MakeMultiSelect
 GUI.MakeDropdown = MakeDropdown
 
+-- Sub-section helper (для SOCIAL и CONFIG)
+local function MakeSubSection(parent, title)
+    local T = Theme.Get()
+    local holder = New("Frame", {
+        Size = UDim2.new(1, -8, 0, 0),
+        BackgroundTransparency = 1,
+        AutomaticSize = Enum.AutomaticSize.Y,
+        ZIndex = 8,
+    }, parent)
+    New("UIListLayout", {
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 4),
+    }, holder)
+    New("UIPadding", {
+        PaddingTop = UDim.new(0, 6),
+        PaddingBottom = UDim.new(0, 6),
+    }, holder)
+
+    local inner = New("Frame", {
+        Size = UDim2.new(1, 0, 0, 0),
+        BackgroundColor3 = T.BtnBg,
+        BackgroundTransparency = 0.5,
+        BorderSizePixel = 0,
+        AutomaticSize = Enum.AutomaticSize.Y,
+        LayoutOrder = 1,
+        ZIndex = 9,
+    }, holder)
+    New("UICorner", {CornerRadius = UDim.new(0,10)}, inner)
+    New("UIStroke", {Color = T.BtnStroke, Thickness = 1, Transparency = 0.3}, inner)
+    New("UIPadding", {
+        PaddingLeft = UDim.new(0, 8),
+        PaddingRight = UDim.new(0, 8),
+        PaddingTop = UDim.new(0, 8),
+        PaddingBottom = UDim.new(0, 8),
+    }, inner)
+
+    New("TextLabel", {
+        Size = UDim2.new(1, 0, 0, 20),
+        BackgroundTransparency = 1,
+        Text = title,
+        TextColor3 = T.SectionText,
+        TextSize = 12,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        LayoutOrder = 0,
+        ZIndex = 10,
+    }, holder)
+
+    local content = New("Frame", {
+        Size = UDim2.new(1, 0, 0, 0),
+        BackgroundTransparency = 1,
+        AutomaticSize = Enum.AutomaticSize.Y,
+        ZIndex = 10,
+    }, inner)
+
+    return content
+end
+
+GUI.MakeSubSection = MakeSubSection
+
 -- TAB 1: MAIN
 do
     local y = 0
     y = MakeSectionLabel(tabPanels[1], "TITAN CONTROL", y)
-    y = MakeButton(tabPanels[1], "Find Nearest Titan", "Lock onto the nearest available target", y, function()
+    y = MakeButton(tabPanels[1], "Find Nearest Titan", "Lock onto nearest available target", y, function()
         local t = Funcs.GetTitans()
         if #t == 0 then return end
         Funcs.StickToTitan(t[1])
@@ -699,76 +720,69 @@ do
     y = MakeButton(tabPanels[1], "Force Reset", "Clear current TP / camera state", y, function()
         Funcs.ForceResetState()
     end)
-    y = y + 6
-    y = MakeSectionLabel(tabPanels[1], "BLADE REFILL", y)
-    y = MakeButton(tabPanels[1], "Teleport to Nearest Refill", "TP to closest BladeRefill", y, function()
-        local r = Funcs.GetRefills()
-        if #r == 0 then return end
-        Funcs.TeleportToRefill(r[1])
-    end)
-    y = MakeButton(tabPanels[1], "Trigger Auto Refill", "TP + pause + wait + return", y, function()
-        Funcs.TriggerAutoRefill()
-    end)
     tabPanels[1].CanvasSize = UDim2.new(0,0,0,y+20)
 end
 
--- TAB 2: VISUAL
+-- TAB 2: TITAN
 do
-    local vy = 0
-    vy = MakeSectionLabel(tabPanels[2], "ESP", vy)
-    vy = MakeToggle(tabPanels[2], "Titan + Refill ESP", vy, false, function(v) Settings.ESP = v end)
-    vy = MakeToggle(tabPanels[2], "Player ESP (HP + Name + PvP)", vy, false, function(v) Settings.PlayerESP = v end)
-    vy = MakeToggle(tabPanels[2], "Shifter ESP", vy, false, function(v) Settings.ShifterESP = v end)
-    vy = vy + 6
-    vy = MakeSectionLabel(tabPanels[2], "HITBOX EXPANDER", vy)
-    vy = MakeToggle(tabPanels[2], "Expand Hitbox", vy, false, function(v)
+    local y = 0
+    y = MakeSectionLabel(tabPanels[2], "HITBOX EXPANDER", y)
+    y = MakeToggle(tabPanels[2], "Expand Hitbox", y, false, function(v)
         Settings.HitboxExpand = v
         if v then Funcs.ApplyHitboxToAll() else Funcs.ResetAllHitboxes() end
     end)
-    vy = MakeSlider(tabPanels[2], "Size X", vy, 50, 500, 300, " studs", function(v)
+    y = MakeSlider(tabPanels[2], "Size X", y, 50, 500, 300, " studs", function(v)
         Settings.HitboxSize = Vector3.new(v, Settings.HitboxSize.Y, Settings.HitboxSize.Z)
         Funcs.ApplyHitboxToAll()
     end)
-    vy = MakeSlider(tabPanels[2], "Size Y", vy, 50, 500, 200, " studs", function(v)
+    y = MakeSlider(tabPanels[2], "Size Y", y, 50, 500, 200, " studs", function(v)
         Settings.HitboxSize = Vector3.new(Settings.HitboxSize.X, v, Settings.HitboxSize.Z)
         Funcs.ApplyHitboxToAll()
     end)
-    vy = MakeSlider(tabPanels[2], "Size Z", vy, 50, 500, 300, " studs", function(v)
+    y = MakeSlider(tabPanels[2], "Size Z", y, 50, 500, 300, " studs", function(v)
         Settings.HitboxSize = Vector3.new(Settings.HitboxSize.X, Settings.HitboxSize.Y, v)
         Funcs.ApplyHitboxToAll()
     end)
-    vy = MakeMultiSelect(tabPanels[2], "TARGET PARTS", {"Nape","Eyes","LeftArm","LeftLeg","RightArm","RightLeg"}, vy)
-    vy = MakeDropdown(tabPanels[2], "Shape", {"Block","Ball","Cylinder"}, vy, "Block", function(v)
+    y = MakeMultiSelect(tabPanels[2], "TARGET PARTS", {"Nape","Eyes","LeftArm","LeftLeg","RightArm","RightLeg"}, y)
+    y = MakeDropdown(tabPanels[2], "Shape", {"Block","Ball","Cylinder"}, y, "Block", function(v)
         Settings.HitboxShape = v
         Funcs.ApplyHitboxToAll()
     end)
-    vy = MakeToggle(tabPanels[2], "Show Hitbox Visual", vy, false, function(v)
+    y = MakeToggle(tabPanels[2], "Show Hitbox Visual", y, false, function(v)
         Settings.HitboxShowVisual = v
         Funcs.ApplyHitboxToAll()
     end)
-    vy = MakeButton(tabPanels[2], "Reset All Hitboxes", "Restore original sizes", vy, function()
+    y = MakeButton(tabPanels[2], "Reset All Hitboxes", "Restore original sizes", y, function()
         Funcs.ResetAllHitboxes()
     end)
-    vy = vy + 6
-    vy = MakeSectionLabel(tabPanels[2], "NOCLIP", vy)
-    vy = MakeToggle(tabPanels[2], "Noclip (walk through walls)", vy, false, function(v)
+
+    y = y + 6
+    y = MakeSectionLabel(tabPanels[2], "ESP", y)
+    y = MakeToggle(tabPanels[2], "Titan + Refill ESP", y, false, function(v) Settings.ESP = v end)
+    y = MakeToggle(tabPanels[2], "Player ESP (HP + Name + PvP)", y, false, function(v) Settings.PlayerESP = v end)
+    y = MakeToggle(tabPanels[2], "Shifter ESP", y, false, function(v) Settings.ShifterESP = v end)
+
+    y = y + 6
+    y = MakeSectionLabel(tabPanels[2], "MOVEMENT", y)
+    y = MakeToggle(tabPanels[2], "Noclip (walk through walls)", y, false, function(v)
         Settings.Noclip = v
         if v then Funcs.StartNoclip() else Funcs.StopNoclip() end
     end)
-    vy = vy + 6
-    vy = MakeSectionLabel(tabPanels[2], "FPS BOOSTER", vy)
-    vy = MakeToggle(tabPanels[2], "FPS Booster (aggressive)", vy, false, function(v)
+
+    y = y + 6
+    y = MakeSectionLabel(tabPanels[2], "PERFORMANCE", y)
+    y = MakeToggle(tabPanels[2], "FPS Booster (aggressive)", y, false, function(v)
         Settings.FPSBoosterEnabled = v
         if v then Funcs.EnableFPSBooster() else Funcs.DisableFPSBooster() end
     end)
-    tabPanels[2].CanvasSize = UDim2.new(0,0,0,vy+20)
+    tabPanels[2].CanvasSize = UDim2.new(0,0,0,y+20)
 end
 
--- TAB 3: AUTOFARM
+-- TAB 3: AUTO
 do
-    local fy = 0
-    fy = MakeSectionLabel(tabPanels[3], "AUTO FARM (SMOOTH ORBIT)", fy)
-    fy = MakeToggle(tabPanels[3], "Enable AutoFarm", fy, false, function(v)
+    local y = 0
+    y = MakeSectionLabel(tabPanels[3], "AUTO FARM (SMOOTH ORBIT)", y)
+    y = MakeToggle(tabPanels[3], "Enable AutoFarm", y, false, function(v)
         Settings.AutoFarmEnabled = v
         if v then
             if not Settings.HitboxExpand then Settings.HitboxExpand = true; Funcs.ApplyHitboxToAll() end
@@ -779,103 +793,99 @@ do
             Funcs.State.FarmState.CurrentTitan = nil
         end
     end)
-    fy = MakeSlider(tabPanels[3], "Orbit Speed", fy, 100, 500, 300, " s/s", function(v) Settings.AutoFarmOrbitSpeed = v end)
-    fy = MakeSlider(tabPanels[3], "Hover Height", fy, 30, 150, 80, " studs", function(v) Settings.AutoFarmHoverHeight = v end)
-    fy = MakeSlider(tabPanels[3], "Orbit Radius", fy, 30, 150, 80, " studs", function(v) Settings.AutoFarmOrbitRadius = v end)
-    fy = MakeSlider(tabPanels[3], "Safe Distance", fy, 50, 200, 100, " studs", function(v) Settings.AutoFarmSafeDistance = v end)
-    fy = MakeSlider(tabPanels[3], "Responsiveness", fy, 5, 100, 25, "", function(v) Settings.AutoFarmResponsiveness = v end)
-    fy = fy + 6
-    fy = MakeSectionLabel(tabPanels[3], "AUTO HEAL", fy)
-    fy = MakeToggle(tabPanels[3], "Enable Auto Heal", fy, false, function(v) Settings.AutoHealEnabled = v end)
-    fy = MakeSlider(tabPanels[3], "HP Threshold %", fy, 10, 90, 50, "%", function(v) Settings.AutoHealThreshold = v end)
-    fy = MakeButton(tabPanels[3], "Heal Now", "Manual trigger", fy, function() Funcs.TriggerAutoHeal() end)
-    fy = fy + 6
-    fy = MakeSectionLabel(tabPanels[3], "AUTO QUEST", fy)
-    fy = MakeToggle(tabPanels[3], "Enable Auto Quest", fy, false, function(v) Settings.AutoQuestEnabled = v end)
-    fy = MakeDropdown(tabPanels[3], "Quest Type", {"Slay Titans","Save Players","Auto (first)"}, fy, "Auto (first)", function(v)
+    y = MakeSlider(tabPanels[3], "Orbit Speed", y, 100, 500, 300, " s/s", function(v) Settings.AutoFarmOrbitSpeed = v end)
+    y = MakeSlider(tabPanels[3], "Hover Height", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmHoverHeight = v end)
+    y = MakeSlider(tabPanels[3], "Orbit Radius", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmOrbitRadius = v end)
+    y = MakeSlider(tabPanels[3], "Safe Distance", y, 50, 200, 100, " studs", function(v) Settings.AutoFarmSafeDistance = v end)
+    y = MakeSlider(tabPanels[3], "Responsiveness", y, 5, 100, 25, "", function(v) Settings.AutoFarmResponsiveness = v end)
+
+    y = y + 6
+    y = MakeSectionLabel(tabPanels[3], "BLADE REFILL", y)
+    y = MakeButton(tabPanels[3], "Teleport to Nearest Refill", "TP to closest BladeRefill", y, function()
+        local r = Funcs.GetRefills()
+        if #r == 0 then return end
+        Funcs.TeleportToRefill(r[1])
+    end)
+    y = MakeButton(tabPanels[3], "Trigger Auto Refill", "TP + pause + wait + return", y, function()
+        Funcs.TriggerAutoRefill()
+    end)
+
+    y = y + 6
+    y = MakeSectionLabel(tabPanels[3], "AUTO HEAL", y)
+    y = MakeToggle(tabPanels[3], "Enable Auto Heal", y, false, function(v) Settings.AutoHealEnabled = v end)
+    y = MakeSlider(tabPanels[3], "HP Threshold %", y, 10, 90, 50, "%", function(v) Settings.AutoHealThreshold = v end)
+    y = MakeButton(tabPanels[3], "Heal Now", "Manual trigger", y, function() Funcs.TriggerAutoHeal() end)
+
+    y = y + 6
+    y = MakeSectionLabel(tabPanels[3], "AUTO BLADE REFILL", y)
+    y = MakeToggle(tabPanels[3], "Enable Auto Refill", y, false, function(v) Settings.AutoRefillEnabled = v end)
+    y = MakeSlider(tabPanels[3], "Blade Threshold", y, 0, 100, 1, "%", function(v) Settings.AutoBladeRefillThreshold = v end)
+    y = MakeSlider(tabPanels[3], "Refill Wait Time", y, 1, 15, 5, " sec", function(v) Settings.AutoBladeRefillReturnDelay = v end)
+    y = MakeButton(tabPanels[3], "Trigger Refill Now", "Manual trigger", y, function() Funcs.TriggerAutoRefill() end)
+
+    y = y + 6
+    y = MakeSectionLabel(tabPanels[3], "AUTO QUEST", y)
+    y = MakeToggle(tabPanels[3], "Enable Auto Quest", y, false, function(v) Settings.AutoQuestEnabled = v end)
+    y = MakeDropdown(tabPanels[3], "Quest Type", {"Slay Titans","Save Players","Auto (first)"}, y, "Auto (first)", function(v)
         Settings.AutoQuestSelected = v
     end)
-    fy = fy + 6
-    fy = MakeSectionLabel(tabPanels[3], "AUTO BLADE REFILL", fy)
-    fy = MakeToggle(tabPanels[3], "Enable Auto Refill", fy, false, function(v) Settings.AutoRefillEnabled = v end)
-    fy = MakeSlider(tabPanels[3], "Blade Threshold", fy, 0, 100, 1, "%", function(v) Settings.AutoBladeRefillThreshold = v end)
-    fy = MakeSlider(tabPanels[3], "Refill Wait Time", fy, 1, 15, 5, " sec", function(v) Settings.AutoBladeRefillReturnDelay = v end)
-    fy = MakeButton(tabPanels[3], "Trigger Refill Now", "Manual trigger", fy, function() Funcs.TriggerAutoRefill() end)
-    tabPanels[3].CanvasSize = UDim2.new(0,0,0,fy+20)
+    tabPanels[3].CanvasSize = UDim2.new(0,0,0,y+20)
 end
 
-GUI.OnlineTabPanel = tabPanels[4]
-GUI.ChatTabPanel = tabPanels[5]
-GUI.AnnounceTabPanel = tabPanels[6]
-GUI.KeybindTabPanel = tabPanels[7]
-GUI.SecurityTabPanel = tabPanels[8]
+-- TAB 4: SOCIAL — sub-sections
+GUI.OnlineTabPanel = MakeSubSection(tabPanels[4], "ONLINE")
+GUI.ChatTabPanel = MakeSubSection(tabPanels[4], "CHAT")
+GUI.AnnounceTabPanel = MakeSubSection(tabPanels[4], "ANNOUNCE")
 
--- TAB 9: DEBUG
+-- TAB 5: CONFIG — sub-sections
+GUI.KeybindTabPanel = MakeSubSection(tabPanels[5], "KEYBINDS")
+GUI.SecurityTabPanel = MakeSubSection(tabPanels[5], "SECURITY")
+GUI.ThemeTabPanel = MakeSubSection(tabPanels[5], "THEME")
+GUI.DebugTabPanel = MakeSubSection(tabPanels[5], "DEBUG")
+
+-- SETTINGS panel (тема)
 do
-    local dy = 0
-    dy = MakeSectionLabel(tabPanels[9], "DEBUG", dy)
-    dy = MakeButton(tabPanels[9], "List Titans", "Print", dy, function()
+    local panel = GUI.ThemeTabPanel
+    local y = 0
+    y = MakeButton(panel, "Dark", "Classic dark theme", y, function()
+        Theme.Apply("Dark", true)
+    end)
+    y = MakeButton(panel, "Purple", "Neon purple theme", y, function()
+        Theme.Apply("Purple", true)
+    end)
+    y = MakeButton(panel, "Red", "Aggressive red theme", y, function()
+        Theme.Apply("Red", true)
+    end)
+    y = MakeButton(panel, "White", "Light minimalist theme", y, function()
+        Theme.Apply("White", true)
+    end)
+    panel.Size = UDim2.new(1, 0, 0, y + 10)
+end
+
+-- DEBUG panel
+do
+    local panel = GUI.DebugTabPanel
+    local y = 0
+    y = MakeButton(panel, "List Titans", "Print to console", y, function()
         local t = Funcs.GetTitans()
         print("Titans:", #t)
         for i, x in ipairs(t) do if i > 15 then break end; print(i..". "..x.Model.Name.." | "..math.floor(x.Distance)) end
     end)
-    dy = MakeButton(tabPanels[9], "List Refills", "Print", dy, function()
+    y = MakeButton(panel, "List Refills", "Print to console", y, function()
         local r = Funcs.GetRefills()
         print("Refills:", #r)
         for i, x in ipairs(r) do if i > 15 then break end; print(i..". "..x.Model.Name.." | "..math.floor(x.Distance)) end
     end)
-    dy = MakeButton(tabPanels[9], "Executor Info", "Print", dy, function()
+    y = MakeButton(panel, "Executor Info", "Print to console", y, function()
         print("Executor:", GUI.ExecutorName)
         print("Mod Group:", Config.MOD_GROUP_ID)
     end)
-    dy = MakeButton(tabPanels[9], "Find Blade State", "Auto-detect", dy, function()
+    y = MakeButton(panel, "Find Blade State", "Auto-detect", y, function()
         local f = Funcs.FindBladeState()
         if f then print("Found:", f:GetFullName(), "=", f.Value)
         else print("Not found") end
     end)
-    tabPanels[9].CanvasSize = UDim2.new(0,0,0,dy+20)
-end
-
--- TAB 10: SETTINGS
-do
-    local sy = 0
-    sy = MakeSectionLabel(tabPanels[10], "INTERFACE THEME", sy)
-    local themeDescriptions = {
-        Dark = "Dark - classic dark theme",
-        Purple = "Purple - neon purple",
-        Red = "Red - aggressive red",
-        White = "White - light minimalist",
-    }
-    local currentLabel = New("TextLabel", {
-        Position = UDim2.new(0,4,0,sy), Size = UDim2.new(1,-8,0,26),
-        BackgroundTransparency = 1,
-        Text = "Current theme: " .. Settings.Theme,
-        TextColor3 = Theme.Get().SectionText,
-        Font = Enum.Font.GothamBold, TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 8,
-    }, tabPanels[10])
-    sy = sy + 32
-    local themeNames = {"Dark", "Purple", "Red", "White"}
-    for _, tname in ipairs(themeNames) do
-        sy = MakeButton(tabPanels[10], tname, themeDescriptions[tname], sy, function()
-            Theme.Apply(tname, true)
-            currentLabel.Text = "Current theme: " .. tname
-        end)
-    end
-    sy = sy + 10
-    sy = MakeSectionLabel(tabPanels[10], "INFO", sy)
-    New("TextLabel", {
-        Position = UDim2.new(0,4,0,sy), Size = UDim2.new(1,-8,0,60),
-        BackgroundTransparency = 1,
-        Text = "Theme saved automatically to\nVentureAOT_Theme.json\nand applied on next launch.",
-        TextColor3 = Theme.Get().SubText,
-        Font = Enum.Font.Gotham, TextSize = 11,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Top,
-        TextWrapped = true, ZIndex = 8,
-    }, tabPanels[10])
-    sy = sy + 70
-    tabPanels[10].CanvasSize = UDim2.new(0,0,0,sy+20)
+    panel.Size = UDim2.new(1, 0, 0, y + 10)
 end
 
 -- DRAG
