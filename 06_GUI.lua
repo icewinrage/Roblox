@@ -24,16 +24,7 @@ local ScreenGui = New("ScreenGui", {
 }, PlayerGui)
 GUI.ScreenGui = ScreenGui
 
-local DropdownGui = New("ScreenGui", {
-    Name = "VentureDropdown",
-    ResetOnSpawn = false,
-    IgnoreGuiInset = true,
-    DisplayOrder = 2147483000,
-    ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-}, PlayerGui)
-GUI.DropdownGui = DropdownGui
-
--- INTRO / LOADING
+-- INTRO
 local Loading = New("Frame", {Size = UDim2.fromScale(1,1), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 100}, ScreenGui)
 local LoadingGlass = New("Frame", {Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.fromRGB(8,6,16), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 100}, Loading)
 local CutscenePanel = New("Frame", {
@@ -57,7 +48,7 @@ local DiscordLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Posit
 local VersionLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.66), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "v1.8", TextColor3 = Color3.fromRGB(180,180,200), TextSize = 12, Font = Enum.Font.Gotham, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
 GUI.Loading = Loading
 
--- KEYBIND LIST
+-- KEYBIND LIST (слева снаружи)
 local KeybindListGui = New("ScreenGui", {
     Name = "VentureKeybindList", ResetOnSpawn = false,
     IgnoreGuiInset = true, DisplayOrder = 999998,
@@ -91,7 +82,7 @@ GUI.KBContainer = KBContainer
 -- MAIN WINDOW
 local Main = New("Frame", {
     Name = "Main", AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.53),
-    Size = IsMobile and UDim2.fromOffset(480,420) or UDim2.fromOffset(640,520),
+    Size = IsMobile and UDim2.fromOffset(520,420) or UDim2.fromOffset(720,540),
     BackgroundColor3 = Config.Themes.Dark.MainBg,
     BackgroundTransparency = 0.06, BorderSizePixel = 0,
     ClipsDescendants = true, Active = true, Visible = false, ZIndex = 5,
@@ -103,47 +94,87 @@ local MainGrad = New("UIGradient", {Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0.5, Color3.fromRGB(11,13,22)),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(7,8,14)),
 }), Rotation = 135}, Main)
-local Glow = New("Frame", {Position = UDim2.new(0,55,0,0), Size = UDim2.new(1,-110,0,3), BackgroundColor3 = Color3.fromRGB(125,92,255), BorderSizePixel = 0, ZIndex = 6}, Main)
-New("UICorner", {CornerRadius = UDim.new(1,0)}, Glow)
 GUI.Main = Main
 GUI.MainStroke = MainStroke
-GUI.Glow = Glow
 Theme.RegisterMain(Main)
 Theme.Register("Misc", {Obj = MainStroke, Keys = {"Accent"}})
-Theme.Register("Misc", {Obj = Glow, Keys = {"Accent"}})
 
-local CloseBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-18,0,18), Size = UDim2.fromOffset(36,36), BackgroundColor3 = Color3.fromRGB(28,30,44), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "x", TextColor3 = Color3.fromRGB(185,187,205), TextSize = 20, Font = Enum.Font.GothamBold, ZIndex = 10}, Main)
-New("UICorner", {CornerRadius = UDim.new(0,11)}, CloseBtn)
-New("UIStroke", {Color = Color3.fromRGB(70,72,95), Thickness = 1, Transparency = 0.25}, CloseBtn)
+-- Header
+local Header = New("Frame", {
+    Position = UDim2.new(0,0,0,0),
+    Size = UDim2.new(1,0,0,58),
+    BackgroundTransparency = 1,
+    ZIndex = 6,
+}, Main)
 
-local HideBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-60,0,18), Size = UDim2.fromOffset(36,36), BackgroundColor3 = Color3.fromRGB(28,30,44), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "_", TextColor3 = Color3.fromRGB(185,187,205), TextSize = 20, Font = Enum.Font.GothamBold, ZIndex = 10}, Main)
-New("UICorner", {CornerRadius = UDim.new(0,11)}, HideBtn)
-New("UIStroke", {Color = Color3.fromRGB(70,72,95), Thickness = 1, Transparency = 0.25}, HideBtn)
+local SidebarToggle = New("TextButton", {
+    Position = UDim2.new(0,16,0,16),
+    Size = UDim2.fromOffset(32,32),
+    BackgroundColor3 = Config.Themes.Dark.TabBgActive,
+    BackgroundTransparency = 0.1,
+    BorderSizePixel = 0,
+    AutoButtonColor = false,
+    Text = "≡",
+    TextColor3 = Color3.fromRGB(255,255,255),
+    TextSize = 20,
+    Font = Enum.Font.GothamBold,
+    ZIndex = 10,
+}, Header)
+New("UICorner", {CornerRadius = UDim.new(0,8)}, SidebarToggle)
+local SidebarToggleStroke = New("UIStroke", {Color = Color3.fromRGB(125,92,255), Thickness = 1.2}, SidebarToggle)
 
-local ChatBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-104,0,18), Size = UDim2.fromOffset(36,36), BackgroundColor3 = Color3.fromRGB(40,22,60), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "C", TextColor3 = Color3.fromRGB(255,200,255), TextSize = 18, Font = Enum.Font.GothamBold, ZIndex = 10}, Main)
-New("UICorner", {CornerRadius = UDim.new(0,11)}, ChatBtn)
-New("UIStroke", {Color = Color3.fromRGB(150,100,255), Thickness = 1, Transparency = 0.25}, ChatBtn)
-
-local OpenBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-20,0,20), Size = UDim2.fromOffset(54,54), BackgroundColor3 = Color3.fromRGB(20,22,36), BackgroundTransparency = 0.1, BorderSizePixel = 0, AutoButtonColor = false, Text = "*", TextColor3 = Color3.fromRGB(212,175,55), TextSize = 24, Font = Enum.Font.GothamBold, Visible = false, ZIndex = 10}, ScreenGui)
-New("UICorner", {CornerRadius = UDim.new(0,14)}, OpenBtn)
-New("UIStroke", {Color = Color3.fromRGB(125,92,255), Thickness = 1.4, Transparency = 0.15}, OpenBtn)
-
-GUI.CloseBtn = CloseBtn
-GUI.HideBtn = HideBtn
-GUI.ChatBtn = ChatBtn
-GUI.OpenBtn = OpenBtn
-Theme.Register("Misc", {Obj = CloseBtn, Keys = {"CloseBtnBg"}})
-Theme.Register("Misc", {Obj = HideBtn, Keys = {"CloseBtnBg"}})
-
-local Title = New("TextLabel", {Position = UDim2.new(0,32,0,22), Size = UDim2.new(1,-200,0,30), BackgroundTransparency = 1, Text = "VENTURE  AOT", TextColor3 = Color3.fromRGB(248,247,255), TextSize = 22, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Main)
-local Subtitle = New("TextLabel", {Position = UDim2.new(0,32,0,48), Size = UDim2.new(1,-200,0,18), BackgroundTransparency = 1, Text = "by __TheDark  |  v1.8  |  " .. GUI.ExecutorName, TextColor3 = Color3.fromRGB(153,157,178), TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Main)
+local Title = New("TextLabel", {Position = UDim2.new(0,60,0,18), Size = UDim2.new(1,-200,0,24), BackgroundTransparency = 1, Text = "VENTURE  AOT", TextColor3 = Color3.fromRGB(248,247,255), TextSize = 18, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
+local Subtitle = New("TextLabel", {Position = UDim2.new(0,60,0,38), Size = UDim2.new(1,-200,0,14), BackgroundTransparency = 1, Text = "by __TheDark  |  v1.8", TextColor3 = Color3.fromRGB(153,157,178), TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
 GUI.Title = Title
 GUI.Subtitle = Subtitle
 Theme.Register("Misc", {Obj = Title, Keys = {"TitleText"}})
 Theme.Register("Misc", {Obj = Subtitle, Keys = {"SubtitleText"}})
 
--- 5 TABS
-local TABS = {
+local CloseBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-18,0,14), Size = UDim2.fromOffset(32,32), BackgroundColor3 = Color3.fromRGB(28,30,44), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "x", TextColor3 = Color3.fromRGB(185,187,205), TextSize = 18, Font = Enum.Font.GothamBold, ZIndex = 10}, Header)
+New("UICorner", {CornerRadius = UDim.new(0,10)}, CloseBtn)
+
+local HideBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-56,0,14), Size = UDim2.fromOffset(32,32), BackgroundColor3 = Color3.fromRGB(28,30,44), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "_", TextColor3 = Color3.fromRGB(185,187,205), TextSize = 18, Font = Enum.Font.GothamBold, ZIndex = 10}, Header)
+New("UICorner", {CornerRadius = UDim.new(0,10)}, HideBtn)
+
+local ChatBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-94,0,14), Size = UDim2.fromOffset(32,32), BackgroundColor3 = Color3.fromRGB(40,22,60), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "C", TextColor3 = Color3.fromRGB(255,200,255), TextSize = 16, Font = Enum.Font.GothamBold, ZIndex = 10}, Header)
+New("UICorner", {CornerRadius = UDim.new(0,10)}, ChatBtn)
+
+GUI.CloseBtn = CloseBtn
+GUI.HideBtn = HideBtn
+GUI.ChatBtn = ChatBtn
+Theme.Register("Misc", {Obj = CloseBtn, Keys = {"CloseBtnBg"}})
+Theme.Register("Misc", {Obj = HideBtn, Keys = {"CloseBtnBg"}})
+
+local OpenBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-20,0,20), Size = UDim2.fromOffset(54,54), BackgroundColor3 = Color3.fromRGB(20,22,36), BackgroundTransparency = 0.1, BorderSizePixel = 0, AutoButtonColor = false, Text = "*", TextColor3 = Color3.fromRGB(212,175,55), TextSize = 24, Font = Enum.Font.GothamBold, Visible = false, ZIndex = 10}, ScreenGui)
+New("UICorner", {CornerRadius = UDim.new(0,14)}, OpenBtn)
+New("UIStroke", {Color = Color3.fromRGB(125,92,255), Thickness = 1.4, Transparency = 0.15}, OpenBtn)
+GUI.OpenBtn = OpenBtn
+
+-- SIDEBAR
+local SIDEBAR_WIDTH_EXPANDED = 140
+local SIDEBAR_WIDTH_COLLAPSED = 48
+
+local Sidebar = New("Frame", {
+    Position = UDim2.new(0,0,0,58),
+    Size = UDim2.fromOffset(SIDEBAR_WIDTH_EXPANDED, 0),
+    BackgroundColor3 = Color3.fromRGB(8,10,18),
+    BackgroundTransparency = 0.4,
+    BorderSizePixel = 0,
+    ZIndex = 7,
+}, Main)
+GUI.Sidebar = Sidebar
+
+local SidebarLayout = New("UIListLayout", {
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Padding = UDim.new(0, 4),
+}, Sidebar)
+New("UIPadding", {
+    PaddingTop = UDim.new(0, 8),
+    PaddingLeft = UDim.new(0, 6),
+    PaddingRight = UDim.new(0, 6),
+}, Sidebar)
+
+local SIDEBAR_TABS = {
     {Name = "MAIN"},
     {Name = "TITAN"},
     {Name = "AUTO"},
@@ -155,95 +186,17 @@ local tabButtons = {}
 local tabPanels = {}
 local tabStates = {}
 local activeTabIndex = 1
-local tabCount = #TABS
-
-local TopBar = New("Frame", {
-    Position = UDim2.new(0,32,0,76),
-    Size = UDim2.new(1,-64,0,40),
-    BackgroundTransparency = 1,
-    ZIndex = 6,
-}, Main)
-
-local DropdownBtn = New("TextButton", {
-    Size = UDim2.fromOffset(160,40),
-    BackgroundColor3 = Config.Themes.Dark.TabBgActive,
-    BackgroundTransparency = 0.1,
-    BorderSizePixel = 0,
-    AutoButtonColor = false,
-    Text = "",
-    ZIndex = 7,
-}, TopBar)
-New("UICorner", {CornerRadius = UDim.new(0,10)}, DropdownBtn)
-local DropdownStroke = New("UIStroke", {Color = Color3.fromRGB(125,92,255), Thickness = 1.3}, DropdownBtn)
-
-local DropdownLabel = New("TextLabel", {
-    Position = UDim2.new(0,16,0,0),
-    Size = UDim2.new(1,-40,1,0),
-    BackgroundTransparency = 1,
-    Text = TABS[1].Name,
-    TextColor3 = Color3.fromRGB(255,255,255),
-    TextSize = 14,
-    Font = Enum.Font.GothamBold,
-    TextXAlignment = Enum.TextXAlignment.Left,
-    ZIndex = 9,
-}, DropdownBtn)
-
-local DropdownArrow = New("TextLabel", {
-    AnchorPoint = Vector2.new(1,0.5),
-    Position = UDim2.new(1,-10,0.5,0),
-    Size = UDim2.fromOffset(20,20),
-    BackgroundTransparency = 1,
-    Text = "▾",
-    TextColor3 = Color3.fromRGB(180,180,220),
-    TextSize = 14,
-    Font = Enum.Font.GothamBold,
-    ZIndex = 9,
-}, DropdownBtn)
-
-local DropdownList = New("Frame", {
-    Position = UDim2.new(0, 0, 0, 0),
-    Size = UDim2.fromOffset(160, 0),
-    BackgroundColor3 = Config.Themes.Dark.MainBg,
-    BackgroundTransparency = 0.02,
-    BorderSizePixel = 0,
-    Visible = false,
-    ZIndex = 9999,
-}, DropdownGui)
-New("UICorner", {CornerRadius = UDim.new(0,10)}, DropdownList)
-New("UIStroke", {Color = Color3.fromRGB(125,92,255), Thickness = 1.2, Transparency = 0.2}, DropdownList)
-
-local DropdownScroll = New("ScrollingFrame", {
-    Size = UDim2.new(1,0,1,0),
-    BackgroundTransparency = 1,
-    BorderSizePixel = 0,
-    ScrollBarThickness = 3,
-    ScrollBarImageColor3 = Color3.fromRGB(125,92,255),
-    CanvasSize = UDim2.new(0,0,0,0),
-    ZIndex = 9999,
-}, DropdownList)
-New("UIListLayout", {
-    SortOrder = Enum.SortOrder.LayoutOrder,
-    Padding = UDim.new(0, 2),
-}, DropdownScroll)
-New("UIPadding", {
-    PaddingLeft = UDim.new(0, 4),
-    PaddingRight = UDim.new(0, 4),
-    PaddingTop = UDim.new(0, 4),
-    PaddingBottom = UDim.new(0, 4),
-}, DropdownScroll)
+local tabCount = #SIDEBAR_TABS
+local sidebarExpanded = true
 
 local ContentFrame = New("Frame", {
-    Position = UDim2.new(0,32,0,124),
-    Size = UDim2.new(1,-64,1,-170),
+    Position = UDim2.new(0, SIDEBAR_WIDTH_EXPANDED + 8, 0, 62),
+    Size = UDim2.new(1, -(SIDEBAR_WIDTH_EXPANDED + 20), 1, -70),
     BackgroundTransparency = 1,
     ClipsDescendants = true,
     ZIndex = 6,
 }, Main)
 
-GUI.TopBar = TopBar
-GUI.DropdownBtn = DropdownBtn
-GUI.DropdownList = DropdownList
-GUI.DropdownLabel = DropdownLabel
 GUI.ContentFrame = ContentFrame
 GUI.TabButtons = tabButtons
 GUI.TabPanels = tabPanels
@@ -259,26 +212,9 @@ local function MakePanel()
     }, ContentFrame)
 end
 
-local function RefreshTabVisuals()
-    local T = Theme.Get()
-    for i, btn in ipairs(tabButtons) do
-        local isActive = (i == activeTabIndex)
-        btn.BackgroundColor3 = isActive and T.TabBgActive or Color3.fromRGB(0,0,0)
-        btn.BackgroundTransparency = isActive and 0 or 1
-        btn.TextColor3 = isActive and T.TabTextActive or T.TabText
-        if tabPanels[i] then
-            tabPanels[i].Visible = isActive
-        end
-    end
-    DropdownLabel.Text = TABS[activeTabIndex].Name
-    DropdownBtn.BackgroundColor3 = T.TabBgActive
-    DropdownStroke.Color = T.Accent
-end
-GUI.RefreshTabVisuals = RefreshTabVisuals
-
-for i, tab in ipairs(TABS) do
+for i, tab in ipairs(SIDEBAR_TABS) do
     local btn = New("TextButton", {
-        Size = UDim2.new(1,0,0,34),
+        Size = UDim2.new(1, 0, 0, 36),
         BackgroundColor3 = Color3.fromRGB(0,0,0),
         BackgroundTransparency = 1,
         BorderSizePixel = 0,
@@ -289,27 +225,27 @@ for i, tab in ipairs(TABS) do
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left,
         LayoutOrder = i,
-        ZIndex = 9999,
-    }, DropdownScroll)
-    New("UICorner", {CornerRadius = UDim.new(0,6)}, btn)
-    New("UIPadding", {PaddingLeft = UDim.new(0, 12)}, btn)
+        ZIndex = 8,
+    }, Sidebar)
+    New("UICorner", {CornerRadius = UDim.new(0,8)}, btn)
+    New("UIPadding", {PaddingLeft = UDim.new(0, 10)}, btn)
 
     btn.MouseEnter:Connect(function()
-        Tween(btn, 0.15, {BackgroundTransparency = 0.7, BackgroundColor3 = Color3.fromRGB(80,60,160)})
+        if i ~= activeTabIndex then
+            Tween(btn, 0.15, {BackgroundTransparency = 0.7, BackgroundColor3 = Color3.fromRGB(80,60,160)})
+        end
     end)
     btn.MouseLeave:Connect(function()
-        Tween(btn, 0.15, {BackgroundTransparency = 1})
+        if i ~= activeTabIndex then
+            Tween(btn, 0.15, {BackgroundTransparency = 1})
+        end
     end)
-
     btn.MouseButton1Click:Connect(function()
         activeTabIndex = i
         for k = 1, tabCount do
             tabStates[k] = (k == i)
         end
-        RefreshTabVisuals()
-        DropdownList.Visible = false
-        DropdownArrow.Text = "▾"
-        _G.Venture.DropdownOpen = false
+        GUI.RefreshTabVisuals()
     end)
 
     tabButtons[i] = btn
@@ -317,44 +253,43 @@ for i, tab in ipairs(TABS) do
     tabStates[i] = false
 end
 
-tabStates[1] = true
-RefreshTabVisuals()
-
-DropdownScroll.CanvasSize = UDim2.new(0,0,0, tabCount * 36 + 8)
-DropdownList.Size = UDim2.fromOffset(160, tabCount * 36 + 8)
-
-_G.Venture.DropdownOpen = false
-
-DropdownBtn.MouseButton1Click:Connect(function()
-    _G.Venture.DropdownOpen = not _G.Venture.DropdownOpen
-    if _G.Venture.DropdownOpen then
-        local btnPos = DropdownBtn.AbsolutePosition
-        local btnSize = DropdownBtn.AbsoluteSize
-        DropdownList.Position = UDim2.fromOffset(btnPos.X, btnPos.Y + btnSize.Y + 4)
-        DropdownList.Visible = true
-    else
-        DropdownList.Visible = false
+function GUI.RefreshTabVisuals()
+    local T = Theme.Get()
+    for i, btn in ipairs(tabButtons) do
+        local isActive = (i == activeTabIndex)
+        btn.BackgroundColor3 = isActive and T.TabBgActive or Color3.fromRGB(0,0,0)
+        btn.BackgroundTransparency = isActive and 0 or 1
+        btn.TextColor3 = isActive and T.TabTextActive or T.TabText
+        if tabPanels[i] then
+            tabPanels[i].Visible = isActive
+        end
     end
-    DropdownArrow.Text = _G.Venture.DropdownOpen and "▴" or "▾"
-end)
+end
 
-UserInputService.InputBegan:Connect(function(input)
-    if not _G.Venture.DropdownOpen then return end
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        local mx = input.Position.X
-        local my = input.Position.Y
-        local btnPos = DropdownBtn.AbsolutePosition
-        local btnSize = DropdownBtn.AbsoluteSize
-        local listPos = DropdownList.AbsolutePosition
-        local listSize = DropdownList.AbsoluteSize
+tabStates[1] = true
+GUI.RefreshTabVisuals()
 
-        local insideBtn = mx >= btnPos.X and mx <= btnPos.X + btnSize.X and my >= btnPos.Y and my <= btnPos.Y + btnSize.Y
-        local insideList = mx >= listPos.X and mx <= listPos.X + listSize.X and my >= listPos.Y and my <= listPos.Y + listSize.Y
+-- Sidebar toggle animation
+SidebarToggle.MouseButton1Click:Connect(function()
+    sidebarExpanded = not sidebarExpanded
 
-        if not insideBtn and not insideList then
-            _G.Venture.DropdownOpen = false
-            DropdownList.Visible = false
-            DropdownArrow.Text = "▾"
+    local newWidth = sidebarExpanded and SIDEBAR_WIDTH_EXPANDED or SIDEBAR_WIDTH_COLLAPSED
+    local newContentX = sidebarExpanded and (SIDEBAR_WIDTH_EXPANDED + 8) or (SIDEBAR_WIDTH_COLLAPSED + 8)
+    local newContentW = sidebarExpanded and -(SIDEBAR_WIDTH_EXPANDED + 20) or -(SIDEBAR_WIDTH_COLLAPSED + 20)
+
+    Tween(Sidebar, 0.35, {Size = UDim2.fromOffset(newWidth, 0)}, Enum.EasingStyle.Quart)
+    Tween(ContentFrame, 0.35, {
+        Position = UDim2.new(0, newContentX, 0, 62),
+        Size = UDim2.new(1, newContentW, 1, -70),
+    }, Enum.EasingStyle.Quart)
+
+    for i, btn in ipairs(tabButtons) do
+        if sidebarExpanded then
+            btn.Text = SIDEBAR_TABS[i].Name
+            Tween(btn, 0.25, {TextTransparency = 0})
+        else
+            local firstLetter = SIDEBAR_TABS[i].Name:sub(1, 1)
+            btn.Text = firstLetter
         end
     end
 end)
@@ -374,7 +309,7 @@ local function MakeSectionLabel(parent, text, y)
 end
 
 local function MakeButton(parent, text, subtext, y, callback)
-    local h = subtext and (IsMobile and 60 or 54) or (IsMobile and 44 or 38)
+    local h = subtext and (IsMobile and 56 or 50) or (IsMobile and 42 or 36)
     local T = Theme.Get()
     local btn = New("TextButton", {
         Position = UDim2.new(0,0,0,y), Size = UDim2.new(1,-8,0,h),
@@ -384,8 +319,8 @@ local function MakeButton(parent, text, subtext, y, callback)
     New("UICorner", {CornerRadius = UDim.new(0,10)}, btn)
     local stroke = New("UIStroke", {Color = T.BtnStroke, Thickness = 1, Transparency = 0.2}, btn)
     local mainLabel = New("TextLabel", {
-        Position = UDim2.new(0,16,0, subtext and 8 or 0),
-        Size = UDim2.new(1,-80,0, subtext and 20 or h),
+        Position = UDim2.new(0,14,0, subtext and 6 or 0),
+        Size = UDim2.new(1,-70,0, subtext and 20 or h),
         BackgroundTransparency = 1, Text = text,
         TextColor3 = T.BtnText,
         Font = Enum.Font.GothamBold, TextSize = IsMobile and 12 or 13,
@@ -394,7 +329,7 @@ local function MakeButton(parent, text, subtext, y, callback)
     local subLabel = nil
     if subtext then
         subLabel = New("TextLabel", {
-            Position = UDim2.new(0,16,0,30), Size = UDim2.new(1,-60,0,16),
+            Position = UDim2.new(0,14,0,28), Size = UDim2.new(1,-50,0,16),
             BackgroundTransparency = 1, Text = subtext,
             TextColor3 = T.SubText,
             Font = Enum.Font.Gotham, TextSize = 10,
@@ -412,11 +347,11 @@ local function MakeButton(parent, text, subtext, y, callback)
     end)
     btn.MouseButton1Click:Connect(callback)
     Theme.Register("Buttons", {Btn = btn, Stroke = stroke, Label = mainLabel, Sub = subLabel})
-    return y + h + 8
+    return y + h + 6
 end
 
 local function MakeToggle(parent, text, y, default, callback)
-    local h = IsMobile and 44 or 38
+    local h = IsMobile and 40 or 36
     local T = Theme.Get()
     local btn = New("TextButton", {
         Position = UDim2.new(0,0,0,y), Size = UDim2.new(1,-8,0,h),
@@ -426,23 +361,23 @@ local function MakeToggle(parent, text, y, default, callback)
     New("UICorner", {CornerRadius = UDim.new(0,10)}, btn)
     New("UIStroke", {Color = T.BtnStroke, Thickness = 1, Transparency = 0.2}, btn)
     local mainLabel = New("TextLabel", {
-        Position = UDim2.new(0,16,0,0), Size = UDim2.new(1,-90,1,0),
+        Position = UDim2.new(0,14,0,0), Size = UDim2.new(1,-80,1,0),
         BackgroundTransparency = 1, Text = text,
         TextColor3 = T.BtnText,
         Font = Enum.Font.GothamBold, TextSize = IsMobile and 12 or 13,
         TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 9,
     }, btn)
     local pill = New("Frame", {
-        AnchorPoint = Vector2.new(1,0.5), Position = UDim2.new(1,-16,0.5,0),
-        Size = UDim2.fromOffset(46,22),
+        AnchorPoint = Vector2.new(1,0.5), Position = UDim2.new(1,-12,0.5,0),
+        Size = UDim2.fromOffset(42,20),
         BackgroundColor3 = default and T.ToggleOn or T.ToggleOff,
         BorderSizePixel = 0, ZIndex = 9,
     }, btn)
     New("UICorner", {CornerRadius = UDim.new(1,0)}, pill)
     local knob = New("Frame", {
         AnchorPoint = Vector2.new(0.5,0.5),
-        Position = default and UDim2.new(1,-11,0.5,0) or UDim2.new(0,11,0.5,0),
-        Size = UDim2.fromOffset(16,16),
+        Position = default and UDim2.new(1,-10,0.5,0) or UDim2.new(0,10,0.5,0),
+        Size = UDim2.fromOffset(14,14),
         BackgroundColor3 = T.ToggleKnob,
         BorderSizePixel = 0, ZIndex = 10,
     }, pill)
@@ -455,14 +390,14 @@ local function MakeToggle(parent, text, y, default, callback)
         toggleData.State = state
         local t = Theme.Get()
         Tween(pill, 0.2, {BackgroundColor3 = state and t.ToggleOn or t.ToggleOff})
-        Tween(knob, 0.2, {Position = state and UDim2.new(1,-11,0.5,0) or UDim2.new(0,11,0.5,0)})
+        Tween(knob, 0.2, {Position = state and UDim2.new(1,-10,0.5,0) or UDim2.new(0,10,0.5,0)})
         callback(state)
     end)
-    return y + h + 8
+    return y + h + 6
 end
 
 local function MakeSlider(parent, text, y, min, max, default, suffix, callback)
-    local h = IsMobile and 54 or 48
+    local h = IsMobile and 48 or 44
     local T = Theme.Get()
     local frame = New("Frame", {
         Position = UDim2.new(0,0,0,y), Size = UDim2.new(1,-8,0,h),
@@ -472,22 +407,22 @@ local function MakeSlider(parent, text, y, min, max, default, suffix, callback)
     New("UICorner", {CornerRadius = UDim.new(0,10)}, frame)
     New("UIStroke", {Color = T.BtnStroke, Thickness = 1, Transparency = 0.2}, frame)
     local mainLabel = New("TextLabel", {
-        Position = UDim2.new(0,16,0,6), Size = UDim2.new(1,-100,0,16),
+        Position = UDim2.new(0,14,0,4), Size = UDim2.new(1,-90,0,16),
         BackgroundTransparency = 1, Text = text,
         TextColor3 = T.BtnText,
         Font = Enum.Font.GothamBold, TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 9,
     }, frame)
     local valLabel = New("TextLabel", {
-        AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-16,0,6),
-        Size = UDim2.fromOffset(80,16), BackgroundTransparency = 1,
+        AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-14,0,4),
+        Size = UDim2.fromOffset(70,16), BackgroundTransparency = 1,
         Text = tostring(default) .. (suffix or ""),
         TextColor3 = T.TabTextActive,
         Font = Enum.Font.GothamBold, TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Right, ZIndex = 9,
     }, frame)
     local barBG = New("Frame", {
-        Position = UDim2.new(0,16,0,32), Size = UDim2.new(1,-32,0, IsMobile and 8 or 5),
+        Position = UDim2.new(0,14,0,26), Size = UDim2.new(1,-28,0, IsMobile and 7 or 5),
         BackgroundColor3 = T.SliderBg, BorderSizePixel = 0, ZIndex = 9,
     }, frame)
     New("UICorner", {CornerRadius = UDim.new(1,0)}, barBG)
@@ -527,8 +462,8 @@ local function MakeSlider(parent, text, y, min, max, default, suffix, callback)
 end
 
 local function MakeMultiSelect(parent, text, options, y, onChange)
-    local oh = 28
-    local total = 30 + (#options * oh) + 8
+    local oh = 26
+    local total = 28 + (#options * oh) + 8
     local T = Theme.Get()
     local frame = New("Frame", {
         Position = UDim2.new(0,0,0,y), Size = UDim2.new(1,-8,0,total),
@@ -538,7 +473,7 @@ local function MakeMultiSelect(parent, text, options, y, onChange)
     New("UICorner", {CornerRadius = UDim.new(0,10)}, frame)
     New("UIStroke", {Color = T.BtnStroke, Thickness = 1, Transparency = 0.2}, frame)
     New("TextLabel", {
-        Position = UDim2.new(0,16,0,6), Size = UDim2.new(1,-32,0,20),
+        Position = UDim2.new(0,14,0,4), Size = UDim2.new(1,-28,0,18),
         BackgroundTransparency = 1, Text = text,
         TextColor3 = T.TabTextActive,
         Font = Enum.Font.GothamBold, TextSize = 12,
@@ -547,23 +482,23 @@ local function MakeMultiSelect(parent, text, options, y, onChange)
     local states = {}
     for _, o in ipairs(options) do states[o] = Settings.HitboxParts[o] or false end
     for i, opt in ipairs(options) do
-        local ry = 30 + (i-1) * oh
+        local ry = 28 + (i-1) * oh
         local row = New("TextButton", {
-            Position = UDim2.new(0,12,0,ry), Size = UDim2.new(1,-24,0,oh-2),
+            Position = UDim2.new(0,10,0,ry), Size = UDim2.new(1,-20,0,oh-2),
             BackgroundColor3 = states[opt] and Color3.fromRGB(40,42,60) or Color3.fromRGB(15,17,28),
             BackgroundTransparency = 0.2, BorderSizePixel = 0,
             AutoButtonColor = false, Text = "", ZIndex = 9,
         }, frame)
         New("UICorner", {CornerRadius = UDim.new(0,6)}, row)
         local cb = New("TextLabel", {
-            Position = UDim2.new(0,8,0,0), Size = UDim2.fromOffset(24,oh-2),
+            Position = UDim2.new(0,6,0,0), Size = UDim2.fromOffset(22,oh-2),
             BackgroundTransparency = 1, Text = states[opt] and "[X]" or "[  ]",
             TextColor3 = states[opt] and Color3.fromRGB(212,175,55) or Color3.fromRGB(120,120,140),
-            Font = Enum.Font.Code, TextSize = 14,
+            Font = Enum.Font.Code, TextSize = 13,
             TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 10,
         }, row)
         New("TextLabel", {
-            Position = UDim2.new(0,36,0,0), Size = UDim2.new(1,-40,1,0),
+            Position = UDim2.new(0,30,0,0), Size = UDim2.new(1,-34,1,0),
             BackgroundTransparency = 1, Text = opt,
             TextColor3 = T.BtnText,
             Font = Enum.Font.Gotham, TextSize = 12,
@@ -583,7 +518,7 @@ local function MakeMultiSelect(parent, text, options, y, onChange)
 end
 
 local function MakeDropdown(parent, text, options, y, default, callback)
-    local h = IsMobile and 48 or 44
+    local h = IsMobile and 44 or 40
     local T = Theme.Get()
     local frame = New("Frame", {
         Position = UDim2.new(0,0,0,y), Size = UDim2.new(1,-8,0,h),
@@ -593,15 +528,15 @@ local function MakeDropdown(parent, text, options, y, default, callback)
     New("UICorner", {CornerRadius = UDim.new(0,10)}, frame)
     New("UIStroke", {Color = T.BtnStroke, Thickness = 1, Transparency = 0.2}, frame)
     local mainLabel = New("TextLabel", {
-        Position = UDim2.new(0,16,0,0), Size = UDim2.new(0.5,0,1,0),
+        Position = UDim2.new(0,14,0,0), Size = UDim2.new(0.5,0,1,0),
         BackgroundTransparency = 1, Text = text,
         TextColor3 = T.BtnText,
         Font = Enum.Font.GothamBold, TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 9,
     }, frame)
     local btn = New("TextButton", {
-        AnchorPoint = Vector2.new(1,0.5), Position = UDim2.new(1,-16,0.5,0),
-        Size = UDim2.fromOffset(IsMobile and 150 or 180, 30),
+        AnchorPoint = Vector2.new(1,0.5), Position = UDim2.new(1,-14,0.5,0),
+        Size = UDim2.fromOffset(IsMobile and 140 or 160, 28),
         BackgroundColor3 = T.BtnBgHover, BorderSizePixel = 0,
         AutoButtonColor = false, Text = default or "None",
         TextColor3 = T.TabTextActive,
@@ -613,15 +548,15 @@ local function MakeDropdown(parent, text, options, y, default, callback)
     btn.MouseButton1Click:Connect(function()
         if opened and dropdown then dropdown:Destroy(); dropdown = nil; opened = false; return end
         dropdown = New("Frame", {
-            Position = UDim2.new(1, IsMobile and -166 or -196, 1, 4),
-            Size = UDim2.fromOffset(IsMobile and 150 or 180, #options * 26),
+            Position = UDim2.new(1, IsMobile and -156 or -176, 1, 4),
+            Size = UDim2.fromOffset(IsMobile and 140 or 160, #options * 24),
             BackgroundColor3 = Theme.Get().MainBg, BorderSizePixel = 0, ZIndex = 20,
         }, frame)
         New("UICorner", {CornerRadius = UDim.new(0,8)}, dropdown)
         New("UIStroke", {Color = Theme.Get().Accent, Thickness = 1, Transparency = 0.2}, dropdown)
         for i, opt in ipairs(options) do
             local o = New("TextButton", {
-                Position = UDim2.new(0,0,0,(i-1)*26), Size = UDim2.new(1,0,0,26),
+                Position = UDim2.new(0,0,0,(i-1)*24), Size = UDim2.new(1,0,0,24),
                 BackgroundColor3 = Theme.Get().MainBg, BackgroundTransparency = 0.9,
                 BorderSizePixel = 0, AutoButtonColor = false, Text = opt,
                 TextColor3 = Theme.Get().BtnText,
@@ -635,7 +570,7 @@ local function MakeDropdown(parent, text, options, y, default, callback)
         end
         opened = true
     end)
-    return y + h + 8
+    return y + h + 6
 end
 
 GUI.MakeSectionLabel = MakeSectionLabel
@@ -645,64 +580,46 @@ GUI.MakeSlider = MakeSlider
 GUI.MakeMultiSelect = MakeMultiSelect
 GUI.MakeDropdown = MakeDropdown
 
--- Sub-section helper (для SOCIAL и CONFIG)
+-- Sub-section (для SOCIAL и CONFIG)
 local function MakeSubSection(parent, title)
     local T = Theme.Get()
-    local holder = New("Frame", {
-        Size = UDim2.new(1, -8, 0, 0),
+    local wrapper = New("Frame", {
+        Size = UDim2.new(1, 0, 0, 0),
         BackgroundTransparency = 1,
         AutomaticSize = Enum.AutomaticSize.Y,
         ZIndex = 8,
     }, parent)
     New("UIListLayout", {
         SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 4),
-    }, holder)
-    New("UIPadding", {
-        PaddingTop = UDim.new(0, 6),
-        PaddingBottom = UDim.new(0, 6),
-    }, holder)
-
-    local inner = New("Frame", {
-        Size = UDim2.new(1, 0, 0, 0),
-        BackgroundColor3 = T.BtnBg,
-        BackgroundTransparency = 0.5,
-        BorderSizePixel = 0,
-        AutomaticSize = Enum.AutomaticSize.Y,
-        LayoutOrder = 1,
-        ZIndex = 9,
-    }, holder)
-    New("UICorner", {CornerRadius = UDim.new(0,10)}, inner)
-    New("UIStroke", {Color = T.BtnStroke, Thickness = 1, Transparency = 0.3}, inner)
-    New("UIPadding", {
-        PaddingLeft = UDim.new(0, 8),
-        PaddingRight = UDim.new(0, 8),
-        PaddingTop = UDim.new(0, 8),
-        PaddingBottom = UDim.new(0, 8),
-    }, inner)
+        Padding = UDim.new(0, 6),
+    }, wrapper)
 
     New("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 20),
+        Size = UDim2.new(1, 0, 0, 18),
         BackgroundTransparency = 1,
-        Text = title,
+        Text = "  " .. string.upper(title),
         TextColor3 = T.SectionText,
-        TextSize = 12,
+        TextSize = 11,
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left,
-        LayoutOrder = 0,
-        ZIndex = 10,
-    }, holder)
+        LayoutOrder = 1,
+        ZIndex = 9,
+    }, wrapper)
 
     local content = New("Frame", {
         Size = UDim2.new(1, 0, 0, 0),
         BackgroundTransparency = 1,
         AutomaticSize = Enum.AutomaticSize.Y,
-        ZIndex = 10,
-    }, inner)
+        LayoutOrder = 2,
+        ZIndex = 9,
+    }, wrapper)
+    New("UIListLayout", {
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 4),
+    }, content)
 
     return content
 end
-
 GUI.MakeSubSection = MakeSubSection
 
 -- TAB 1: MAIN
@@ -714,10 +631,10 @@ do
         if #t == 0 then return end
         Funcs.StickToTitan(t[1])
     end)
-    y = MakeButton(tabPanels[1], "Safe Release", "Detach and boost upward + sideways", y, function()
+    y = MakeButton(tabPanels[1], "Safe Release", "Detach and boost", y, function()
         Funcs.CleanupStick(true); Funcs.State.currentTarget = nil
     end)
-    y = MakeButton(tabPanels[1], "Force Reset", "Clear current TP / camera state", y, function()
+    y = MakeButton(tabPanels[1], "Force Reset", "Clear current state", y, function()
         Funcs.ForceResetState()
     end)
     tabPanels[1].CanvasSize = UDim2.new(0,0,0,y+20)
@@ -726,7 +643,7 @@ end
 -- TAB 2: TITAN
 do
     local y = 0
-    y = MakeSectionLabel(tabPanels[2], "HITBOX EXPANDER", y)
+    y = MakeSectionLabel(tabPanels[2], "HITBOX", y)
     y = MakeToggle(tabPanels[2], "Expand Hitbox", y, false, function(v)
         Settings.HitboxExpand = v
         if v then Funcs.ApplyHitboxToAll() else Funcs.ResetAllHitboxes() end
@@ -748,30 +665,23 @@ do
         Settings.HitboxShape = v
         Funcs.ApplyHitboxToAll()
     end)
-    y = MakeToggle(tabPanels[2], "Show Hitbox Visual", y, false, function(v)
-        Settings.HitboxShowVisual = v
-        Funcs.ApplyHitboxToAll()
-    end)
-    y = MakeButton(tabPanels[2], "Reset All Hitboxes", "Restore original sizes", y, function()
+    y = MakeButton(tabPanels[2], "Reset Hitboxes", "Restore original", y, function()
         Funcs.ResetAllHitboxes()
     end)
 
     y = y + 6
     y = MakeSectionLabel(tabPanels[2], "ESP", y)
     y = MakeToggle(tabPanels[2], "Titan + Refill ESP", y, false, function(v) Settings.ESP = v end)
-    y = MakeToggle(tabPanels[2], "Player ESP (HP + Name + PvP)", y, false, function(v) Settings.PlayerESP = v end)
+    y = MakeToggle(tabPanels[2], "Player ESP", y, false, function(v) Settings.PlayerESP = v end)
     y = MakeToggle(tabPanels[2], "Shifter ESP", y, false, function(v) Settings.ShifterESP = v end)
 
     y = y + 6
     y = MakeSectionLabel(tabPanels[2], "MOVEMENT", y)
-    y = MakeToggle(tabPanels[2], "Noclip (walk through walls)", y, false, function(v)
+    y = MakeToggle(tabPanels[2], "Noclip", y, false, function(v)
         Settings.Noclip = v
         if v then Funcs.StartNoclip() else Funcs.StopNoclip() end
     end)
-
-    y = y + 6
-    y = MakeSectionLabel(tabPanels[2], "PERFORMANCE", y)
-    y = MakeToggle(tabPanels[2], "FPS Booster (aggressive)", y, false, function(v)
+    y = MakeToggle(tabPanels[2], "FPS Booster", y, false, function(v)
         Settings.FPSBoosterEnabled = v
         if v then Funcs.EnableFPSBooster() else Funcs.DisableFPSBooster() end
     end)
@@ -781,7 +691,7 @@ end
 -- TAB 3: AUTO
 do
     local y = 0
-    y = MakeSectionLabel(tabPanels[3], "AUTO FARM (SMOOTH ORBIT)", y)
+    y = MakeSectionLabel(tabPanels[3], "AUTO FARM", y)
     y = MakeToggle(tabPanels[3], "Enable AutoFarm", y, false, function(v)
         Settings.AutoFarmEnabled = v
         if v then
@@ -793,76 +703,56 @@ do
             Funcs.State.FarmState.CurrentTitan = nil
         end
     end)
-    y = MakeSlider(tabPanels[3], "Orbit Speed", y, 100, 500, 300, " s/s", function(v) Settings.AutoFarmOrbitSpeed = v end)
-    y = MakeSlider(tabPanels[3], "Hover Height", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmHoverHeight = v end)
-    y = MakeSlider(tabPanels[3], "Orbit Radius", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmOrbitRadius = v end)
-    y = MakeSlider(tabPanels[3], "Safe Distance", y, 50, 200, 100, " studs", function(v) Settings.AutoFarmSafeDistance = v end)
-    y = MakeSlider(tabPanels[3], "Responsiveness", y, 5, 100, 25, "", function(v) Settings.AutoFarmResponsiveness = v end)
 
-    y = y + 6
     y = MakeSectionLabel(tabPanels[3], "BLADE REFILL", y)
-    y = MakeButton(tabPanels[3], "Teleport to Nearest Refill", "TP to closest BladeRefill", y, function()
+    y = MakeButton(tabPanels[3], "TP to Refill", "Teleport to closest refill", y, function()
         local r = Funcs.GetRefills()
         if #r == 0 then return end
         Funcs.TeleportToRefill(r[1])
     end)
-    y = MakeButton(tabPanels[3], "Trigger Auto Refill", "TP + pause + wait + return", y, function()
-        Funcs.TriggerAutoRefill()
-    end)
+    y = MakeToggle(tabPanels[3], "Enable Auto Refill", y, false, function(v) Settings.AutoRefillEnabled = v end)
 
     y = y + 6
     y = MakeSectionLabel(tabPanels[3], "AUTO HEAL", y)
     y = MakeToggle(tabPanels[3], "Enable Auto Heal", y, false, function(v) Settings.AutoHealEnabled = v end)
-    y = MakeSlider(tabPanels[3], "HP Threshold %", y, 10, 90, 50, "%", function(v) Settings.AutoHealThreshold = v end)
     y = MakeButton(tabPanels[3], "Heal Now", "Manual trigger", y, function() Funcs.TriggerAutoHeal() end)
-
-    y = y + 6
-    y = MakeSectionLabel(tabPanels[3], "AUTO BLADE REFILL", y)
-    y = MakeToggle(tabPanels[3], "Enable Auto Refill", y, false, function(v) Settings.AutoRefillEnabled = v end)
-    y = MakeSlider(tabPanels[3], "Blade Threshold", y, 0, 100, 1, "%", function(v) Settings.AutoBladeRefillThreshold = v end)
-    y = MakeSlider(tabPanels[3], "Refill Wait Time", y, 1, 15, 5, " sec", function(v) Settings.AutoBladeRefillReturnDelay = v end)
-    y = MakeButton(tabPanels[3], "Trigger Refill Now", "Manual trigger", y, function() Funcs.TriggerAutoRefill() end)
 
     y = y + 6
     y = MakeSectionLabel(tabPanels[3], "AUTO QUEST", y)
     y = MakeToggle(tabPanels[3], "Enable Auto Quest", y, false, function(v) Settings.AutoQuestEnabled = v end)
-    y = MakeDropdown(tabPanels[3], "Quest Type", {"Slay Titans","Save Players","Auto (first)"}, y, "Auto (first)", function(v)
-        Settings.AutoQuestSelected = v
-    end)
+
+    y = y + 6
+    y = MakeSectionLabel(tabPanels[3], "SETTINGS", y)
+    y = MakeSlider(tabPanels[3], "Orbit Speed", y, 100, 500, 300, " s/s", function(v) Settings.AutoFarmOrbitSpeed = v end)
+    y = MakeSlider(tabPanels[3], "Hover Height", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmHoverHeight = v end)
+    y = MakeSlider(tabPanels[3], "Orbit Radius", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmOrbitRadius = v end)
+    y = MakeSlider(tabPanels[3], "Safe Distance", y, 50, 200, 100, " studs", function(v) Settings.AutoFarmSafeDistance = v end)
+
     tabPanels[3].CanvasSize = UDim2.new(0,0,0,y+20)
 end
 
--- TAB 4: SOCIAL — sub-sections
+-- TAB 4: SOCIAL
 GUI.OnlineTabPanel = MakeSubSection(tabPanels[4], "ONLINE")
 GUI.ChatTabPanel = MakeSubSection(tabPanels[4], "CHAT")
 GUI.AnnounceTabPanel = MakeSubSection(tabPanels[4], "ANNOUNCE")
 
--- TAB 5: CONFIG — sub-sections
+-- TAB 5: CONFIG
 GUI.KeybindTabPanel = MakeSubSection(tabPanels[5], "KEYBINDS")
 GUI.SecurityTabPanel = MakeSubSection(tabPanels[5], "SECURITY")
 GUI.ThemeTabPanel = MakeSubSection(tabPanels[5], "THEME")
 GUI.DebugTabPanel = MakeSubSection(tabPanels[5], "DEBUG")
 
--- SETTINGS panel (тема)
+-- THEME panel content
 do
     local panel = GUI.ThemeTabPanel
     local y = 0
-    y = MakeButton(panel, "Dark", "Classic dark theme", y, function()
-        Theme.Apply("Dark", true)
-    end)
-    y = MakeButton(panel, "Purple", "Neon purple theme", y, function()
-        Theme.Apply("Purple", true)
-    end)
-    y = MakeButton(panel, "Red", "Aggressive red theme", y, function()
-        Theme.Apply("Red", true)
-    end)
-    y = MakeButton(panel, "White", "Light minimalist theme", y, function()
-        Theme.Apply("White", true)
-    end)
-    panel.Size = UDim2.new(1, 0, 0, y + 10)
+    y = MakeButton(panel, "Dark", "Classic dark theme", y, function() Theme.Apply("Dark", true) end)
+    y = MakeButton(panel, "Purple", "Neon purple theme", y, function() Theme.Apply("Purple", true) end)
+    y = MakeButton(panel, "Red", "Aggressive red theme", y, function() Theme.Apply("Red", true) end)
+    y = MakeButton(panel, "White", "Light minimalist theme", y, function() Theme.Apply("White", true) end)
 end
 
--- DEBUG panel
+-- DEBUG panel content
 do
     local panel = GUI.DebugTabPanel
     local y = 0
@@ -878,28 +768,14 @@ do
     end)
     y = MakeButton(panel, "Executor Info", "Print to console", y, function()
         print("Executor:", GUI.ExecutorName)
-        print("Mod Group:", Config.MOD_GROUP_ID)
     end)
-    y = MakeButton(panel, "Find Blade State", "Auto-detect", y, function()
-        local f = Funcs.FindBladeState()
-        if f then print("Found:", f:GetFullName(), "=", f.Value)
-        else print("Not found") end
-    end)
-    panel.Size = UDim2.new(1, 0, 0, y + 10)
 end
 
 -- DRAG
 do
     local dragging, dragStart, startPos = false, nil, nil
-    Main.InputBegan:Connect(function(input)
+    Header.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            local mx = input.Position.X
-            local my = input.Position.Y
-            local btnPos = DropdownBtn.AbsolutePosition
-            local btnSize = DropdownBtn.AbsoluteSize
-            if mx >= btnPos.X and mx <= btnPos.X + btnSize.X and my >= btnPos.Y and my <= btnPos.Y + btnSize.Y then
-                return
-            end
             dragging = true
             dragStart = input.Position
             startPos = Main.Position
@@ -908,7 +784,7 @@ do
             end)
         end
     end)
-    Main.InputChanged:Connect(function(input)
+    Header.InputChanged:Connect(function(input)
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - dragStart
             Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
@@ -949,24 +825,18 @@ GUI.ShowMain = function()
     Main.Position = UDim2.fromScale(0.5, 0.56)
     Main.BackgroundTransparency = 1
     MainStroke.Transparency = 1
-    Glow.BackgroundTransparency = 1
     Tween(Main, 0.9, {
-        Size = IsMobile and UDim2.fromOffset(480,420) or UDim2.fromOffset(640,520),
+        Size = IsMobile and UDim2.fromOffset(520,420) or UDim2.fromOffset(720,540),
         Position = UDim2.fromScale(0.5,0.5),
         BackgroundTransparency = 0.06,
     }, Enum.EasingStyle.Back)
     Tween(MainStroke, 0.85, {Transparency = 0.2})
-    Tween(Glow, 0.55, {BackgroundTransparency = 0})
-    RefreshTabVisuals()
+    GUI.RefreshTabVisuals()
 end
 
 GUI.HideToIcon = function()
     Tween(Main, 0.4, {Size = UDim2.fromOffset(300,200), BackgroundTransparency = 1}, Enum.EasingStyle.Back, Enum.EasingDirection.In)
     Tween(MainStroke, 0.35, {Transparency = 1})
-    Tween(Glow, 0.35, {BackgroundTransparency = 1})
-    DropdownList.Visible = false
-    _G.Venture.DropdownOpen = false
-    DropdownArrow.Text = "▾"
     task.delay(0.4, function()
         Main.Visible = false
         OpenBtn.Visible = true
@@ -985,14 +855,12 @@ GUI.OpenFromIcon = function()
         Main.Position = UDim2.fromScale(0.5, 0.5)
         Main.BackgroundTransparency = 1
         MainStroke.Transparency = 1
-        Glow.BackgroundTransparency = 1
         Tween(Main, 0.6, {
-            Size = IsMobile and UDim2.fromOffset(480,420) or UDim2.fromOffset(640,520),
+            Size = IsMobile and UDim2.fromOffset(520,420) or UDim2.fromOffset(720,540),
             BackgroundTransparency = 0.06,
         }, Enum.EasingStyle.Back)
         Tween(MainStroke, 0.6, {Transparency = 0.2})
-        Tween(Glow, 0.4, {BackgroundTransparency = 0})
-        RefreshTabVisuals()
+        GUI.RefreshTabVisuals()
     end)
 end
 
@@ -1014,11 +882,9 @@ CloseBtn.MouseButton1Click:Connect(function()
     Settings.HitboxExpand = false
     Tween(Main, 0.6, {Size = UDim2.fromOffset(280,170), Position = UDim2.fromScale(0.5,0.47), BackgroundTransparency = 1}, Enum.EasingStyle.Back, Enum.EasingDirection.In)
     Tween(MainStroke, 0.5, {Transparency = 1, Thickness = 4})
-    Tween(Glow, 0.35, {BackgroundTransparency = 1})
     task.wait(0.6)
     ScreenGui:Destroy()
     KeybindListGui:Destroy()
-    DropdownGui:Destroy()
     if not UserInputService.TouchEnabled then UserInputService.MouseIconEnabled = true end
 end)
 
@@ -1030,6 +896,8 @@ OpenBtn.MouseEnter:Connect(function() Tween(OpenBtn, 0.18, {BackgroundColor3 = C
 OpenBtn.MouseLeave:Connect(function() Tween(OpenBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(20,22,36)}) end)
 ChatBtn.MouseEnter:Connect(function() Tween(ChatBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(60,32,90)}) end)
 ChatBtn.MouseLeave:Connect(function() Tween(ChatBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(40,22,60)}) end)
+SidebarToggle.MouseEnter:Connect(function() Tween(SidebarToggle, 0.18, {BackgroundColor3 = Color3.fromRGB(80,60,160)}) end)
+SidebarToggle.MouseLeave:Connect(function() Tween(SidebarToggle, 0.18, {BackgroundColor3 = Theme.Get().TabBgActive}) end)
 
 GUI.Boot = function()
     task.spawn(FadeOutIntro)
