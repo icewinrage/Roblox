@@ -25,9 +25,7 @@ local ScreenGui = New("ScreenGui", {
 
 GUI.ScreenGui = ScreenGui
 
--- ==========================================
 -- INTRO / LOADING
--- ==========================================
 local Loading = New("Frame", {Size = UDim2.fromScale(1,1), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 100}, ScreenGui)
 local LoadingGlass = New("Frame", {Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.fromRGB(8,6,16), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 100}, Loading)
 local CutscenePanel = New("Frame", {
@@ -52,9 +50,7 @@ local VersionLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Posit
 
 GUI.Loading = Loading
 
--- ==========================================
--- KEYBIND LIST (слева, как раньше)
--- ==========================================
+-- KEYBIND LIST (слева)
 local KeybindListGui = New("ScreenGui", {
     Name = "VentureKeybindList", ResetOnSpawn = false,
     IgnoreGuiInset = true, DisplayOrder = 999998,
@@ -86,9 +82,7 @@ GUI.KBListStroke = KBListStroke
 GUI.KBListGrad = KBListGrad
 GUI.KBContainer = KBContainer
 
--- ==========================================
 -- MAIN WINDOW
--- ==========================================
 local Main = New("Frame", {
     Name = "Main", AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.53),
     Size = IsMobile and UDim2.fromOffset(480,420) or UDim2.fromOffset(640,520),
@@ -114,7 +108,6 @@ Theme.RegisterMain(Main)
 Theme.Register("Misc", {Obj = MainStroke, Keys = {"Accent"}})
 Theme.Register("Misc", {Obj = Glow, Keys = {"Accent"}})
 
--- Close / Hide / Open
 local CloseBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-18,0,18), Size = UDim2.fromOffset(36,36), BackgroundColor3 = Color3.fromRGB(28,30,44), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "x", TextColor3 = Color3.fromRGB(185,187,205), TextSize = 20, Font = Enum.Font.GothamBold, ZIndex = 10}, Main)
 New("UICorner", {CornerRadius = UDim.new(0,11)}, CloseBtn)
 New("UIStroke", {Color = Color3.fromRGB(70,72,95), Thickness = 1, Transparency = 0.25}, CloseBtn)
@@ -123,8 +116,7 @@ local HideBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UD
 New("UICorner", {CornerRadius = UDim.new(0,11)}, HideBtn)
 New("UIStroke", {Color = Color3.fromRGB(70,72,95), Thickness = 1, Transparency = 0.25}, HideBtn)
 
--- Кнопка 💬 для чата
-local ChatBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-104,0,18), Size = UDim2.fromOffset(36,36), BackgroundColor3 = Color3.fromRGB(40,22,60), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "💬", TextColor3 = Color3.fromRGB(255,200,255), TextSize = 18, Font = Enum.Font.GothamBold, ZIndex = 10}, Main)
+local ChatBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-104,0,18), Size = UDim2.fromOffset(36,36), BackgroundColor3 = Color3.fromRGB(40,22,60), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "C", TextColor3 = Color3.fromRGB(255,200,255), TextSize = 18, Font = Enum.Font.GothamBold, ZIndex = 10}, Main)
 New("UICorner", {CornerRadius = UDim.new(0,11)}, ChatBtn)
 New("UIStroke", {Color = Color3.fromRGB(150,100,255), Thickness = 1, Transparency = 0.25}, ChatBtn)
 
@@ -148,20 +140,18 @@ GUI.Subtitle = Subtitle
 Theme.Register("Misc", {Obj = Title, Keys = {"TitleText"}})
 Theme.Register("Misc", {Obj = Subtitle, Keys = {"SubtitleText"}})
 
--- ==========================================
 -- DROPDOWN TABS
--- ==========================================
 local TABS = {
-    {Name = "MAIN",       Icon = "🏠"},
-    {Name = "VISUAL",     Icon = "👁"},
+    {Name = "MAIN",       Icon = "⌂"},
+    {Name = "VISUAL",     Icon = "◉"},
     {Name = "AUTOFARM",   Icon = "⚔"},
-    {Name = "ONLINE",     Icon = "👥"},
-    {Name = "CHAT",       Icon = "💬"},
-    {Name = "ANNOUNCE",   Icon = "📢"},
+    {Name = "ONLINE",     Icon = "●"},
+    {Name = "CHAT",       Icon = "◆"},
+    {Name = "ANNOUNCE",   Icon = "◈"},
     {Name = "KEYBINDS",   Icon = "⌨"},
-    {Name = "SECURITY",   Icon = "🛡"},
-    {Name = "DEBUG",      Icon = "🔧"},
-    {Name = "SETTINGS",   Icon = "⚙"},
+    {Name = "SECURITY",   Icon = "⚿"},
+    {Name = "DEBUG",      Icon = "⚙"},
+    {Name = "SETTINGS",   Icon = "✦"},
 }
 
 local tabButtons = {}
@@ -170,7 +160,6 @@ local tabStates = {}
 local activeTabIndex = 1
 local tabCount = #TABS
 
--- Верхняя панель — кнопка dropdown + название активной вкладки
 local TopBar = New("Frame", {
     Position = UDim2.new(0,32,0,76),
     Size = UDim2.new(1,-64,0,40),
@@ -178,7 +167,6 @@ local TopBar = New("Frame", {
     ZIndex = 6,
 }, Main)
 
--- Кнопка открытия списка
 local DropdownBtn = New("TextButton", {
     Size = UDim2.fromOffset(180,40),
     BackgroundColor3 = Config.Themes.Dark.TabBgActive,
@@ -227,16 +215,16 @@ local DropdownArrow = New("TextLabel", {
     ZIndex = 9,
 }, DropdownBtn)
 
--- Сам список (скрыт по умолчанию)
+-- Список в корне ScreenGui чтобы быть поверх ВСЕГО
 local DropdownList = New("Frame", {
-    Position = UDim2.new(0, 0, 1, 6),
+    Position = UDim2.new(0, 0, 0, 0),
     Size = UDim2.fromOffset(180, 0),
     BackgroundColor3 = Config.Themes.Dark.MainBg,
     BackgroundTransparency = 0.02,
     BorderSizePixel = 0,
     Visible = false,
-    ZIndex = 20,
-}, DropdownBtn)
+    ZIndex = 9999,
+}, ScreenGui)
 New("UICorner", {CornerRadius = UDim.new(0,10)}, DropdownList)
 New("UIStroke", {Color = Color3.fromRGB(125,92,255), Thickness = 1.2, Transparency = 0.2}, DropdownList)
 
@@ -247,6 +235,7 @@ local DropdownScroll = New("ScrollingFrame", {
     ScrollBarThickness = 3,
     ScrollBarImageColor3 = Color3.fromRGB(125,92,255),
     CanvasSize = UDim2.new(0,0,0,0),
+    ZIndex = 9999,
 }, DropdownList)
 New("UIListLayout", {
     SortOrder = Enum.SortOrder.LayoutOrder,
@@ -298,7 +287,6 @@ local function RefreshTabVisuals()
             tabPanels[i].Visible = isActive
         end
     end
-    -- Обновляем кнопку сверху
     DropdownLabel.Text = TABS[activeTabIndex].Name
     DropdownIcon.Text = TABS[activeTabIndex].Icon
     DropdownBtn.BackgroundColor3 = T.TabBgActive
@@ -306,7 +294,6 @@ local function RefreshTabVisuals()
 end
 GUI.RefreshTabVisuals = RefreshTabVisuals
 
--- Создаём пункты dropdown
 for i, tab in ipairs(TABS) do
     local btn = New("TextButton", {
         Size = UDim2.new(1,0,0,34),
@@ -316,7 +303,7 @@ for i, tab in ipairs(TABS) do
         AutoButtonColor = false,
         Text = "",
         LayoutOrder = i,
-        ZIndex = 21,
+        ZIndex = 9999,
     }, DropdownScroll)
     New("UICorner", {CornerRadius = UDim.new(0,6)}, btn)
 
@@ -329,7 +316,7 @@ for i, tab in ipairs(TABS) do
         TextSize = 15,
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 22,
+        ZIndex = 9999,
     }, btn)
 
     local label = New("TextLabel", {
@@ -341,7 +328,7 @@ for i, tab in ipairs(TABS) do
         TextSize = 13,
         Font = Enum.Font.GothamBold,
         TextXAlignment = Enum.TextXAlignment.Left,
-        ZIndex = 22,
+        ZIndex = 9999,
     }, btn)
 
     btn.MouseEnter:Connect(function()
@@ -357,9 +344,9 @@ for i, tab in ipairs(TABS) do
             tabStates[k] = (k == i)
         end
         RefreshTabVisuals()
-        -- Закрываем список
         DropdownList.Visible = false
         DropdownArrow.Text = "▾"
+        dropdownOpen = false
     end)
 
     tabButtons[i] = btn
@@ -371,17 +358,23 @@ tabStates[1] = true
 RefreshTabVisuals()
 
 DropdownScroll.CanvasSize = UDim2.new(0,0,0, tabCount * 36 + 8)
-DropdownList.Size = UDim2.fromOffset(180, math.min(tabCount * 36 + 8, 300))
+DropdownList.Size = UDim2.fromOffset(180, math.min(tabCount * 36 + 8, 380))
 
--- Открытие / закрытие dropdown
-local dropdownOpen = false
+dropdownOpen = false
+
 DropdownBtn.MouseButton1Click:Connect(function()
     dropdownOpen = not dropdownOpen
-    DropdownList.Visible = dropdownOpen
+    if dropdownOpen then
+        local btnPos = DropdownBtn.AbsolutePosition
+        local btnSize = DropdownBtn.AbsoluteSize
+        DropdownList.Position = UDim2.fromOffset(btnPos.X, btnPos.Y + btnSize.Y + 4)
+        DropdownList.Visible = true
+    else
+        DropdownList.Visible = false
+    end
     DropdownArrow.Text = dropdownOpen and "▴" or "▾"
 end)
 
--- Закрытие по клику вне
 UserInputService.InputBegan:Connect(function(input)
     if not dropdownOpen then return end
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -813,7 +806,6 @@ do
     tabPanels[3].CanvasSize = UDim2.new(0,0,0,fy+20)
 end
 
--- Tab panel references
 GUI.OnlineTabPanel = tabPanels[4]
 GUI.ChatTabPanel = tabPanels[5]
 GUI.AnnounceTabPanel = tabPanels[6]
@@ -1001,7 +993,6 @@ end
 HideBtn.MouseButton1Click:Connect(GUI.HideToIcon)
 OpenBtn.MouseButton1Click:Connect(GUI.OpenFromIcon)
 
--- Кнопка 💬 — открывает чат-окно
 ChatBtn.MouseButton1Click:Connect(function()
     local ChatWindow = _G.Venture.ChatWindow
     if ChatWindow and ChatWindow.Toggle then
