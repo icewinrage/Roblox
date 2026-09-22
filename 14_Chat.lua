@@ -24,8 +24,30 @@ local HEADERS = {
 
 Chat.Panel = nil
 Chat.Messages = {}
-Chat.LastMessageId = 0
 Chat.Container = nil
+
+-- Anonymous name generator
+local function GenerateAnonName(name)
+    local seed = 0
+    for i = 1, #name do
+        seed = seed + string.byte(name, i) * i
+    end
+    -- Deterministic random from seed
+    local a = 1103515245
+    local c = 12345
+    local m = 2147483648
+    seed = (a * seed + c) % m
+
+    if name == Config.OWNER_NAME then
+        local num = (seed % 900) + 100
+        return "DEV_" .. tostring(num)
+    else
+        local num = (seed % 9000) + 1000
+        return "Anon" .. tostring(num)
+    end
+end
+
+Chat.MyAnonName = GenerateAnonName(LocalPlayer.Name)
 
 local function FormatTime(isoString)
     if not isoString then return "?" end
@@ -58,7 +80,7 @@ local function SendMessage(text)
     text = text:gsub("[\n\r]", " "):sub(1, 200)
     HttpPost(TABLE_URL, {
         user_id = Supa.MY_UID,
-        name = Supa.MY_NAME,
+        name = Chat.MyAnonName,
         role = Supa.MY_ROLE,
         message = text,
         created_at = ISOTime(0),
@@ -77,7 +99,7 @@ local function BuildMessages()
 
     local y = 0
     for _, msg in ipairs(Chat.Messages) do
-        local isMine = (msg.name == LocalPlayer.Name)
+        local isMine = (msg.user_id == Supa.MY_UID)
         local isOwner = (msg.role == "Owner")
 
         local bubbleBg = isOwner and Color3.fromRGB(60,20,100) or (isMine and Color3.fromRGB(30,60,120) or T.BtnBg)
@@ -94,12 +116,11 @@ local function BuildMessages()
         New("UICorner", {CornerRadius = UDim.new(0,8)}, bubble)
         New("UIStroke", {Color = isOwner and Color3.fromRGB(200,100,255) or T.BtnStroke, Thickness = 1, Transparency = 0.3}, bubble)
 
-        local roleTag = isOwner and "[DEV] " or ""
         New("TextLabel", {
             Position = UDim2.new(0,8,0,4),
             Size = UDim2.new(1,-60,0,16),
             BackgroundTransparency = 1,
-            Text = roleTag .. msg.name,
+            Text = msg.name or "?",
             TextColor3 = isOwner and Color3.fromRGB(255,180,255) or Color3.fromRGB(180,200,255),
             TextSize = 11,
             Font = Enum.Font.GothamBold,
@@ -119,7 +140,7 @@ local function BuildMessages()
             ZIndex = 9,
         }, bubble)
 
-        local text = New("TextLabel", {
+        New("TextLabel", {
             Position = UDim2.new(0,8,0,22),
             Size = UDim2.new(1,-16,0,26),
             BackgroundTransparency = 1,
@@ -158,7 +179,6 @@ function Chat.PopulateTab()
 
     local T = Theme.Get()
 
-    -- Поле ввода сверху
     local inputFrame = New("Frame", {
         Position = UDim2.new(0,0,0,0),
         Size = UDim2.new(1,-8,0,44),
@@ -177,7 +197,7 @@ function Chat.PopulateTab()
         BackgroundTransparency = 0.1,
         BorderSizePixel = 0,
         Text = "",
-        PlaceholderText = "Type message...",
+        PlaceholderText = "Message as " .. Chat.MyAnonName .. "...",
         PlaceholderColor3 = T.SubText,
         TextColor3 = T.BtnText,
         TextSize = 13,
@@ -220,7 +240,6 @@ function Chat.PopulateTab()
         if enterPressed then Submit() end
     end)
 
-    -- Контейнер сообщений
     local scroll = New("ScrollingFrame", {
         Position = UDim2.new(0,0,0,52),
         Size = UDim2.new(1,-8,1,-60),
@@ -233,12 +252,10 @@ function Chat.PopulateTab()
     }, panel)
     Chat.Container = scroll
 
-    -- Загрузка
     task.spawn(function()
         RefreshMessages()
     end)
 
-    -- Автообновление каждые 5 сек
     task.spawn(function()
         while panel.Parent do
             task.wait(5)
