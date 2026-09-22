@@ -30,9 +30,6 @@ local HEADERS = {
     ["Content-Type"] = "application/json",
 }
 
--- ============================================================
--- STATE
--- ============================================================
 ChatWindow.Visible = false
 ChatWindow.Messages = {}
 ChatWindow.PinnedMessage = nil
@@ -42,7 +39,7 @@ ChatWindow.Container = nil
 ChatWindow.Gui = nil
 ChatWindow.WhisperTarget = nil
 
--- Anonymous name generator (same as 14_Chat.lua)
+-- Anonymous name generator
 local function GenerateAnonName(name)
     local seed = 0
     for i = 1, #name do
@@ -62,9 +59,6 @@ end
 
 ChatWindow.MyAnonName = GenerateAnonName(LocalPlayer.Name)
 
--- ============================================================
--- HELPERS
--- ============================================================
 local function FormatTime(isoString)
     if not isoString then return "?" end
     local ok, t = pcall(function()
@@ -119,11 +113,10 @@ end
 
 local function ClearChat()
     if Supa.MY_ROLE ~= "Owner" then
-        Notify("Denied", "Only SCRIPT DEV can clear chat", 4)
+        Notify("Denied", "Only DEV can clear chat", 4)
         return
     end
-    local url = TABLE_URL .. "?id=gte.0"
-    HttpDelete(url, HEADERS)
+    HttpDelete(TABLE_URL .. "?id=gte.0", HEADERS)
     ChatWindow.Messages = {}
     ChatWindow.LastMessageId = 0
     if ChatWindow.Container then
@@ -138,14 +131,11 @@ end
 
 local function PinMessage(text)
     if Supa.MY_ROLE ~= "Owner" then
-        Notify("Denied", "Only SCRIPT DEV can pin", 4)
+        Notify("Denied", "Only DEV can pin", 4)
         return
     end
     if not text or #text == 0 then return end
-    HttpPost(PINNED_URL, {
-        author = "DEV",
-        text = text:sub(1, 200),
-    }, HEADERS)
+    HttpPost(PINNED_URL, {author = "DEV", text = text:sub(1, 200)}, HEADERS)
     ChatWindow.PinnedMessage = {text = text, author = "DEV"}
     if ChatWindow.UpdatePinned then ChatWindow.UpdatePinned() end
     Notify("Pinned", "Message pinned", 3)
@@ -159,9 +149,6 @@ local function UnpinMessage()
     Notify("Unpinned", "Message removed", 3)
 end
 
--- ============================================================
--- BUILD UI
--- ============================================================
 local function BuildBubbles()
     if not ChatWindow.Container then return end
     local T = Theme.Get()
@@ -206,7 +193,7 @@ local function BuildBubbles()
 
         local nameText = msg.name or "?"
         if isWhisper then
-            nameText = "🔒 " .. nameText .. " → " .. tostring(msg.target)
+            nameText = "Whisper " .. nameText .. " -> " .. tostring(msg.target)
         end
 
         New("TextLabel", {
@@ -248,10 +235,8 @@ local function BuildBubbles()
             ZIndex = 9,
         }, bubble)
 
-        -- Right-click / long-press for whisper + pin
         bubble.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton2 then
-                -- Right click — whisper
                 if msg.name and msg.name ~= ChatWindow.MyAnonName then
                     ChatWindow.WhisperTarget = msg.name
                     if ChatWindow.UpdateWhisper then ChatWindow.UpdateWhisper() end
@@ -263,12 +248,6 @@ local function BuildBubbles()
     end
 
     ChatWindow.Container.CanvasSize = UDim2.new(0, 0, 0, y + 10)
-
-    -- Скролл вниз
-    task.wait(0.05)
-    pcall(function()
-        ChatWindow.Container.CanvasPosition = Vector2.new(0, math.max(0, y - ChatWindow.Container.AbsoluteSize.Y + 60))
-    end)
 end
 
 local function RefreshMessages()
@@ -280,7 +259,6 @@ local function RefreshMessages()
         ChatWindow.LastMessageId = data[#data].id or 0
     end
 
-    -- Уведомление если окно закрыто
     if not ChatWindow.Visible and prevLast > 0 and ChatWindow.LastMessageId > prevLast then
         local newCount = 0
         for _, m in ipairs(data) do
@@ -291,7 +269,7 @@ local function RefreshMessages()
         if newCount > 0 then
             ChatWindow.UnreadCount = ChatWindow.UnreadCount + newCount
             if ChatWindow.UpdateBadge then ChatWindow.UpdateBadge() end
-            Notify("💬 Chat", newCount .. " new message(s)", 4)
+            Notify("Chat", newCount .. " new message(s)", 4)
         end
     end
 
@@ -306,9 +284,6 @@ local function RefreshPinned()
     if ChatWindow.UpdatePinned then ChatWindow.UpdatePinned() end
 end
 
--- ============================================================
--- BUILD WINDOW
--- ============================================================
 local function BuildChatWindow()
     local T = Theme.Get()
 
@@ -316,7 +291,7 @@ local function BuildChatWindow()
         Name = "VentureChatWindow",
         ResetOnSpawn = false,
         IgnoreGuiInset = true,
-        DisplayOrder = 999997,
+        DisplayOrder = 2147483000,
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
     }, PlayerGui)
     ChatWindow.Gui = gui
@@ -345,25 +320,24 @@ local function BuildChatWindow()
     ChatWindow.Window = win
     ChatWindow.Stroke = winStroke
 
-    -- Header
     local header = New("Frame", {
         Size = UDim2.new(1,0,0,44),
         BackgroundTransparency = 1,
         ZIndex = 6,
     }, win)
 
-    local headerIcon = New("TextLabel", {
+    New("TextLabel", {
         Position = UDim2.new(0,16,0,10),
         Size = UDim2.fromOffset(24,24),
         BackgroundTransparency = 1,
-        Text = "💬",
+        Text = "C",
         TextColor3 = Color3.fromRGB(255,220,255),
         TextSize = 18,
         Font = Enum.Font.GothamBold,
         ZIndex = 7,
     }, header)
 
-    local headerTitle = New("TextLabel", {
+    New("TextLabel", {
         Position = UDim2.new(0,48,0,10),
         Size = UDim2.new(1,-140,0,24),
         BackgroundTransparency = 1,
@@ -375,7 +349,7 @@ local function BuildChatWindow()
         ZIndex = 7,
     }, header)
 
-    local headerInfo = New("TextLabel", {
+    New("TextLabel", {
         Position = UDim2.new(0,48,0,26),
         Size = UDim2.new(1,-140,0,14),
         BackgroundTransparency = 1,
@@ -395,7 +369,7 @@ local function BuildChatWindow()
         BackgroundTransparency = 0.1,
         BorderSizePixel = 0,
         AutoButtonColor = false,
-        Text = "🗑",
+        Text = "X",
         TextColor3 = Color3.fromRGB(255,180,180),
         TextSize = 13,
         Font = Enum.Font.GothamBold,
@@ -412,7 +386,7 @@ local function BuildChatWindow()
         BackgroundTransparency = 0.1,
         BorderSizePixel = 0,
         AutoButtonColor = false,
-        Text = "✕",
+        Text = "x",
         TextColor3 = Color3.fromRGB(255,120,120),
         TextSize = 14,
         Font = Enum.Font.GothamBold,
@@ -423,7 +397,6 @@ local function BuildChatWindow()
         ChatWindow.Hide()
     end)
 
-    -- Pinned message bar
     local pinnedBar = New("Frame", {
         Position = UDim2.new(0,10,0,50),
         Size = UDim2.new(1,-20,0,0),
@@ -434,21 +407,21 @@ local function BuildChatWindow()
         ZIndex = 7,
     }, win)
     New("UICorner", {CornerRadius = UDim.new(0,8)}, pinnedBar)
-    local pinnedStroke = New("UIStroke", {Color = Color3.fromRGB(180,120,255), Thickness = 1}, pinnedBar)
+    New("UIStroke", {Color = Color3.fromRGB(180,120,255), Thickness = 1}, pinnedBar)
 
-    local pinnedIcon = New("TextLabel", {
+    New("TextLabel", {
         Position = UDim2.new(0,8,0,4),
-        Size = UDim2.fromOffset(18,18),
+        Size = UDim2.fromOffset(20,18),
         BackgroundTransparency = 1,
-        Text = "📌",
+        Text = "PIN",
         TextColor3 = Color3.fromRGB(255,220,255),
-        TextSize = 12,
+        TextSize = 10,
         Font = Enum.Font.GothamBold,
         ZIndex = 8,
     }, pinnedBar)
 
     local pinnedText = New("TextLabel", {
-        Position = UDim2.new(0,28,0,4),
+        Position = UDim2.new(0,38,0,4),
         Size = UDim2.new(1,-70,0,20),
         BackgroundTransparency = 1,
         Text = "",
@@ -466,7 +439,7 @@ local function BuildChatWindow()
         Position = UDim2.new(1,-6,0,4),
         Size = UDim2.fromOffset(20,20),
         BackgroundTransparency = 1,
-        Text = "✕",
+        Text = "x",
         TextColor3 = Color3.fromRGB(255,150,150),
         TextSize = 12,
         Font = Enum.Font.GothamBold,
@@ -488,7 +461,6 @@ local function BuildChatWindow()
         end
     end
 
-    -- Chat scroll area
     local scrollTopOffset = 84
     local chatScroll = New("ScrollingFrame", {
         Position = UDim2.new(0,10,0,scrollTopOffset),
@@ -502,7 +474,6 @@ local function BuildChatWindow()
     }, win)
     ChatWindow.Container = chatScroll
 
-    -- Input bar
     local inputBar = New("Frame", {
         Position = UDim2.new(0,10,1,-52),
         Size = UDim2.new(1,-20,0,42),
@@ -561,7 +532,7 @@ local function BuildChatWindow()
 
     ChatWindow.UpdateWhisper = function()
         if ChatWindow.WhisperTarget then
-            whisperTag.Text = "🔒 " .. ChatWindow.WhisperTarget
+            whisperTag.Text = "Whisper -> " .. ChatWindow.WhisperTarget
             whisperTag.Size = UDim2.fromOffset(120, 26)
             input.Position = UDim2.new(0, 130, 0, 8)
             input.Size = UDim2.new(1, -200, 0, 26)
@@ -601,7 +572,7 @@ local function BuildChatWindow()
         if enterPressed then Submit() end
     end)
 
-    -- Dragging
+    -- Drag
     local dragging, dragStart, startPos = false, nil, nil
     header.InputBegan:Connect(function(inputObj)
         if inputObj.UserInputType == Enum.UserInputType.MouseButton1 
@@ -630,9 +601,6 @@ local function BuildChatWindow()
     return win
 end
 
--- ============================================================
--- SHOW / HIDE / TOGGLE
--- ============================================================
 function ChatWindow.Show()
     if not ChatWindow.Window then BuildChatWindow() end
     local win = ChatWindow.Window
@@ -676,9 +644,6 @@ function ChatWindow.Toggle()
     end
 end
 
--- ============================================================
--- BADGE on the 💬 button (unread count)
--- ============================================================
 function ChatWindow.UpdateBadge()
     local chatBtn = GUI and GUI.ChatBtn
     if not chatBtn then return end
@@ -707,18 +672,12 @@ function ChatWindow.UpdateBadge()
     end
 end
 
--- ============================================================
--- BACKGROUND POLLING (light — when closed every 30s, when open every 5s)
--- ============================================================
 function ChatWindow.Init()
-    -- Create window lazily
     task.spawn(function()
-        -- Pre-build the window (hidden)
         pcall(BuildChatWindow)
         if ChatWindow.Window then ChatWindow.Window.Visible = false end
     end)
 
-    -- When closed: poll every 30s for unread
     task.spawn(function()
         while true do
             task.wait(ChatWindow.Visible and 5 or 30)
@@ -727,7 +686,6 @@ function ChatWindow.Init()
                     RefreshMessages()
                     RefreshPinned()
                 else
-                    -- light check for unread
                     local data = FetchMessages(20)
                     if #data > 0 then
                         local maxId = data[#data].id or 0
@@ -741,7 +699,7 @@ function ChatWindow.Init()
                             if newCount > 0 then
                                 ChatWindow.UnreadCount = ChatWindow.UnreadCount + newCount
                                 ChatWindow.UpdateBadge()
-                                Notify("💬 Chat", newCount .. " new", 4)
+                                Notify("Chat", newCount .. " new", 4)
                             end
                         end
                         ChatWindow.LastMessageId = maxId
