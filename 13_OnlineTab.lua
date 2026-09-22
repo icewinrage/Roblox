@@ -10,7 +10,6 @@ local HttpService = Shared.HttpService
 local TeleportService = Shared.TeleportService
 local LocalPlayer = Shared.LocalPlayer
 local New = Utils.New
-local Tween = Utils.Tween
 local HttpGet = Utils.HttpGet
 local ISOTime = Utils.ISOTime
 local Notify = Utils.Notify
@@ -254,6 +253,31 @@ end
 function OnlineTab.PopulateTab()
     local panel = GUI.OnlineTabPanel
     if not panel then return end
+
+    -- ONLY FOR SCRIPT DEV
+    if Supa.MY_ROLE ~= "Owner" then
+        for _, child in ipairs(panel:GetChildren()) do
+            if not child:IsA("UIListLayout") and not child:IsA("UIPadding") then
+                child:Destroy()
+            end
+        end
+        New("TextLabel", {
+            Position = UDim2.new(0,4,0,20),
+            Size = UDim2.new(1,-8,0,80),
+            BackgroundTransparency = 1,
+            Text = "This tab is only available for SCRIPT DEV.\n\nUse CHAT tab to talk to other users.",
+            TextColor3 = Theme.Get().SubText,
+            TextSize = 13,
+            Font = Enum.Font.Gotham,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextYAlignment = Enum.TextYAlignment.Top,
+            TextWrapped = true,
+            ZIndex = 8,
+        }, panel)
+        panel.CanvasSize = UDim2.new(0,0,0,110)
+        return
+    end
+
     OnlineTab.Panel = panel
 
     for _, child in ipairs(panel:GetChildren()) do
