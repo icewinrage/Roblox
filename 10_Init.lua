@@ -301,6 +301,22 @@ function Init.Run()
         pcall(OnlineTab.PopulateTab)
     end
 
+    local Chat = _G.Venture.Chat
+    if Chat then
+        pcall(Chat.PopulateTab)
+    end
+
+    local Announce = _G.Venture.Announce
+    if Announce then
+        pcall(Announce.PopulateTab)
+        pcall(Announce.Init)
+    end
+
+    local ChatWindow = _G.Venture.ChatWindow
+    if ChatWindow then
+        pcall(ChatWindow.Init)
+    end
+
     RunService.RenderStepped:Connect(function()
         pcall(UpdateESP)
     end)
