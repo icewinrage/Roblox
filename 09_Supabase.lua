@@ -127,7 +127,7 @@ local function SafeMakeBadge(pl, role)
     label.Position = UDim2.new(0, isOwner and 28 or 24, 0, 0)
     label.Size = UDim2.new(1, isOwner and -32 or -28, 1, 0)
     label.BackgroundTransparency = 1
-    label.Text = isOwner and "SCRIPT OWNER" or "SCRIPT USER"
+    label.Text = isOwner and "DEVELOPER" or "SCRIPT USER"
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.TextStrokeTransparency = 0
     label.TextStrokeColor3 = Color3.fromRGB(40, 0, 80)
