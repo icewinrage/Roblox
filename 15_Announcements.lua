@@ -58,14 +58,14 @@ local function ShowBanner(title, text, author)
         ZIndex = 1,
     }, gui)
     New("UICorner", {CornerRadius = UDim.new(0, 14)}, bg)
-    local stroke = New("UIStroke", {Color = Color3.fromRGB(200, 100, 255), Thickness = 2.5}, bg)
-    local grad = New("UIGradient", {Color = ColorSequence.new({
+    New("UIStroke", {Color = Color3.fromRGB(200, 100, 255), Thickness = 2.5}, bg)
+    New("UIGradient", {Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 30, 160)),
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 10, 80)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 30, 160)),
     }), Rotation = 0}, bg)
 
-    local header = New("TextLabel", {
+    New("TextLabel", {
         Position = UDim2.new(0, 16, 0, 8),
         Size = UDim2.new(1, -32, 0, 22),
         BackgroundTransparency = 1,
@@ -77,7 +77,7 @@ local function ShowBanner(title, text, author)
         ZIndex = 2,
     }, bg)
 
-    local titleLabel = New("TextLabel", {
+    New("TextLabel", {
         Position = UDim2.new(0, 16, 0, 30),
         Size = UDim2.new(1, -32, 0, 22),
         BackgroundTransparency = 1,
@@ -89,7 +89,7 @@ local function ShowBanner(title, text, author)
         ZIndex = 2,
     }, bg)
 
-    local textLabel = New("TextLabel", {
+    New("TextLabel", {
         Position = UDim2.new(0, 16, 0, 54),
         Size = UDim2.new(1, -32, 0, 32),
         BackgroundTransparency = 1,
@@ -103,11 +103,11 @@ local function ShowBanner(title, text, author)
         ZIndex = 2,
     }, bg)
 
-    local authorLabel = New("TextLabel", {
+    New("TextLabel", {
         Position = UDim2.new(0, 16, 0, 88),
         Size = UDim2.new(1, -32, 0, 12),
         BackgroundTransparency = 1,
-        Text = "by " .. (author or "?"),
+        Text = "by DEV",
         TextColor3 = Color3.fromRGB(200, 150, 255),
         TextSize = 10,
         Font = Enum.Font.Gotham,
@@ -132,7 +132,7 @@ local function CheckAnnouncements()
     if latest.id and latest.id > Announce.LastSeenId then
         Announce.LastSeenId = latest.id
         if latest.author ~= LocalPlayer.Name then
-            ShowBanner(latest.title, latest.text, latest.author)
+            ShowBanner(latest.title, latest.text, "DEV")
         end
     end
 end
@@ -149,10 +149,9 @@ function Announce.PopulateTab()
 
     local T = Theme.Get()
 
-    -- Только для владельца
     if Supa.MY_ROLE ~= "Owner" then
         New("TextLabel", {
-            Position = UDim2.new(0,4,0,0),
+            Position = UDim2.new(0,4,0,20),
             Size = UDim2.new(1,-8,0,60),
             BackgroundTransparency = 1,
             Text = "Only SCRIPT DEV can make announcements.",
@@ -164,7 +163,7 @@ function Announce.PopulateTab()
             TextWrapped = true,
             ZIndex = 8,
         }, panel)
-        panel.CanvasSize = UDim2.new(0,0,0,80)
+        panel.CanvasSize = UDim2.new(0,0,0,90)
         return
     end
 
@@ -174,7 +173,7 @@ function Announce.PopulateTab()
         Position = UDim2.new(0,4,0,y),
         Size = UDim2.new(1,-8,0,40),
         BackgroundTransparency = 1,
-        Text = "Broadcast a message to ALL script users\nin every server worldwide.",
+        Text = "Broadcast a message to ALL script users\nin every server worldwide (anonymous).",
         TextColor3 = T.SubText,
         TextSize = 11,
         Font = Enum.Font.Gotham,
@@ -185,7 +184,6 @@ function Announce.PopulateTab()
     }, panel)
     y = y + 48
 
-    -- Title input
     local titleInput = New("TextBox", {
         Position = UDim2.new(0,0,0,y),
         Size = UDim2.new(1,-8,0,36),
@@ -205,7 +203,6 @@ function Announce.PopulateTab()
     New("UIStroke", {Color = T.BtnStroke, Thickness = 1, Transparency = 0.2}, titleInput)
     y = y + 44
 
-    -- Text input
     local textInput = New("TextBox", {
         Position = UDim2.new(0,0,0,y),
         Size = UDim2.new(1,-8,0,80),
@@ -234,19 +231,19 @@ function Announce.PopulateTab()
         if not text or #text == 0 then return end
 
         HttpPost(TABLE_URL, {
-            author = LocalPlayer.Name,
+            author = "DEV",
             title = title:sub(1, 60),
             text = text:sub(1, 200),
         }, HEADERS)
 
         titleInput.Text = ""
         textInput.Text = ""
-        ShowBanner(title, text, LocalPlayer.Name)
+        ShowBanner(title, text, "DEV")
     end)
 
     y = GUI.MakeSectionLabel(panel, "PREVIEW", y)
     y = GUI.MakeButton(panel, "Test Banner", "Show on your screen", y, function()
-        ShowBanner("Test Title", "This is a test announcement", LocalPlayer.Name)
+        ShowBanner("Test Title", "This is a test announcement", "DEV")
     end)
 
     panel.CanvasSize = UDim2.new(0,0,0,y+20)
@@ -263,9 +260,3 @@ function Announce.Init()
             pcall(CheckAnnouncements)
         end
     end)
-end
-
-_G.Venture = _G.Venture or {}
-_G.Venture.Announce = Announce
-
-return Announce
