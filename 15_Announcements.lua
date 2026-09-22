@@ -260,3 +260,9 @@ function Announce.Init()
             pcall(CheckAnnouncements)
         end
     end)
+end
+
+_G.Venture = _G.Venture or {}
+_G.Venture.Announce = Announce
+
+return Announce
