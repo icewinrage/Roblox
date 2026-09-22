@@ -22,8 +22,16 @@ local ScreenGui = New("ScreenGui", {
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
     IgnoreGuiInset = true, DisplayOrder = 999999,
 }, PlayerGui)
-
 GUI.ScreenGui = ScreenGui
+
+local DropdownGui = New("ScreenGui", {
+    Name = "VentureDropdown",
+    ResetOnSpawn = false,
+    IgnoreGuiInset = true,
+    DisplayOrder = 2147483000,
+    ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+}, PlayerGui)
+GUI.DropdownGui = DropdownGui
 
 -- INTRO / LOADING
 local Loading = New("Frame", {Size = UDim2.fromScale(1,1), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 100}, ScreenGui)
@@ -47,7 +55,6 @@ local LogoSub = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position =
 local AuthorLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.5), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "by __TheDark", TextColor3 = Color3.fromRGB(212,175,55), TextSize = 15, Font = Enum.Font.GothamBold, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
 local DiscordLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.58), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "discord.gg/UHCwX78Npc", TextColor3 = Color3.fromRGB(125,160,255), TextSize = 13, Font = Enum.Font.Gotham, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
 local VersionLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.66), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "v1.8", TextColor3 = Color3.fromRGB(180,180,200), TextSize = 12, Font = Enum.Font.Gotham, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
-
 GUI.Loading = Loading
 
 -- KEYBIND LIST (слева)
@@ -76,7 +83,6 @@ local KBListGrad = New("UIGradient", {Color = ColorSequence.new({
 New("Frame", {Position = UDim2.new(0,30,0,0), Size = UDim2.new(1,-60,0,2), BackgroundColor3 = Color3.fromRGB(125,92,255), BorderSizePixel = 0}, KeybindListFrame)
 New("TextLabel", {Position = UDim2.new(0,14,0,12), Size = UDim2.new(1,-28,0,20), BackgroundTransparency = 1, Text = "  KEYBINDS", TextColor3 = Color3.fromRGB(212,175,55), TextSize = 13, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left}, KeybindListFrame)
 local KBContainer = New("Frame", {Position = UDim2.new(0,14,0,40), Size = UDim2.new(1,-28,1,-52), BackgroundTransparency = 1}, KeybindListFrame)
-
 GUI.KeybindListFrame = KeybindListFrame
 GUI.KBListStroke = KBListStroke
 GUI.KBListGrad = KBListGrad
@@ -99,11 +105,9 @@ local MainGrad = New("UIGradient", {Color = ColorSequence.new({
 }), Rotation = 135}, Main)
 local Glow = New("Frame", {Position = UDim2.new(0,55,0,0), Size = UDim2.new(1,-110,0,3), BackgroundColor3 = Color3.fromRGB(125,92,255), BorderSizePixel = 0, ZIndex = 6}, Main)
 New("UICorner", {CornerRadius = UDim.new(1,0)}, Glow)
-
 GUI.Main = Main
 GUI.MainStroke = MainStroke
 GUI.Glow = Glow
-
 Theme.RegisterMain(Main)
 Theme.Register("Misc", {Obj = MainStroke, Keys = {"Accent"}})
 Theme.Register("Misc", {Obj = Glow, Keys = {"Accent"}})
@@ -128,7 +132,6 @@ GUI.CloseBtn = CloseBtn
 GUI.HideBtn = HideBtn
 GUI.ChatBtn = ChatBtn
 GUI.OpenBtn = OpenBtn
-
 Theme.Register("Misc", {Obj = CloseBtn, Keys = {"CloseBtnBg"}})
 Theme.Register("Misc", {Obj = HideBtn, Keys = {"CloseBtnBg"}})
 
@@ -136,7 +139,6 @@ local Title = New("TextLabel", {Position = UDim2.new(0,32,0,22), Size = UDim2.ne
 local Subtitle = New("TextLabel", {Position = UDim2.new(0,32,0,48), Size = UDim2.new(1,-200,0,18), BackgroundTransparency = 1, Text = "by __TheDark  |  v1.8  |  " .. GUI.ExecutorName, TextColor3 = Color3.fromRGB(153,157,178), TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Main)
 GUI.Title = Title
 GUI.Subtitle = Subtitle
-
 Theme.Register("Misc", {Obj = Title, Keys = {"TitleText"}})
 Theme.Register("Misc", {Obj = Subtitle, Keys = {"SubtitleText"}})
 
@@ -215,7 +217,7 @@ local DropdownArrow = New("TextLabel", {
     ZIndex = 9,
 }, DropdownBtn)
 
--- Список в корне ScreenGui чтобы быть поверх ВСЕГО
+-- Список — в отдельном DropdownGui (поверх всего)
 local DropdownList = New("Frame", {
     Position = UDim2.new(0, 0, 0, 0),
     Size = UDim2.fromOffset(180, 0),
@@ -224,7 +226,7 @@ local DropdownList = New("Frame", {
     BorderSizePixel = 0,
     Visible = false,
     ZIndex = 9999,
-}, ScreenGui)
+}, DropdownGui)
 New("UICorner", {CornerRadius = UDim.new(0,10)}, DropdownList)
 New("UIStroke", {Color = Color3.fromRGB(125,92,255), Thickness = 1.2, Transparency = 0.2}, DropdownList)
 
@@ -346,7 +348,7 @@ for i, tab in ipairs(TABS) do
         RefreshTabVisuals()
         DropdownList.Visible = false
         DropdownArrow.Text = "▾"
-        dropdownOpen = false
+        _G.Venture.DropdownOpen = false
     end)
 
     tabButtons[i] = btn
@@ -360,11 +362,11 @@ RefreshTabVisuals()
 DropdownScroll.CanvasSize = UDim2.new(0,0,0, tabCount * 36 + 8)
 DropdownList.Size = UDim2.fromOffset(180, math.min(tabCount * 36 + 8, 380))
 
-dropdownOpen = false
+_G.Venture.DropdownOpen = false
 
 DropdownBtn.MouseButton1Click:Connect(function()
-    dropdownOpen = not dropdownOpen
-    if dropdownOpen then
+    _G.Venture.DropdownOpen = not _G.Venture.DropdownOpen
+    if _G.Venture.DropdownOpen then
         local btnPos = DropdownBtn.AbsolutePosition
         local btnSize = DropdownBtn.AbsoluteSize
         DropdownList.Position = UDim2.fromOffset(btnPos.X, btnPos.Y + btnSize.Y + 4)
@@ -372,11 +374,11 @@ DropdownBtn.MouseButton1Click:Connect(function()
     else
         DropdownList.Visible = false
     end
-    DropdownArrow.Text = dropdownOpen and "▴" or "▾"
+    DropdownArrow.Text = _G.Venture.DropdownOpen and "▴" or "▾"
 end)
 
 UserInputService.InputBegan:Connect(function(input)
-    if not dropdownOpen then return end
+    if not _G.Venture.DropdownOpen then return end
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         local mx = input.Position.X
         local my = input.Position.Y
@@ -389,13 +391,14 @@ UserInputService.InputBegan:Connect(function(input)
         local insideList = mx >= listPos.X and mx <= listPos.X + listSize.X and my >= listPos.Y and my <= listPos.Y + listSize.Y
 
         if not insideBtn and not insideList then
-            dropdownOpen = false
+            _G.Venture.DropdownOpen = false
             DropdownList.Visible = false
             DropdownArrow.Text = "▾"
         end
     end
 end)
 
+-- ELEMENTS
 local function MakeSectionLabel(parent, text, y)
     local T = Theme.Get()
     local lbl = New("TextLabel", {
@@ -483,11 +486,9 @@ local function MakeToggle(parent, text, y, default, callback)
         BorderSizePixel = 0, ZIndex = 10,
     }, pill)
     New("UICorner", {CornerRadius = UDim.new(1,0)}, knob)
-
     local state = default
     local toggleData = {Btn = btn, Pill = pill, Knob = knob, Label = mainLabel, State = state}
     Theme.Register("Toggles", toggleData)
-
     btn.MouseButton1Click:Connect(function()
         state = not state
         toggleData.State = state
@@ -534,9 +535,7 @@ local function MakeSlider(parent, text, y, min, max, default, suffix, callback)
         BackgroundColor3 = T.SliderFill, BorderSizePixel = 0, ZIndex = 10,
     }, barBG)
     New("UICorner", {CornerRadius = UDim.new(1,0)}, fill)
-
     Theme.Register("Sliders", {Frame = frame, Label = mainLabel, Val = valLabel, BarBG = barBG, Fill = fill})
-
     local dragging = false
     local function update(x)
         local rel = math.clamp((x - barBG.AbsolutePosition.X) / barBG.AbsoluteSize.X, 0, 1)
@@ -649,7 +648,6 @@ local function MakeDropdown(parent, text, options, y, default, callback)
     }, frame)
     New("UICorner", {CornerRadius = UDim.new(0,8)}, btn)
     Theme.Register("Dropdowns", {Frame = frame, Label = mainLabel, Btn = btn})
-
     local opened, dropdown = false, nil
     btn.MouseButton1Click:Connect(function()
         if opened and dropdown then dropdown:Destroy(); dropdown = nil; opened = false; return end
@@ -842,14 +840,12 @@ end
 do
     local sy = 0
     sy = MakeSectionLabel(tabPanels[10], "INTERFACE THEME", sy)
-
     local themeDescriptions = {
         Dark = "Dark - classic dark theme",
         Purple = "Purple - neon purple",
         Red = "Red - aggressive red",
         White = "White - light minimalist",
     }
-
     local currentLabel = New("TextLabel", {
         Position = UDim2.new(0,4,0,sy), Size = UDim2.new(1,-8,0,26),
         BackgroundTransparency = 1,
@@ -859,7 +855,6 @@ do
         TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 8,
     }, tabPanels[10])
     sy = sy + 32
-
     local themeNames = {"Dark", "Purple", "Red", "White"}
     for _, tname in ipairs(themeNames) do
         sy = MakeButton(tabPanels[10], tname, themeDescriptions[tname], sy, function()
@@ -867,7 +862,6 @@ do
             currentLabel.Text = "Current theme: " .. tname
         end)
     end
-
     sy = sy + 10
     sy = MakeSectionLabel(tabPanels[10], "INFO", sy)
     New("TextLabel", {
@@ -881,7 +875,6 @@ do
         TextWrapped = true, ZIndex = 8,
     }, tabPanels[10])
     sy = sy + 70
-
     tabPanels[10].CanvasSize = UDim2.new(0,0,0,sy+20)
 end
 
@@ -961,6 +954,9 @@ GUI.HideToIcon = function()
     Tween(Main, 0.4, {Size = UDim2.fromOffset(300,200), BackgroundTransparency = 1}, Enum.EasingStyle.Back, Enum.EasingDirection.In)
     Tween(MainStroke, 0.35, {Transparency = 1})
     Tween(Glow, 0.35, {BackgroundTransparency = 1})
+    DropdownList.Visible = false
+    _G.Venture.DropdownOpen = false
+    DropdownArrow.Text = "▾"
     task.delay(0.4, function()
         Main.Visible = false
         OpenBtn.Visible = true
@@ -1012,6 +1008,7 @@ CloseBtn.MouseButton1Click:Connect(function()
     task.wait(0.6)
     ScreenGui:Destroy()
     KeybindListGui:Destroy()
+    DropdownGui:Destroy()
     if not UserInputService.TouchEnabled then UserInputService.MouseIconEnabled = true end
 end)
 
