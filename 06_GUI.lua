@@ -25,6 +25,9 @@ local ScreenGui = New("ScreenGui", {
 
 GUI.ScreenGui = ScreenGui
 
+-- ==========================================
+-- INTRO / LOADING
+-- ==========================================
 local Loading = New("Frame", {Size = UDim2.fromScale(1,1), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 100}, ScreenGui)
 local LoadingGlass = New("Frame", {Size = UDim2.fromScale(1,1), BackgroundColor3 = Color3.fromRGB(8,6,16), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 100}, Loading)
 local CutscenePanel = New("Frame", {
@@ -45,10 +48,13 @@ local Logo = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UD
 local LogoSub = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.35), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "Executor: " .. GUI.ExecutorName, TextColor3 = Color3.fromRGB(180,180,200), TextSize = 12, Font = Enum.Font.Gotham, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
 local AuthorLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.5), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "by __TheDark", TextColor3 = Color3.fromRGB(212,175,55), TextSize = 15, Font = Enum.Font.GothamBold, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
 local DiscordLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.58), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "discord.gg/UHCwX78Npc", TextColor3 = Color3.fromRGB(125,160,255), TextSize = 13, Font = Enum.Font.Gotham, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
-local VersionLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.66), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "v1.7 Modular", TextColor3 = Color3.fromRGB(180,180,200), TextSize = 12, Font = Enum.Font.Gotham, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
+local VersionLabel = New("TextLabel", {AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.66), Size = UDim2.new(1,0,0,20), BackgroundTransparency = 1, Text = "v1.8", TextColor3 = Color3.fromRGB(180,180,200), TextSize = 12, Font = Enum.Font.Gotham, TextTransparency = 1, ZIndex = 103}, CutscenePanel)
 
 GUI.Loading = Loading
 
+-- ==========================================
+-- KEYBIND LIST (слева, как раньше)
+-- ==========================================
 local KeybindListGui = New("ScreenGui", {
     Name = "VentureKeybindList", ResetOnSpawn = false,
     IgnoreGuiInset = true, DisplayOrder = 999998,
@@ -80,9 +86,12 @@ GUI.KBListStroke = KBListStroke
 GUI.KBListGrad = KBListGrad
 GUI.KBContainer = KBContainer
 
+-- ==========================================
+-- MAIN WINDOW
+-- ==========================================
 local Main = New("Frame", {
     Name = "Main", AnchorPoint = Vector2.new(0.5,0.5), Position = UDim2.fromScale(0.5,0.53),
-    Size = IsMobile and UDim2.fromOffset(480,400) or UDim2.fromOffset(620,480),
+    Size = IsMobile and UDim2.fromOffset(480,420) or UDim2.fromOffset(640,520),
     BackgroundColor3 = Config.Themes.Dark.MainBg,
     BackgroundTransparency = 0.06, BorderSizePixel = 0,
     ClipsDescendants = true, Active = true, Visible = false, ZIndex = 5,
@@ -105,6 +114,7 @@ Theme.RegisterMain(Main)
 Theme.Register("Misc", {Obj = MainStroke, Keys = {"Accent"}})
 Theme.Register("Misc", {Obj = Glow, Keys = {"Accent"}})
 
+-- Close / Hide / Open
 local CloseBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-18,0,18), Size = UDim2.fromOffset(36,36), BackgroundColor3 = Color3.fromRGB(28,30,44), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "x", TextColor3 = Color3.fromRGB(185,187,205), TextSize = 20, Font = Enum.Font.GothamBold, ZIndex = 10}, Main)
 New("UICorner", {CornerRadius = UDim.new(0,11)}, CloseBtn)
 New("UIStroke", {Color = Color3.fromRGB(70,72,95), Thickness = 1, Transparency = 0.25}, CloseBtn)
@@ -113,86 +123,158 @@ local HideBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UD
 New("UICorner", {CornerRadius = UDim.new(0,11)}, HideBtn)
 New("UIStroke", {Color = Color3.fromRGB(70,72,95), Thickness = 1, Transparency = 0.25}, HideBtn)
 
+-- Кнопка 💬 для чата
+local ChatBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-104,0,18), Size = UDim2.fromOffset(36,36), BackgroundColor3 = Color3.fromRGB(40,22,60), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "💬", TextColor3 = Color3.fromRGB(255,200,255), TextSize = 18, Font = Enum.Font.GothamBold, ZIndex = 10}, Main)
+New("UICorner", {CornerRadius = UDim.new(0,11)}, ChatBtn)
+New("UIStroke", {Color = Color3.fromRGB(150,100,255), Thickness = 1, Transparency = 0.25}, ChatBtn)
+
 local OpenBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-20,0,20), Size = UDim2.fromOffset(54,54), BackgroundColor3 = Color3.fromRGB(20,22,36), BackgroundTransparency = 0.1, BorderSizePixel = 0, AutoButtonColor = false, Text = "*", TextColor3 = Color3.fromRGB(212,175,55), TextSize = 24, Font = Enum.Font.GothamBold, Visible = false, ZIndex = 10}, ScreenGui)
 New("UICorner", {CornerRadius = UDim.new(0,14)}, OpenBtn)
 New("UIStroke", {Color = Color3.fromRGB(125,92,255), Thickness = 1.4, Transparency = 0.15}, OpenBtn)
 
 GUI.CloseBtn = CloseBtn
 GUI.HideBtn = HideBtn
+GUI.ChatBtn = ChatBtn
 GUI.OpenBtn = OpenBtn
 
 Theme.Register("Misc", {Obj = CloseBtn, Keys = {"CloseBtnBg"}})
 Theme.Register("Misc", {Obj = HideBtn, Keys = {"CloseBtnBg"}})
 
-local Title = New("TextLabel", {Position = UDim2.new(0,32,0,22), Size = UDim2.new(1,-140,0,30), BackgroundTransparency = 1, Text = "VENTURE  AOT", TextColor3 = Color3.fromRGB(248,247,255), TextSize = 22, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Main)
-local Subtitle = New("TextLabel", {Position = UDim2.new(0,32,0,48), Size = UDim2.new(1,-140,0,18), BackgroundTransparency = 1, Text = "by __TheDark  |  discord.gg/UHCwX78Npc  |  v1.7  |  " .. GUI.ExecutorName, TextColor3 = Color3.fromRGB(153,157,178), TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Main)
+local Title = New("TextLabel", {Position = UDim2.new(0,32,0,22), Size = UDim2.new(1,-200,0,30), BackgroundTransparency = 1, Text = "VENTURE  AOT", TextColor3 = Color3.fromRGB(248,247,255), TextSize = 22, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Main)
+local Subtitle = New("TextLabel", {Position = UDim2.new(0,32,0,48), Size = UDim2.new(1,-200,0,18), BackgroundTransparency = 1, Text = "by __TheDark  |  v1.8  |  " .. GUI.ExecutorName, TextColor3 = Color3.fromRGB(153,157,178), TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Main)
 GUI.Title = Title
 GUI.Subtitle = Subtitle
 
 Theme.Register("Misc", {Obj = Title, Keys = {"TitleText"}})
 Theme.Register("Misc", {Obj = Subtitle, Keys = {"SubtitleText"}})
 
--- 10 tabs
-local tabs = {"MAIN", "VISUAL", "AUTOFARM", "ONLINE", "CHAT", "ANNOUNCE", "KEYBINDS", "SECURITY", "DEBUG", "SETTINGS"}
+-- ==========================================
+-- DROPDOWN TABS
+-- ==========================================
+local TABS = {
+    {Name = "MAIN",       Icon = "🏠"},
+    {Name = "VISUAL",     Icon = "👁"},
+    {Name = "AUTOFARM",   Icon = "⚔"},
+    {Name = "ONLINE",     Icon = "👥"},
+    {Name = "CHAT",       Icon = "💬"},
+    {Name = "ANNOUNCE",   Icon = "📢"},
+    {Name = "KEYBINDS",   Icon = "⌨"},
+    {Name = "SECURITY",   Icon = "🛡"},
+    {Name = "DEBUG",      Icon = "🔧"},
+    {Name = "SETTINGS",   Icon = "⚙"},
+}
+
 local tabButtons = {}
 local tabPanels = {}
 local tabStates = {}
-local tabCount = #tabs
+local activeTabIndex = 1
+local tabCount = #TABS
 
-local TabBar = New("Frame", {Position = UDim2.new(0,32,0,76), Size = UDim2.new(1,-64,0,32), BackgroundTransparency = 1, ZIndex = 6}, Main)
-local ContentFrame = New("Frame", {Position = UDim2.new(0,32,0,124), Size = UDim2.new(1,-64,1,-170), BackgroundTransparency = 1, ClipsDescendants = true, ZIndex = 6}, Main)
+-- Верхняя панель — кнопка dropdown + название активной вкладки
+local TopBar = New("Frame", {
+    Position = UDim2.new(0,32,0,76),
+    Size = UDim2.new(1,-64,0,40),
+    BackgroundTransparency = 1,
+    ZIndex = 6,
+}, Main)
 
-GUI.TabBar = TabBar
+-- Кнопка открытия списка
+local DropdownBtn = New("TextButton", {
+    Size = UDim2.fromOffset(180,40),
+    BackgroundColor3 = Config.Themes.Dark.TabBgActive,
+    BackgroundTransparency = 0.1,
+    BorderSizePixel = 0,
+    AutoButtonColor = false,
+    Text = "",
+    ZIndex = 7,
+}, TopBar)
+New("UICorner", {CornerRadius = UDim.new(0,10)}, DropdownBtn)
+local DropdownStroke = New("UIStroke", {Color = Color3.fromRGB(125,92,255), Thickness = 1.3}, DropdownBtn)
+
+local DropdownIcon = New("TextLabel", {
+    Position = UDim2.new(0,12,0,0),
+    Size = UDim2.fromOffset(24,40),
+    BackgroundTransparency = 1,
+    Text = TABS[1].Icon,
+    TextColor3 = Color3.fromRGB(255,255,255),
+    TextSize = 18,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 9,
+}, DropdownBtn)
+
+local DropdownLabel = New("TextLabel", {
+    Position = UDim2.new(0,42,0,0),
+    Size = UDim2.new(1,-62,1,0),
+    BackgroundTransparency = 1,
+    Text = TABS[1].Name,
+    TextColor3 = Color3.fromRGB(255,255,255),
+    TextSize = 14,
+    Font = Enum.Font.GothamBold,
+    TextXAlignment = Enum.TextXAlignment.Left,
+    ZIndex = 9,
+}, DropdownBtn)
+
+local DropdownArrow = New("TextLabel", {
+    AnchorPoint = Vector2.new(1,0.5),
+    Position = UDim2.new(1,-10,0.5,0),
+    Size = UDim2.fromOffset(20,20),
+    BackgroundTransparency = 1,
+    Text = "▾",
+    TextColor3 = Color3.fromRGB(180,180,220),
+    TextSize = 14,
+    Font = Enum.Font.GothamBold,
+    ZIndex = 9,
+}, DropdownBtn)
+
+-- Сам список (скрыт по умолчанию)
+local DropdownList = New("Frame", {
+    Position = UDim2.new(0, 0, 1, 6),
+    Size = UDim2.fromOffset(180, 0),
+    BackgroundColor3 = Config.Themes.Dark.MainBg,
+    BackgroundTransparency = 0.02,
+    BorderSizePixel = 0,
+    Visible = false,
+    ZIndex = 20,
+}, DropdownBtn)
+New("UICorner", {CornerRadius = UDim.new(0,10)}, DropdownList)
+New("UIStroke", {Color = Color3.fromRGB(125,92,255), Thickness = 1.2, Transparency = 0.2}, DropdownList)
+
+local DropdownScroll = New("ScrollingFrame", {
+    Size = UDim2.new(1,0,1,0),
+    BackgroundTransparency = 1,
+    BorderSizePixel = 0,
+    ScrollBarThickness = 3,
+    ScrollBarImageColor3 = Color3.fromRGB(125,92,255),
+    CanvasSize = UDim2.new(0,0,0,0),
+}, DropdownList)
+New("UIListLayout", {
+    SortOrder = Enum.SortOrder.LayoutOrder,
+    Padding = UDim.new(0, 2),
+}, DropdownScroll)
+New("UIPadding", {
+    PaddingLeft = UDim.new(0, 4),
+    PaddingRight = UDim.new(0, 4),
+    PaddingTop = UDim.new(0, 4),
+    PaddingBottom = UDim.new(0, 4),
+}, DropdownScroll)
+
+local ContentFrame = New("Frame", {
+    Position = UDim2.new(0,32,0,124),
+    Size = UDim2.new(1,-64,1,-170),
+    BackgroundTransparency = 1,
+    ClipsDescendants = true,
+    ZIndex = 6,
+}, Main)
+
+GUI.TopBar = TopBar
+GUI.DropdownBtn = DropdownBtn
+GUI.DropdownList = DropdownList
+GUI.DropdownLabel = DropdownLabel
+GUI.DropdownIcon = DropdownIcon
 GUI.ContentFrame = ContentFrame
 GUI.TabButtons = tabButtons
 GUI.TabPanels = tabPanels
-
-local function RefreshTabVisuals()
-    local T = Theme.Get()
-    for i, btn in ipairs(tabButtons) do
-        local active = tabStates[i]
-        btn.BackgroundColor3 = active and T.TabBgActive or T.TabBg
-        btn.BackgroundTransparency = active and 0.1 or 0.3
-        btn.TextColor3 = active and T.TabTextActive or T.TabText
-        btn.TextTransparency = 0
-        for _, c in ipairs(btn:GetChildren()) do
-            if c:IsA("UIStroke") then
-                c.Color = active and T.Accent or T.TabStroke
-                c.Transparency = active and 0 or 0.4
-            end
-        end
-        if tabPanels[i] then
-            tabPanels[i].Visible = active
-        end
-    end
-end
-GUI.RefreshTabVisuals = RefreshTabVisuals
-
-local function MakeTabButton(name, index)
-    local btn = New("TextButton", {
-        Name = name .. "Tab",
-        Position = UDim2.new((index-1)/tabCount, 0, 0, 0),
-        Size = UDim2.new(1/tabCount, -3, 1, 0),
-        BackgroundColor3 = Color3.fromRGB(22,24,36),
-        BackgroundTransparency = 0.3,
-        BorderSizePixel = 0, Text = name,
-        TextColor3 = Color3.fromRGB(170,172,190),
-        Font = Enum.Font.GothamBold, TextSize = 7,
-        AutoButtonColor = false, ZIndex = 7,
-    }, TabBar)
-    New("UICorner", {CornerRadius = UDim.new(0,8)}, btn)
-    New("UIStroke", {Color = Color3.fromRGB(60,62,88), Thickness = 1, Transparency = 0.4}, btn)
-
-    btn.MouseButton1Click:Connect(function()
-        for i = 1, tabCount do
-            tabStates[i] = (i == index)
-        end
-        RefreshTabVisuals()
-    end)
-
-    Theme.Register("Tabs", {Btn = btn, IsActive = false})
-    return btn
-end
 
 local function MakePanel()
     return New("ScrollingFrame", {
@@ -205,13 +287,121 @@ local function MakePanel()
     }, ContentFrame)
 end
 
-for i, name in ipairs(tabs) do
-    tabButtons[i] = MakeTabButton(name, i)
+local function RefreshTabVisuals()
+    local T = Theme.Get()
+    for i, btn in ipairs(tabButtons) do
+        local isActive = (i == activeTabIndex)
+        btn.BackgroundColor3 = isActive and T.TabBgActive or Color3.fromRGB(0,0,0)
+        btn.BackgroundTransparency = isActive and 0 or 1
+        btn.TextColor3 = isActive and T.TabTextActive or T.TabText
+        if tabPanels[i] then
+            tabPanels[i].Visible = isActive
+        end
+    end
+    -- Обновляем кнопку сверху
+    DropdownLabel.Text = TABS[activeTabIndex].Name
+    DropdownIcon.Text = TABS[activeTabIndex].Icon
+    DropdownBtn.BackgroundColor3 = T.TabBgActive
+    DropdownStroke.Color = T.Accent
+end
+GUI.RefreshTabVisuals = RefreshTabVisuals
+
+-- Создаём пункты dropdown
+for i, tab in ipairs(TABS) do
+    local btn = New("TextButton", {
+        Size = UDim2.new(1,0,0,34),
+        BackgroundColor3 = Color3.fromRGB(0,0,0),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        AutoButtonColor = false,
+        Text = "",
+        LayoutOrder = i,
+        ZIndex = 21,
+    }, DropdownScroll)
+    New("UICorner", {CornerRadius = UDim.new(0,6)}, btn)
+
+    local icon = New("TextLabel", {
+        Position = UDim2.new(0,8,0,0),
+        Size = UDim2.fromOffset(22,34),
+        BackgroundTransparency = 1,
+        Text = tab.Icon,
+        TextColor3 = Color3.fromRGB(255,255,255),
+        TextSize = 15,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 22,
+    }, btn)
+
+    local label = New("TextLabel", {
+        Position = UDim2.new(0,36,0,0),
+        Size = UDim2.new(1,-40,1,0),
+        BackgroundTransparency = 1,
+        Text = tab.Name,
+        TextColor3 = Color3.fromRGB(220,222,240),
+        TextSize = 13,
+        Font = Enum.Font.GothamBold,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 22,
+    }, btn)
+
+    btn.MouseEnter:Connect(function()
+        Tween(btn, 0.15, {BackgroundTransparency = 0.7, BackgroundColor3 = Color3.fromRGB(80,60,160)})
+    end)
+    btn.MouseLeave:Connect(function()
+        Tween(btn, 0.15, {BackgroundTransparency = 1})
+    end)
+
+    btn.MouseButton1Click:Connect(function()
+        activeTabIndex = i
+        for k = 1, tabCount do
+            tabStates[k] = (k == i)
+        end
+        RefreshTabVisuals()
+        -- Закрываем список
+        DropdownList.Visible = false
+        DropdownArrow.Text = "▾"
+    end)
+
+    tabButtons[i] = btn
     tabPanels[i] = MakePanel()
     tabStates[i] = false
 end
+
 tabStates[1] = true
 RefreshTabVisuals()
+
+DropdownScroll.CanvasSize = UDim2.new(0,0,0, tabCount * 36 + 8)
+DropdownList.Size = UDim2.fromOffset(180, math.min(tabCount * 36 + 8, 300))
+
+-- Открытие / закрытие dropdown
+local dropdownOpen = false
+DropdownBtn.MouseButton1Click:Connect(function()
+    dropdownOpen = not dropdownOpen
+    DropdownList.Visible = dropdownOpen
+    DropdownArrow.Text = dropdownOpen and "▴" or "▾"
+end)
+
+-- Закрытие по клику вне
+UserInputService.InputBegan:Connect(function(input)
+    if not dropdownOpen then return end
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        local mx = input.Position.X
+        local my = input.Position.Y
+        local btnPos = DropdownBtn.AbsolutePosition
+        local btnSize = DropdownBtn.AbsoluteSize
+        local listPos = DropdownList.AbsolutePosition
+        local listSize = DropdownList.AbsoluteSize
+
+        local insideBtn = mx >= btnPos.X and mx <= btnPos.X + btnSize.X and my >= btnPos.Y and my <= btnPos.Y + btnSize.Y
+        local insideList = mx >= listPos.X and mx <= listPos.X + listSize.X and my >= listPos.Y and my <= listPos.Y + listSize.Y
+
+        if not insideBtn and not insideList then
+            dropdownOpen = false
+            DropdownList.Visible = false
+            DropdownArrow.Text = "▾"
+        end
+    end
+end)
 
 local function MakeSectionLabel(parent, text, y)
     local T = Theme.Get()
@@ -502,8 +692,6 @@ GUI.MakeToggle = MakeToggle
 GUI.MakeSlider = MakeSlider
 GUI.MakeMultiSelect = MakeMultiSelect
 GUI.MakeDropdown = MakeDropdown
-GUI.tabPanels = tabPanels
-GUI.tabs = tabs
 
 -- TAB 1: MAIN
 do
@@ -625,7 +813,7 @@ do
     tabPanels[3].CanvasSize = UDim2.new(0,0,0,fy+20)
 end
 
--- TAB 4-6: filled externally
+-- Tab panel references
 GUI.OnlineTabPanel = tabPanels[4]
 GUI.ChatTabPanel = tabPanels[5]
 GUI.AnnounceTabPanel = tabPanels[6]
@@ -710,6 +898,13 @@ do
     local dragging, dragStart, startPos = false, nil, nil
     Main.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            local mx = input.Position.X
+            local my = input.Position.Y
+            local btnPos = DropdownBtn.AbsolutePosition
+            local btnSize = DropdownBtn.AbsoluteSize
+            if mx >= btnPos.X and mx <= btnPos.X + btnSize.X and my >= btnPos.Y and my <= btnPos.Y + btnSize.Y then
+                return
+            end
             dragging = true
             dragStart = input.Position
             startPos = Main.Position
@@ -761,7 +956,7 @@ GUI.ShowMain = function()
     MainStroke.Transparency = 1
     Glow.BackgroundTransparency = 1
     Tween(Main, 0.9, {
-        Size = IsMobile and UDim2.fromOffset(480,400) or UDim2.fromOffset(620,480),
+        Size = IsMobile and UDim2.fromOffset(480,420) or UDim2.fromOffset(640,520),
         Position = UDim2.fromScale(0.5,0.5),
         BackgroundTransparency = 0.06,
     }, Enum.EasingStyle.Back)
@@ -794,7 +989,7 @@ GUI.OpenFromIcon = function()
         MainStroke.Transparency = 1
         Glow.BackgroundTransparency = 1
         Tween(Main, 0.6, {
-            Size = IsMobile and UDim2.fromOffset(480,400) or UDim2.fromOffset(620,480),
+            Size = IsMobile and UDim2.fromOffset(480,420) or UDim2.fromOffset(640,520),
             BackgroundTransparency = 0.06,
         }, Enum.EasingStyle.Back)
         Tween(MainStroke, 0.6, {Transparency = 0.2})
@@ -805,6 +1000,14 @@ end
 
 HideBtn.MouseButton1Click:Connect(GUI.HideToIcon)
 OpenBtn.MouseButton1Click:Connect(GUI.OpenFromIcon)
+
+-- Кнопка 💬 — открывает чат-окно
+ChatBtn.MouseButton1Click:Connect(function()
+    local ChatWindow = _G.Venture.ChatWindow
+    if ChatWindow and ChatWindow.Toggle then
+        ChatWindow.Toggle()
+    end
+end)
 
 CloseBtn.MouseButton1Click:Connect(function()
     Funcs.ResetAllHitboxes()
@@ -827,6 +1030,8 @@ HideBtn.MouseEnter:Connect(function() Tween(HideBtn, 0.18, {BackgroundColor3 = C
 HideBtn.MouseLeave:Connect(function() Tween(HideBtn, 0.18, {BackgroundColor3 = Theme.Get().CloseBtnBg}); Tween(HideBtn, 0.18, {TextColor3 = Theme.Get().CloseBtnText}) end)
 OpenBtn.MouseEnter:Connect(function() Tween(OpenBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(35,32,55)}) end)
 OpenBtn.MouseLeave:Connect(function() Tween(OpenBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(20,22,36)}) end)
+ChatBtn.MouseEnter:Connect(function() Tween(ChatBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(60,32,90)}) end)
+ChatBtn.MouseLeave:Connect(function() Tween(ChatBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(40,22,60)}) end)
 
 GUI.Boot = function()
     task.spawn(FadeOutIntro)
