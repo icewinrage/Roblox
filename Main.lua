@@ -20,46 +20,31 @@ local MODULES = {
     "11_Cursor",
     "12_AntiMod",
     "13_OnlineTab",
+    "14_Chat",
+    "15_Announcements",
     "10_Init",
 }
 
--- ============================================================
--- AUTO-EXEC AFTER TELEPORT
--- Скрипт перезапустится автоматически после смены сервера
--- ============================================================
 local AUTO_EXEC_CODE = [[
     wait(0.5)
     loadstring(game:HttpGet("https://raw.githubusercontent.com/]] .. REPO_USER .. [[/]] .. REPO_NAME .. [[/]] .. REPO_BRANCH .. [[/Main.lua"))()
 ]]
 
--- Synapse / Script-Ware
 if syn and syn.queue_on_teleport then
     pcall(function() syn.queue_on_teleport(AUTO_EXEC_CODE) end)
 end
-
--- Fluxus
 if fluxus and fluxus.queue_on_teleport then
     pcall(function() fluxus.queue_on_teleport(AUTO_EXEC_CODE) end)
 end
-
--- Krnl
 if Krnl and Krnl.queue_on_teleport then
     pcall(function() Krnl.queue_on_teleport(AUTO_EXEC_CODE) end)
 end
-
--- Универсальный вариант (проверяем все варианты)
 if queue_on_teleport then
     pcall(function() queue_on_teleport(AUTO_EXEC_CODE) end)
 end
-
--- SX (Sentinel / ScriptX)
 if SX and SX.queue_on_teleport then
     pcall(function() SX.queue_on_teleport(AUTO_EXEC_CODE) end)
 end
-
--- ============================================================
--- ЗАГРУЗКА МОДУЛЕЙ
--- ============================================================
 
 _G.Venture = _G.Venture or {}
 
@@ -110,7 +95,6 @@ local function loadModule(name)
     return result
 end
 
--- Последовательная загрузка — стабильная
 for _, name in ipairs(MODULES) do
     pcall(loadModule, name)
     task.wait(0.05)
