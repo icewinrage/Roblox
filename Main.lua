@@ -7,6 +7,9 @@ local BASE_URL = string.format(
     REPO_USER, REPO_NAME, REPO_BRANCH
 )
 
+-- НАЧАЛО ОТСЧЁТА
+local START_TIME = tick()
+
 local MODULES = {
     "00_CursorBoot",
     "01_Shared",
@@ -111,3 +114,116 @@ if Init and Init.Run then
         warn("[Venture] Init.Run failed: " .. tostring(err))
     end
 end
+
+-- ============================================
+-- SUCCESS NOTIFICATION
+-- ============================================
+task.wait(0.3)
+
+local LOAD_TIME = tick() - START_TIME
+
+-- Форматируем: 1.23 сек
+local timeStr = string.format("%.2f", LOAD_TIME)
+
+local StarterGui = game:GetService("StarterGui")
+local TweenService = game:GetService("TweenService")
+local PlayerGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+local LocalPlayer = game:GetService("Players").LocalPlayer
+
+-- 1) SetCore Notification (стандартное)
+pcall(function()
+    StarterGui:SetCore("SendNotification", {
+        Title = "Successfully Loaded",
+        Text = "Venture AOT v1.5 loaded in " .. timeStr .. "s",
+        Duration = 8,
+    })
+end)
+
+-- 2) Красивая плашка сверху
+task.spawn(function()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "VentureLoadedNotice"
+    gui.ResetOnSpawn = false
+    gui.IgnoreGuiInset = true
+    gui.DisplayOrder = 2147483000
+    gui.Parent = PlayerGui
+
+    local frame = Instance.new("Frame")
+    frame.AnchorPoint = Vector2.new(0.5, 0)
+    frame.Position = UDim2.new(0.5, 0, 0, -120)
+    frame.Size = UDim2.fromOffset(420, 100)
+    frame.BackgroundColor3 = Color3.fromRGB(15, 8, 30)
+    frame.BackgroundTransparency = 0.05
+    frame.BorderSizePixel = 0
+    frame.Parent = gui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 14)
+    corner.Parent = frame
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(125, 92, 255)
+    stroke.Thickness = 2
+    stroke.Transparency = 0.2
+    stroke.Parent = frame
+
+    local grad = Instance.new("UIGradient")
+    grad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 40, 180)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(50, 20, 100)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 40, 180)),
+    })
+    grad.Rotation = 0
+    grad.Parent = frame
+
+    -- Титул
+    local title = Instance.new("TextLabel")
+    title.Position = UDim2.new(0, 20, 0, 12)
+    title.Size = UDim2.new(1, -40, 0, 26)
+    title.BackgroundTransparency = 1
+    title.Text = "Successfully Loaded"
+    title.TextColor3 = Color3.fromRGB(180, 255, 180)
+    title.TextSize = 20
+    title.Font = Enum.Font.GothamBold
+    title.TextXAlignment = Enum.TextXAlignment.Left
+    title.Parent = frame
+
+    -- Время загрузки
+    local subtitle = Instance.new("TextLabel")
+    subtitle.Position = UDim2.new(0, 20, 0, 40)
+    subtitle.Size = UDim2.new(1, -40, 0, 18)
+    subtitle.BackgroundTransparency = 1
+    subtitle.Text = "Venture AOT v1.5 | Loaded in " .. timeStr .. "s"
+    subtitle.TextColor3 = Color3.fromRGB(220, 220, 240)
+    subtitle.TextSize = 13
+    subtitle.Font = Enum.Font.Gotham
+    subtitle.TextXAlignment = Enum.TextXAlignment.Left
+    subtitle.Parent = frame
+
+    -- Thanks
+    local thanks = Instance.new("TextLabel")
+    thanks.Position = UDim2.new(0, 20, 0, 62)
+    thanks.Size = UDim2.new(1, -40, 0, 18)
+    thanks.BackgroundTransparency = 1
+    thanks.Text = "Thanks for using Venture AOT!"
+    thanks.TextColor3 = Color3.fromRGB(212, 175, 55)
+    thanks.TextSize = 13
+    thanks.Font = Enum.Font.GothamBold
+    thanks.TextXAlignment = Enum.TextXAlignment.Left
+    thanks.Parent = frame
+
+    -- Появление сверху вниз
+    TweenService:Create(frame, TweenInfo.new(0.6, Enum.EasingStyle.Back), {
+        Position = UDim2.new(0.5, 0, 0, 20)
+    }):Play()
+
+    -- Автоскрытие через 5 сек
+    task.wait(5)
+    local hideTween = TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {
+        Position = UDim2.new(0.5, 0, 0, -120),
+        BackgroundTransparency = 1,
+    })
+    hideTween:Play()
+    hideTween.Completed:Wait()
+    gui:Destroy()
+end)
