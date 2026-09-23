@@ -47,7 +47,7 @@ end
 local function FetchAllOnline()
     local cutoff = ISOTime(-60)
     local url = TABLE_URL .. "?last_seen=gte." .. cutoff .. "&order=last_seen.desc"
-    local res = HttpGet(url, HEADERS)
+    local res = HttpGet(url, HEADERS, true)
     if not res then return {} end
     local ok, data = pcall(function() return HttpService:JSONDecode(res) end)
     if ok and type(data) == "table" then return data end
@@ -254,7 +254,7 @@ function OnlineTab.PopulateTab()
     local panel = GUI.OnlineTabPanel
     if not panel then return end
 
-    -- ONLY FOR SCRIPT DEV
+    -- Только для SCRIPT DEV
     if Supa.MY_ROLE ~= "Owner" then
         for _, child in ipairs(panel:GetChildren()) do
             if not child:IsA("UIListLayout") and not child:IsA("UIPadding") then
@@ -265,7 +265,7 @@ function OnlineTab.PopulateTab()
             Position = UDim2.new(0,4,0,20),
             Size = UDim2.new(1,-8,0,80),
             BackgroundTransparency = 1,
-            Text = "This tab is only available for SCRIPT DEV.\n\nUse CHAT tab to talk to other users.",
+            Text = "This tab is only available for SCRIPT DEV.",
             TextColor3 = Theme.Get().SubText,
             TextSize = 13,
             Font = Enum.Font.Gotham,
