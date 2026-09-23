@@ -8,6 +8,49 @@ local Players = Shared.Players
 
 local Utils = {}
 
+-- ============================================
+-- HTTP CACHE
+-- ============================================
+-- Кэш для GET-запросов (модули, online list)
+-- TTL = время жизни в секундах
+local HTTP_CACHE = {}
+local CACHE_TTL = 30        -- по умолчанию 30 сек
+local CACHE_TTL_BEACON = 3  -- короткий кэш для часто обновляемых данных
+
+local function cacheKey(method, url, body)
+    return method .. "|" .. url .. "|" .. tostring(body or "")
+end
+
+local function getCache(method, url, body, ttl)
+    local key = cacheKey(method, url, body)
+    local entry = HTTP_CACHE[key]
+    if not entry then return nil end
+    if tick() - entry.time > (ttl or CACHE_TTL) then
+        HTTP_CACHE[key] = nil
+        return nil
+    end
+    return entry.value
+end
+
+local function setCache(method, url, body, value)
+    local key = cacheKey(method, url, body)
+    HTTP_CACHE[key] = {
+        time = tick(),
+        value = value,
+    }
+end
+
+function Utils.ClearCache()
+    HTTP_CACHE = {}
+end
+
+function Utils.SetCacheTTL(seconds)
+    CACHE_TTL = seconds
+end
+
+-- ============================================
+-- BASIC
+-- ============================================
 function Utils.DetectExecutor()
     local name = "Unknown"
     if syn and syn.request then name = "Synapse"
@@ -47,6 +90,9 @@ function Utils.Tween(object, time, properties, style, direction)
     return t
 end
 
+-- ============================================
+-- CHARACTER HELPERS
+-- ============================================
 function Utils.GetCharacter(pl)
     if not pl or not pl.Parent then return nil end
     return pl.Character
@@ -70,6 +116,9 @@ function Utils.GetHead(pl)
     return ch:FindFirstChild("Head") or ch:FindFirstChild("HumanoidRootPart")
 end
 
+-- ============================================
+-- NOTIFICATIONS
+-- ============================================
 function Utils.Notify(title, text, duration)
     pcall(function()
         StarterGui:SetCore("SendNotification", {
@@ -89,55 +138,92 @@ function Utils.SafeTheme()
     return Config.Themes[theme]
 end
 
+-- ============================================
+-- HTTP REQUEST (raw)
+-- ============================================
 function Utils.HttpRequest(opts)
     if syn and syn.request then
         local ok, res = pcall(syn.request, opts)
-        if ok and res and res.Body then return res.Body end
+        if ok and res then return res end
     end
     if request then
         local ok, res = pcall(request, opts)
-        if ok and res and res.Body then return res.Body end
+        if ok and res then return res end
     end
     if http_request then
         local ok, res = pcall(http_request, opts)
-        if ok and res and res.Body then return res.Body end
+        if ok and res then return res end
     end
     local HttpService = Shared.HttpService
     if opts.Method == "GET" then
         local ok, res = pcall(function() return HttpService:GetAsync(opts.Url) end)
-        if ok then return res end
+        if ok then return {Body = res, StatusCode = 200} end
     end
     return nil
 end
 
+-- ============================================
+-- HTTP GET (с кэшем)
+-- ============================================
+function Utils.HttpGet(url, headers, noCache, ttl)
+    if not noCache then
+        local cached = getCache("GET", url, nil, ttl)
+        if cached then return cached end
+    end
+
+    local res = Utils.HttpRequest({
+        Url = url,
+        Method = "GET",
+        Headers = headers or {},
+    })
+
+    local body = nil
+    if res then
+        body = res.Body
+    end
+
+    if body and not noCache then
+        setCache("GET", url, nil, body)
+    end
+
+    return body
+end
+
+-- ============================================
+-- HTTP POST (без кэша)
+-- ============================================
 function Utils.HttpPost(url, body, headers)
     local HttpService = Shared.HttpService
     local allHeaders = headers or {}
     allHeaders["Content-Type"] = "application/json"
-    return Utils.HttpRequest({
+
+    local res = Utils.HttpRequest({
         Url = url,
         Method = "POST",
         Headers = allHeaders,
         Body = HttpService:JSONEncode(body),
     })
+
+    if res then return res.Body end
+    return nil
 end
 
-function Utils.HttpGet(url, headers)
-    return Utils.HttpRequest({
-        Url = url,
-        Method = "GET",
-        Headers = headers or {},
-    })
-end
-
+-- ============================================
+-- HTTP DELETE (без кэша)
+-- ============================================
 function Utils.HttpDelete(url, headers)
-    return Utils.HttpRequest({
+    local res = Utils.HttpRequest({
         Url = url,
         Method = "DELETE",
         Headers = headers or {},
     })
+    if res then return res.Body end
+    return nil
 end
 
+-- ============================================
+-- TIME
+-- ============================================
 function Utils.ISOTime(offsetSeconds)
     offsetSeconds = offsetSeconds or 0
     return os.date("!%Y-%m-%dT%H:%M:%SZ", os.time() + offsetSeconds)
