@@ -46,9 +46,14 @@ local function SafeMakeBadge(pl, role)
     Supa.BadgeByPlayer[pl] = nil
 
     local isOwner = (role == "Owner")
-    local width = isOwner and 150 or 130
-    local height = isOwner and 32 or 28
-    local infoSize = isOwner and 9 or 8
+    
+    -- Streamer Mode → CONTENT CREATOR
+    local Streamer = _G.Venture and _G.Venture.Streamer
+    local isStreamer = (pl == LocalPlayer and Streamer and Streamer.Enabled)
+    
+    local width = (isOwner or isStreamer) and 150 or 130
+    local height = (isOwner or isStreamer) and 32 or 28
+    local infoSize = (isOwner or isStreamer) and 9 or 8
 
     local bg = Instance.new("BillboardGui")
     bg.Name = "VentureBadge"
@@ -62,18 +67,26 @@ local function SafeMakeBadge(pl, role)
 
     local container = Instance.new("Frame")
     container.Size = UDim2.fromScale(1, 1)
-    container.BackgroundColor3 = isOwner and Color3.fromRGB(35, 12, 60) or Color3.fromRGB(25, 12, 50)
+    container.BackgroundColor3 = (isOwner or isStreamer) and Color3.fromRGB(35, 12, 60) or Color3.fromRGB(25, 12, 50)
     container.BorderSizePixel = 0
     container.ClipsDescendants = true
     container.Parent = bg
     Instance.new("UICorner", container).CornerRadius = UDim.new(1, 0)
 
     local grad = Instance.new("UIGradient")
-    grad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, isOwner and Color3.fromRGB(130,50,255) or Color3.fromRGB(90,45,200)),
-        ColorSequenceKeypoint.new(0.5, isOwner and Color3.fromRGB(200,100,255) or Color3.fromRGB(150,80,240)),
-        ColorSequenceKeypoint.new(1, isOwner and Color3.fromRGB(255,170,255) or Color3.fromRGB(210,130,255)),
-    })
+    if isStreamer then
+        grad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 100, 30)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 160, 60)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 220, 120)),
+        })
+    else
+        grad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, isOwner and Color3.fromRGB(130,50,255) or Color3.fromRGB(90,45,200)),
+            ColorSequenceKeypoint.new(0.5, isOwner and Color3.fromRGB(200,100,255) or Color3.fromRGB(150,80,240)),
+            ColorSequenceKeypoint.new(1, isOwner and Color3.fromRGB(255,170,255) or Color3.fromRGB(210,130,255)),
+        })
+    end
     grad.Rotation = 30
     grad.Parent = container
 
@@ -97,14 +110,24 @@ local function SafeMakeBadge(pl, role)
     shineGrad.Parent = shine
 
     local stroke = Instance.new("UIStroke")
-    stroke.Color = isOwner and Color3.fromRGB(240,180,255) or Color3.fromRGB(200,150,255)
-    stroke.Thickness = isOwner and 1.8 or 1.5
+    if isStreamer then
+        stroke.Color = Color3.fromRGB(255, 200, 100)
+    elseif isOwner then
+        stroke.Color = Color3.fromRGB(240, 180, 255)
+    else
+        stroke.Color = Color3.fromRGB(200, 150, 255)
+    end
+    stroke.Thickness = (isOwner or isStreamer) and 1.8 or 1.5
     stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     stroke.Parent = container
 
     local glow = Instance.new("UIStroke")
-    glow.Color = isOwner and Color3.fromRGB(220,130,255) or Color3.fromRGB(170,100,255)
-    glow.Thickness = isOwner and 4 or 3
+    if isStreamer then
+        glow.Color = Color3.fromRGB(255, 180, 80)
+    else
+        glow.Color = isOwner and Color3.fromRGB(220, 130, 255) or Color3.fromRGB(170, 100, 255)
+    end
+    glow.Thickness = (isOwner or isStreamer) and 4 or 3
     glow.Transparency = 0.5
     glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     glow.Parent = container
@@ -112,11 +135,17 @@ local function SafeMakeBadge(pl, role)
     local icon = Instance.new("TextLabel")
     icon.Name = "Icon"
     icon.AnchorPoint = Vector2.new(0, 0.5)
-    icon.Position = UDim2.new(0, isOwner and 8 or 6, 0.5, 0)
-    icon.Size = UDim2.fromOffset(isOwner and 16 or 14, isOwner and 16 or 14)
+    icon.Position = UDim2.new(0, (isOwner or isStreamer) and 8 or 6, 0.5, 0)
+    icon.Size = UDim2.fromOffset((isOwner or isStreamer) and 16 or 14, (isOwner or isStreamer) and 16 or 14)
     icon.BackgroundTransparency = 1
-    icon.Text = isOwner and "👑" or "⚡"
-    icon.TextColor3 = isOwner and Color3.fromRGB(255,220,100) or Color3.fromRGB(230,200,255)
+    if isStreamer then
+        icon.Text = "★"
+    elseif isOwner then
+        icon.Text = "👑"
+    else
+        icon.Text = "⚡"
+    end
+    icon.TextColor3 = isStreamer and Color3.fromRGB(255, 230, 120) or (isOwner and Color3.fromRGB(255,220,100) or Color3.fromRGB(230,200,255))
     icon.TextScaled = true
     icon.Font = Enum.Font.GothamBlack
     icon.ZIndex = 5
@@ -124,10 +153,16 @@ local function SafeMakeBadge(pl, role)
 
     local label = Instance.new("TextLabel")
     label.Name = "Text"
-    label.Position = UDim2.new(0, isOwner and 28 or 24, 0, 0)
-    label.Size = UDim2.new(1, isOwner and -32 or -28, 1, 0)
+    label.Position = UDim2.new(0, (isOwner or isStreamer) and 28 or 24, 0, 0)
+    label.Size = UDim2.new(1, (isOwner or isStreamer) and -32 or -28, 1, 0)
     label.BackgroundTransparency = 1
-    label.Text = isOwner and "SCRIPT DEV" or "SCRIPT USER"
+    if isStreamer then
+        label.Text = "CONTENT CREATOR"
+    elseif isOwner then
+        label.Text = "SCRIPT DEV"
+    else
+        label.Text = "SCRIPT USER"
+    end
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.TextStrokeTransparency = 0
     label.TextStrokeColor3 = Color3.fromRGB(40, 0, 80)
@@ -144,7 +179,7 @@ local function SafeMakeBadge(pl, role)
     info.Size = UDim2.fromScale(1.05, 0.55)
     info.BackgroundTransparency = 1
     info.Text = isOwner and ("by " .. pl.Name) or pl.Name
-    info.TextColor3 = isOwner and Color3.fromRGB(255,200,255) or Color3.fromRGB(210,180,255)
+    info.TextColor3 = isStreamer and Color3.fromRGB(255, 220, 150) or (isOwner and Color3.fromRGB(255,200,255) or Color3.fromRGB(210,180,255))
     info.TextStrokeTransparency = 0.2
     info.TextStrokeColor3 = Color3.fromRGB(30, 0, 50)
     info.Font = Enum.Font.Gotham
@@ -165,26 +200,26 @@ local function SafeMakeBadge(pl, role)
         while bg.Parent do
             pcall(function()
                 TweenService:Create(stroke, TweenInfo.new(0.9), {Transparency = 0.4}):Play()
-                TweenService:Create(glow, TweenInfo.new(0.9), {Transparency = 0.85, Thickness = isOwner and 7 or 5}):Play()
+                TweenService:Create(glow, TweenInfo.new(0.9), {Transparency = 0.85, Thickness = (isOwner or isStreamer) and 7 or 5}):Play()
             end)
             task.wait(0.9)
             pcall(function()
                 TweenService:Create(stroke, TweenInfo.new(0.9), {Transparency = 0}):Play()
-                TweenService:Create(glow, TweenInfo.new(0.9), {Transparency = 0.5, Thickness = isOwner and 4 or 3}):Play()
+                TweenService:Create(glow, TweenInfo.new(0.9), {Transparency = 0.5, Thickness = (isOwner or isStreamer) and 4 or 3}):Play()
             end)
             task.wait(0.9)
         end
     end)
 
-    if isOwner then
+    if isOwner or isStreamer then
         task.spawn(function()
             while bg.Parent do
                 pcall(function()
-                    TweenService:Create(icon, TweenInfo.new(0.6), {TextColor3 = Color3.fromRGB(255,255,180)}):Play()
+                    TweenService:Create(icon, TweenInfo.new(0.6), {TextColor3 = isStreamer and Color3.fromRGB(255,255,180) or Color3.fromRGB(255,255,180)}):Play()
                 end)
                 task.wait(0.6)
                 pcall(function()
-                    TweenService:Create(icon, TweenInfo.new(0.6), {TextColor3 = Color3.fromRGB(255,200,60)}):Play()
+                    TweenService:Create(icon, TweenInfo.new(0.6), {TextColor3 = isStreamer and Color3.fromRGB(255,180,60) or Color3.fromRGB(255,200,60)}):Play()
                 end)
                 task.wait(0.6)
             end
