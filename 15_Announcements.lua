@@ -13,6 +13,7 @@ local PlayerGui = Shared.PlayerGui
 local New = Utils.New
 local HttpGet = Utils.HttpGet
 local HttpPost = Utils.HttpPost
+local HttpDelete = Utils.HttpDelete
 
 local Announce = {}
 
@@ -23,16 +24,26 @@ local HEADERS = {
     ["Content-Type"] = "application/json",
 }
 
+local LIFETIME_SECONDS = 86400  -- 24 часа
+
 Announce.LastSeenId = 0
 Announce.ActiveBanner = nil
 
 local function FetchLatest()
-    local url = TABLE_URL .. "?select=*&order=id.desc&limit=1"
-    local res = HttpGet(url, HEADERS)
+    -- Берём только объявления за последние 24 часа
+    local cutoff = os.date("!%Y-%m-%dT%H:%M:%SZ", os.time() - LIFETIME_SECONDS)
+    local url = TABLE_URL .. "?select=*&created_at=gte." .. cutoff .. "&order=id.desc&limit=1"
+    local res = HttpGet(url, HEADERS, true)
     if not res then return nil end
     local ok, data = pcall(function() return HttpService:JSONDecode(res) end)
     if ok and type(data) == "table" and #data > 0 then return data[1] end
     return nil
+end
+
+local function CleanupOld()
+    -- Удаляем всё старше 24 часов
+    local cutoff = os.date("!%Y-%m-%dT%H:%M:%SZ", os.time() - LIFETIME_SECONDS)
+    HttpDelete(TABLE_URL .. "?created_at=lt." .. cutoff, HEADERS)
 end
 
 local function ShowBanner(title, text, author)
@@ -69,7 +80,7 @@ local function ShowBanner(title, text, author)
         Position = UDim2.new(0, 16, 0, 8),
         Size = UDim2.new(1, -32, 0, 22),
         BackgroundTransparency = 1,
-        Text = "📢 ANNOUNCEMENT",
+        Text = "ANNOUNCEMENT",
         TextColor3 = Color3.fromRGB(255, 220, 255),
         TextSize = 14,
         Font = Enum.Font.GothamBold,
@@ -126,6 +137,8 @@ local function ShowBanner(title, text, author)
     end)
 end
 
+Announce.ShowBanner = ShowBanner
+
 local function CheckAnnouncements()
     local latest = FetchLatest()
     if not latest then return end
@@ -152,7 +165,7 @@ function Announce.PopulateTab()
     if Supa.MY_ROLE ~= "Owner" then
         New("TextLabel", {
             Position = UDim2.new(0,4,0,20),
-            Size = UDim2.new(1,-8,0,60),
+            Size = UDim2.new(1,-8,0,80),
             BackgroundTransparency = 1,
             Text = "Only SCRIPT DEV can make announcements.",
             TextColor3 = T.SubText,
@@ -163,7 +176,7 @@ function Announce.PopulateTab()
             TextWrapped = true,
             ZIndex = 8,
         }, panel)
-        panel.CanvasSize = UDim2.new(0,0,0,90)
+        panel.CanvasSize = UDim2.new(0,0,0,110)
         return
     end
 
@@ -171,9 +184,9 @@ function Announce.PopulateTab()
     y = GUI.MakeSectionLabel(panel, "GLOBAL ANNOUNCEMENT", y)
     New("TextLabel", {
         Position = UDim2.new(0,4,0,y),
-        Size = UDim2.new(1,-8,0,40),
+        Size = UDim2.new(1,-8,0,54),
         BackgroundTransparency = 1,
-        Text = "Broadcast a message to ALL script users\nin every server worldwide (anonymous).",
+        Text = "Broadcast a message to ALL script users\nin every server worldwide (anonymous).\n\nAuto-deletes after 24 hours.",
         TextColor3 = T.SubText,
         TextSize = 11,
         Font = Enum.Font.Gotham,
@@ -182,7 +195,7 @@ function Announce.PopulateTab()
         TextWrapped = true,
         ZIndex = 8,
     }, panel)
-    y = y + 48
+    y = y + 60
 
     local titleInput = New("TextBox", {
         Position = UDim2.new(0,0,0,y),
@@ -234,6 +247,7 @@ function Announce.PopulateTab()
             author = "DEV",
             title = title:sub(1, 60),
             text = text:sub(1, 200),
+            created_at = os.date("!%Y-%m-%dT%H:%M:%SZ"),
         }, HEADERS)
 
         titleInput.Text = ""
@@ -258,6 +272,14 @@ function Announce.Init()
         while true do
             task.wait(10)
             pcall(CheckAnnouncements)
+        end
+    end)
+
+    -- Авто-удаление объявлений старше 24 часов (раз в 5 минут)
+    task.spawn(function()
+        while true do
+            task.wait(300)
+            pcall(CleanupOld)
         end
     end)
 end
