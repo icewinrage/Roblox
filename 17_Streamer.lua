@@ -59,7 +59,7 @@ function Streamer.Load()
     end
 end
 
--- 1. NAME
+-- NAME
 function Streamer.ApplyName()
     if not Streamer.Enabled then return end
     local name = Streamer.FakeName
@@ -101,7 +101,7 @@ function Streamer.RestoreName()
     end
 end
 
--- 2. KILL FEED (destroy)
+-- KILL FEED
 function Streamer.ApplyKillFeed()
     if not Streamer.Enabled or not Streamer.HideKillFeed then return end
     local pg = LocalPlayer:FindFirstChild("PlayerGui")
@@ -114,7 +114,7 @@ function Streamer.ApplyKillFeed()
     end
 end
 
--- 3. STATS
+-- STATS
 function Streamer.ApplyStats()
     if not Streamer.Enabled then return end
 
@@ -153,7 +153,7 @@ function Streamer.ApplyStats()
     end
 end
 
--- 4. LOOP
+-- LOOP
 Streamer.Loop = nil
 
 function Streamer.StartLoop()
@@ -171,7 +171,25 @@ function Streamer.StopLoop()
     end
 end
 
--- 5. ENABLE / DISABLE
+-- Бейдж обновление
+function Streamer.RefreshBadge()
+    local Supa = _G.Venture.Supabase
+    if not Supa then return end
+    local ch = LocalPlayer.Character
+    if not ch then return end
+    local head = ch:FindFirstChild("Head") or ch:FindFirstChild("HumanoidRootPart")
+    if not head then return end
+    local old = head:FindFirstChild("VentureBadge")
+    if old then old:Destroy() end
+    -- Заставляем Supabase пересоздать бейдж
+    task.wait(0.1)
+    if Supa.BadgeByPlayer and Supa.BadgeByPlayer[LocalPlayer] then
+        Supa.BadgeByPlayer[LocalPlayer] = nil
+    end
+    -- Триггерим через force refresh (refreshBadge не экспортируется, но loop в Supa сам подхватит)
+end
+
+-- ENABLE / DISABLE
 function Streamer.Enable()
     Streamer.Enabled = true
     Streamer.ApplyName()
@@ -180,15 +198,10 @@ function Streamer.Enable()
     Streamer.StartLoop()
     Streamer.Save()
     Notify("Streamer Mode", "Enabled - Badge: CONTENT CREATOR", 4)
-
-    local ch = LocalPlayer.Character
-    if ch then
-        local head = ch:FindFirstChild("Head") or ch:FindFirstChild("HumanoidRootPart")
-        if head then
-            local old = head:FindFirstChild("VentureBadge")
-            if old then old:Destroy() end
-        end
-    end
+    task.spawn(function()
+        task.wait(0.3)
+        pcall(Streamer.RefreshBadge)
+    end)
 end
 
 function Streamer.Disable()
@@ -198,18 +211,13 @@ function Streamer.Disable()
     Streamer.StopLoop()
     Streamer.Save()
     Notify("Streamer Mode", "Disabled", 4)
-
-    local ch = LocalPlayer.Character
-    if ch then
-        local head = ch:FindFirstChild("Head") or ch:FindFirstChild("HumanoidRootPart")
-        if head then
-            local old = head:FindFirstChild("VentureBadge")
-            if old then old:Destroy() end
-        end
-    end
+    task.spawn(function()
+        task.wait(0.3)
+        pcall(Streamer.RefreshBadge)
+    end)
 end
 
--- 6. UI
+-- UI
 function Streamer.PopulateTab()
     local panel = GUI.StreamerTabPanel
     if not panel then return end
@@ -225,6 +233,38 @@ function Streamer.PopulateTab()
 
     y = GUI.MakeToggle(panel, "Enable Streamer Mode", y, Streamer.Enabled, function(v)
         if v then Streamer.Enable() else Streamer.Disable() end
+    end)
+
+    y = y + 6
+    y = GUI.MakeSectionLabel(panel, "PRESETS", y)
+
+    y = GUI.MakeButton(panel, "Streamer Mode", "Set name to Streamer_XXXX", y, function()
+        local n = math.random(1000, 9999)
+        Streamer.FakeName = "Streamer_" .. n
+        Streamer.Save()
+        if Streamer.Enabled then Streamer.ApplyName() end
+        Notify("Streamer", "Name: " .. Streamer.FakeName, 3)
+    end)
+    y = GUI.MakeButton(panel, "Viewer Mode", "Set name to Viewer_XXXX", y, function()
+        local n = math.random(1000, 9999)
+        Streamer.FakeName = "Viewer_" .. n
+        Streamer.Save()
+        if Streamer.Enabled then Streamer.ApplyName() end
+        Notify("Streamer", "Name: " .. Streamer.FakeName, 3)
+    end)
+    y = GUI.MakeButton(panel, "Guest Mode", "Set name to Guest_XXXX", y, function()
+        local n = math.random(1000, 9999)
+        Streamer.FakeName = "Guest_" .. n
+        Streamer.Save()
+        if Streamer.Enabled then Streamer.ApplyName() end
+        Notify("Streamer", "Name: " .. Streamer.FakeName, 3)
+    end)
+    y = GUI.MakeButton(panel, "Anonymous", "Set name to Anon_XXXX", y, function()
+        local n = math.random(1000, 9999)
+        Streamer.FakeName = "Anon_" .. n
+        Streamer.Save()
+        if Streamer.Enabled then Streamer.ApplyName() end
+        Notify("Streamer", "Name: " .. Streamer.FakeName, 3)
     end)
 
     y = y + 6
@@ -334,9 +374,9 @@ function Streamer.PopulateTab()
     y = GUI.MakeSectionLabel(panel, "INFO", y)
     New("TextLabel", {
         Position = UDim2.new(0, 4, 0, y),
-        Size = UDim2.new(1, -8, 0, 120),
+        Size = UDim2.new(1, -8, 0, 130),
         BackgroundTransparency = 1,
-        Text = "Streamer Mode hides your identity on screen.\nBadge becomes CONTENT CREATOR.\nChanges are LOCAL only.\nStats are force-kept every frame.\n\nRecommended: enable before recording.",
+        Text = "Streamer Mode hides your identity on screen.\nBadge becomes CONTENT CREATOR.\nChanges are LOCAL only.\nStats are force-kept every frame.\n\nSet any name, any XP, any Level, any Money.",
         TextColor3 = Theme.Get().SubText,
         TextSize = 11,
         Font = Enum.Font.Gotham,
@@ -345,12 +385,12 @@ function Streamer.PopulateTab()
         TextWrapped = true,
         ZIndex = 8,
     }, panel)
-    y = y + 130
+    y = y + 140
 
     panel.CanvasSize = UDim2.new(0, 0, 0, y + 20)
 end
 
--- 7. INIT
+-- INIT
 function Streamer.Init()
     Streamer.Load()
     if Streamer.Enabled then
