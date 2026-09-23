@@ -7,7 +7,6 @@ local BASE_URL = string.format(
     REPO_USER, REPO_NAME, REPO_BRANCH
 )
 
--- НАЧАЛО ОТСЧЁТА
 local START_TIME = tick()
 
 local MODULES = {
@@ -25,8 +24,8 @@ local MODULES = {
     "12_AntiMod",
     "13_OnlineTab",
     "15_Announcements",
-    "16_ChatWindow",
     "17_Streamer",
+    "18_AntiAFK",
     "10_Init",
 }
 
@@ -35,22 +34,70 @@ local AUTO_EXEC_CODE = [[
     loadstring(game:HttpGet("https://raw.githubusercontent.com/]] .. REPO_USER .. [[/]] .. REPO_NAME .. [[/]] .. REPO_BRANCH .. [[/Main.lua"))()
 ]]
 
-if syn and syn.queue_on_teleport then
-    pcall(function() syn.queue_on_teleport(AUTO_EXEC_CODE) end)
-end
-if fluxus and fluxus.queue_on_teleport then
-    pcall(function() fluxus.queue_on_teleport(AUTO_EXEC_CODE) end)
-end
-if Krnl and Krnl.queue_on_teleport then
-    pcall(function() Krnl.queue_on_teleport(AUTO_EXEC_CODE) end)
-end
-if queue_on_teleport then
-    pcall(function() queue_on_teleport(AUTO_EXEC_CODE) end)
-end
-if SX and SX.queue_on_teleport then
-    pcall(function() SX.queue_on_teleport(AUTO_EXEC_CODE) end)
+-- ============================================
+-- AUTO EXEC (queue_on_teleport для всех экзекьюторов)
+-- ============================================
+local function RegisterQueue()
+    if syn and syn.queue_on_teleport then
+        pcall(function() syn.queue_on_teleport(AUTO_EXEC_CODE) end)
+    end
+    if fluxus and fluxus.queue_on_teleport then
+        pcall(function() fluxus.queue_on_teleport(AUTO_EXEC_CODE) end)
+    end
+    if Krnl and Krnl.queue_on_teleport then
+        pcall(function() Krnl.queue_on_teleport(AUTO_EXEC_CODE) end)
+    end
+    if queue_on_teleport then
+        pcall(function() queue_on_teleport(AUTO_EXEC_CODE) end)
+    end
+    if SX and SX.queue_on_teleport then
+        pcall(function() SX.queue_on_teleport(AUTO_EXEC_CODE) end)
+    end
+    if secure_call then
+        pcall(function() secure_call(queue_on_teleport, AUTO_EXEC_CODE) end)
+    end
 end
 
+RegisterQueue()
+
+-- ПЕРЕРЕГИСТРАЦИЯ перед каждым телепортом
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Периодически перерегистрируем (если Roblox сбрасывает)
+task.spawn(function()
+    while true do
+        task.wait(30)
+        pcall(RegisterQueue)
+    end
+end)
+
+-- Autoexec функция (запись в autoexec-папку если поддерживается)
+local function TryInstallAutoExec()
+    local possiblePaths = {
+        "autoexec/Main.lua",
+        "autoexec/main.lua",
+        "workspace/autoexec/Main.lua",
+    }
+
+    for _, path in ipairs(possiblePaths) do
+        if writefile then
+            local ok = pcall(function()
+                writefile(path, AUTO_EXEC_CODE)
+            end)
+            if ok then
+                print("[Venture] AutoExec installed: " .. path)
+                return true
+            end
+        end
+    end
+    return false
+end
+
+-- ============================================
+-- HTTP
+-- ============================================
 _G.Venture = _G.Venture or {}
 
 local function httpGet(url)
@@ -121,16 +168,12 @@ end
 task.wait(0.3)
 
 local LOAD_TIME = tick() - START_TIME
-
--- Форматируем: 1.23 сек
 local timeStr = string.format("%.2f", LOAD_TIME)
 
 local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
-local PlayerGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
-local LocalPlayer = game:GetService("Players").LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- 1) SetCore Notification (стандартное)
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Successfully Loaded",
@@ -139,7 +182,6 @@ pcall(function()
     })
 end)
 
--- 2) Красивая плашка сверху
 task.spawn(function()
     local gui = Instance.new("ScreenGui")
     gui.Name = "VentureLoadedNotice"
@@ -176,7 +218,6 @@ task.spawn(function()
     grad.Rotation = 0
     grad.Parent = frame
 
-    -- Титул
     local title = Instance.new("TextLabel")
     title.Position = UDim2.new(0, 20, 0, 12)
     title.Size = UDim2.new(1, -40, 0, 26)
@@ -188,7 +229,6 @@ task.spawn(function()
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.Parent = frame
 
-    -- Время загрузки
     local subtitle = Instance.new("TextLabel")
     subtitle.Position = UDim2.new(0, 20, 0, 40)
     subtitle.Size = UDim2.new(1, -40, 0, 18)
@@ -200,7 +240,6 @@ task.spawn(function()
     subtitle.TextXAlignment = Enum.TextXAlignment.Left
     subtitle.Parent = frame
 
-    -- Thanks
     local thanks = Instance.new("TextLabel")
     thanks.Position = UDim2.new(0, 20, 0, 62)
     thanks.Size = UDim2.new(1, -40, 0, 18)
@@ -212,12 +251,10 @@ task.spawn(function()
     thanks.TextXAlignment = Enum.TextXAlignment.Left
     thanks.Parent = frame
 
-    -- Появление сверху вниз
     TweenService:Create(frame, TweenInfo.new(0.6, Enum.EasingStyle.Back), {
         Position = UDim2.new(0.5, 0, 0, 20)
     }):Play()
 
-    -- Автоскрытие через 5 сек
     task.wait(5)
     local hideTween = TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {
         Position = UDim2.new(0.5, 0, 0, -120),
@@ -227,3 +264,49 @@ task.spawn(function()
     hideTween.Completed:Wait()
     gui:Destroy()
 end)
+
+-- ============================================
+-- FIX REJOIN — перерегистрация перед телепортом
+-- ============================================
+-- Патчим TeleportService, чтобы при любом телепорте
+-- скрипт гарантированно перезапустился
+local oldTeleport = TeleportService.Teleport
+local oldTeleportToPlaceInstance = TeleportService.TeleportToPlaceInstance
+
+if not getgenv or not getgenv().Venture_TeleportPatched then
+    if getgenv then getgenv().Venture_TeleportPatched = true end
+
+    -- Перехватываем через hookfunction если есть
+    if hookfunction and oldTeleport then
+        pcall(function()
+            local newTeleport = hookfunction(oldTeleport, function(...)
+                pcall(RegisterQueue)
+                task.wait(0.1)
+                return oldTeleport(...)
+            end)
+        end)
+    end
+
+    if hookfunction and oldTeleportToPlaceInstance then
+        pcall(function()
+            local newTP = hookfunction(oldTeleportToPlaceInstance, function(...)
+                pcall(RegisterQueue)
+                task.wait(0.1)
+                return oldTeleportToPlaceInstance(...)
+            end)
+        end)
+    end
+end
+
+-- Метод через game:GetService — на случай если hookfunction нет
+if not getgenv or not getgenv().Venture_ServicePatched then
+    if getgenv then getgenv().Venture_ServicePatched = true end
+    -- Перерегистрируем queue на каждый PlayerRemoving (обычно это происходит при телепорте)
+    Players.PlayerRemoving:Connect(function(pl)
+        if pl == LocalPlayer then
+            pcall(RegisterQueue)
+        end
+    end)
+end
+
+print("[Venture] Main loaded in " .. timeStr .. "s")
