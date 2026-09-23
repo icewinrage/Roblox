@@ -47,7 +47,6 @@ local function SafeMakeBadge(pl, role)
 
     local isOwner = (role == "Owner")
     
-    -- Streamer Mode → CONTENT CREATOR
     local Streamer = _G.Venture and _G.Venture.Streamer
     local isStreamer = (pl == LocalPlayer and Streamer and Streamer.Enabled)
     
@@ -277,6 +276,10 @@ local function RefreshBadge(pl)
     end
 end
 
+Supa.RefreshBadge = RefreshBadge
+Supa.RemoveBadge = RemoveBadge
+Supa.SafeMakeBadge = SafeMakeBadge
+
 local function SendBeacon()
     HttpPost(TABLE_URL, {
         user_id = Supa.MY_UID,
@@ -291,7 +294,7 @@ end
 local function FetchUsers()
     local cutoff = ISOTime(-Config.TIMEOUT_SECONDS)
     local url = TABLE_URL .. "?job_id=eq." .. Supa.MY_JOB .. "&last_seen=gte." .. cutoff
-    local res = HttpGet(url, HEADERS)
+    local res = HttpGet(url, HEADERS, true)
     if not res then return nil end
     local ok, data = pcall(function() return HttpService:JSONDecode(res) end)
     if ok and type(data) == "table" then return data end
