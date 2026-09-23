@@ -116,8 +116,8 @@ local HeaderDivider = New("Frame", {
 }, Header)
 Theme.Register("Misc", {Obj = HeaderDivider, Keys = {"Accent"}})
 
-local Title = New("TextLabel", {Position = UDim2.new(0,60,0,18), Size = UDim2.new(1,-200,0,24), BackgroundTransparency = 1, Text = "VENTURE  AOT", TextColor3 = Color3.fromRGB(248,247,255), TextSize = 18, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
-local Subtitle = New("TextLabel", {Position = UDim2.new(0,60,0,38), Size = UDim2.new(1,-200,0,14), BackgroundTransparency = 1, Text = "by __TheDark  |  v1.5", TextColor3 = Color3.fromRGB(153,157,178), TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
+local Title = New("TextLabel", {Position = UDim2.new(0,60,0,18), Size = UDim2.new(1,-160,0,24), BackgroundTransparency = 1, Text = "VENTURE  AOT", TextColor3 = Color3.fromRGB(248,247,255), TextSize = 18, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
+local Subtitle = New("TextLabel", {Position = UDim2.new(0,60,0,38), Size = UDim2.new(1,-160,0,14), BackgroundTransparency = 1, Text = "by __TheDark  |  v1.5", TextColor3 = Color3.fromRGB(153,157,178), TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
 GUI.Title = Title
 GUI.Subtitle = Subtitle
 Theme.Register("Misc", {Obj = Title, Keys = {"TitleText"}})
@@ -129,13 +129,10 @@ New("UICorner", {CornerRadius = UDim.new(0,10)}, CloseBtn)
 local HideBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-56,0,14), Size = UDim2.fromOffset(32,32), BackgroundColor3 = Color3.fromRGB(28,30,44), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "_", TextColor3 = Color3.fromRGB(185,187,205), TextSize = 18, Font = Enum.Font.GothamBold, ZIndex = 10}, Header)
 New("UICorner", {CornerRadius = UDim.new(0,10)}, HideBtn)
 
-local ChatBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-94,0,14), Size = UDim2.fromOffset(32,32), BackgroundColor3 = Color3.fromRGB(40,22,60), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "C", TextColor3 = Color3.fromRGB(255,200,255), TextSize = 16, Font = Enum.Font.GothamBold, ZIndex = 10}, Header)
-New("UICorner", {CornerRadius = UDim.new(0,10)}, ChatBtn)
-
--- Drag area (перетаскивание за header)
+-- Drag area
 local DragArea = New("TextButton", {
     Position = UDim2.new(0, 56, 0, 0),
-    Size = UDim2.new(1, -200, 0, 58),
+    Size = UDim2.new(1, -140, 0, 58),
     BackgroundTransparency = 1,
     Text = "",
     AutoButtonColor = false,
@@ -144,7 +141,6 @@ local DragArea = New("TextButton", {
 
 GUI.CloseBtn = CloseBtn
 GUI.HideBtn = HideBtn
-GUI.ChatBtn = ChatBtn
 Theme.Register("Misc", {Obj = CloseBtn, Keys = {"CloseBtnBg"}})
 Theme.Register("Misc", {Obj = HideBtn, Keys = {"CloseBtnBg"}})
 
@@ -181,8 +177,6 @@ local SIDEBAR_TABS = {
     {Name = "MAIN"},
     {Name = "TITAN"},
     {Name = "AUTO"},
-    {Name = "CHAT"},
-    {Name = "ONLINE"},
     {Name = "ANNOUNCE"},
     {Name = "CONFIG"},
 }
@@ -589,95 +583,78 @@ GUI.MakeSlider = MakeSlider
 GUI.MakeMultiSelect = MakeMultiSelect
 GUI.MakeDropdown = MakeDropdown
 
--- Утилита: обёртка раздела (LayoutOrder)
-local function SectionWrapper(parent, order)
-    local wrapper = New("Frame", {
-        Size = UDim2.new(1, 0, 0, 0),
-        BackgroundTransparency = 1,
-        AutomaticSize = Enum.AutomaticSize.Y,
-        LayoutOrder = order or 1,
-        ZIndex = 8,
-    }, parent)
-    New("UIListLayout", {
-        SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 4),
-    }, wrapper)
-    return wrapper
-end
-
 -- TAB 1: MAIN
 do
     local panel = tabPanels[1]
-    local wrap = SectionWrapper(panel, 1)
     local y = 0
-    y = MakeSectionLabel(wrap, "TITAN CONTROL", y)
-    y = MakeButton(wrap, "Find Nearest Titan", "Lock onto nearest available target", y, function()
+    y = MakeSectionLabel(panel, "TITAN CONTROL", y)
+    y = MakeButton(panel, "Find Nearest Titan", "Lock onto nearest available target", y, function()
         local t = Funcs.GetTitans()
         if #t == 0 then return end
         Funcs.StickToTitan(t[1])
     end)
-    y = MakeButton(wrap, "Safe Release", "Detach and boost", y, function()
+    y = MakeButton(panel, "Safe Release", "Detach and boost", y, function()
         Funcs.CleanupStick(true); Funcs.State.currentTarget = nil
     end)
-    y = MakeButton(wrap, "Force Reset", "Clear current state", y, function()
+    y = MakeButton(panel, "Force Reset", "Clear current state", y, function()
         Funcs.ForceResetState()
     end)
+    panel.CanvasSize = UDim2.new(0,0,0,y+20)
 end
 
 -- TAB 2: TITAN
 do
     local panel = tabPanels[2]
-    local wrap = SectionWrapper(panel, 1)
     local y = 0
-    y = MakeSectionLabel(wrap, "HITBOX", y)
-    y = MakeToggle(wrap, "Expand Hitbox", y, false, function(v)
+    y = MakeSectionLabel(panel, "HITBOX", y)
+    y = MakeToggle(panel, "Expand Hitbox", y, false, function(v)
         Settings.HitboxExpand = v
         if v then Funcs.ApplyHitboxToAll() else Funcs.ResetAllHitboxes() end
     end)
-    y = MakeSlider(wrap, "Size X", y, 50, 500, 300, " studs", function(v)
+    y = MakeSlider(panel, "Size X", y, 50, 500, 300, " studs", function(v)
         Settings.HitboxSize = Vector3.new(v, Settings.HitboxSize.Y, Settings.HitboxSize.Z)
         Funcs.ApplyHitboxToAll()
     end)
-    y = MakeSlider(wrap, "Size Y", y, 50, 500, 200, " studs", function(v)
+    y = MakeSlider(panel, "Size Y", y, 50, 500, 200, " studs", function(v)
         Settings.HitboxSize = Vector3.new(Settings.HitboxSize.X, v, Settings.HitboxSize.Z)
         Funcs.ApplyHitboxToAll()
     end)
-    y = MakeSlider(wrap, "Size Z", y, 50, 500, 300, " studs", function(v)
+    y = MakeSlider(panel, "Size Z", y, 50, 500, 300, " studs", function(v)
         Settings.HitboxSize = Vector3.new(Settings.HitboxSize.X, Settings.HitboxSize.Y, v)
         Funcs.ApplyHitboxToAll()
     end)
-    y = MakeMultiSelect(wrap, "TARGET PARTS", {"Nape","Eyes","LeftArm","LeftLeg","RightArm","RightLeg"}, y)
-    y = MakeDropdown(wrap, "Shape", {"Block","Ball","Cylinder"}, y, "Block", function(v)
+    y = MakeMultiSelect(panel, "TARGET PARTS", {"Nape","Eyes","LeftArm","LeftLeg","RightArm","RightLeg"}, y)
+    y = MakeDropdown(panel, "Shape", {"Block","Ball","Cylinder"}, y, "Block", function(v)
         Settings.HitboxShape = v
         Funcs.ApplyHitboxToAll()
     end)
-    y = MakeButton(wrap, "Reset Hitboxes", "Restore original", y, function()
+    y = MakeButton(panel, "Reset Hitboxes", "Restore original", y, function()
         Funcs.ResetAllHitboxes()
     end)
     y = y + 6
-    y = MakeSectionLabel(wrap, "ESP", y)
-    y = MakeToggle(wrap, "Titan + Refill ESP", y, false, function(v) Settings.ESP = v end)
-    y = MakeToggle(wrap, "Player ESP", y, false, function(v) Settings.PlayerESP = v end)
-    y = MakeToggle(wrap, "Shifter ESP", y, false, function(v) Settings.ShifterESP = v end)
+    y = MakeSectionLabel(panel, "ESP", y)
+    y = MakeToggle(panel, "Titan + Refill ESP", y, false, function(v) Settings.ESP = v end)
+    y = MakeToggle(panel, "Player ESP", y, false, function(v) Settings.PlayerESP = v end)
+    y = MakeToggle(panel, "Shifter ESP", y, false, function(v) Settings.ShifterESP = v end)
     y = y + 6
-    y = MakeSectionLabel(wrap, "MOVEMENT", y)
-    y = MakeToggle(wrap, "Noclip", y, false, function(v)
+    y = MakeSectionLabel(panel, "MOVEMENT", y)
+    y = MakeToggle(panel, "Noclip", y, false, function(v)
         Settings.Noclip = v
         if v then Funcs.StartNoclip() else Funcs.StopNoclip() end
     end)
-    y = MakeToggle(wrap, "FPS Booster", y, false, function(v)
+    y = MakeToggle(panel, "FPS Booster", y, false, function(v)
         Settings.FPSBoosterEnabled = v
         if v then Funcs.EnableFPSBooster() else Funcs.DisableFPSBooster() end
     end)
+    panel.CanvasSize = UDim2.new(0,0,0,y+20)
 end
 
 -- TAB 3: AUTO
 do
     local panel = tabPanels[3]
-    local wrap = SectionWrapper(panel, 1)
     local y = 0
-    y = MakeSectionLabel(wrap, "AUTO FARM", y)
-    y = MakeToggle(wrap, "Enable AutoFarm", y, false, function(v)
+    y = MakeSectionLabel(panel, "AUTO FARM", y)
+    y = MakeToggle(panel, "Enable AutoFarm", y, false, function(v)
         Settings.AutoFarmEnabled = v
         if v then
             if not Settings.HitboxExpand then Settings.HitboxExpand = true; Funcs.ApplyHitboxToAll() end
@@ -688,74 +665,36 @@ do
             Funcs.State.FarmState.CurrentTitan = nil
         end
     end)
-    y = MakeSectionLabel(wrap, "BLADE REFILL", y)
-    y = MakeButton(wrap, "TP to Refill", "Teleport to closest refill", y, function()
+    y = MakeSectionLabel(panel, "BLADE REFILL", y)
+    y = MakeButton(panel, "TP to Refill", "Teleport to closest refill", y, function()
         local r = Funcs.GetRefills()
         if #r == 0 then return end
         Funcs.TeleportToRefill(r[1])
     end)
-    y = MakeToggle(wrap, "Enable Auto Refill", y, false, function(v) Settings.AutoRefillEnabled = v end)
+    y = MakeToggle(panel, "Enable Auto Refill", y, false, function(v) Settings.AutoRefillEnabled = v end)
     y = y + 6
-    y = MakeSectionLabel(wrap, "AUTO HEAL", y)
-    y = MakeToggle(wrap, "Enable Auto Heal", y, false, function(v) Settings.AutoHealEnabled = v end)
-    y = MakeButton(wrap, "Heal Now", "Manual trigger", y, function() Funcs.TriggerAutoHeal() end)
+    y = MakeSectionLabel(panel, "AUTO HEAL", y)
+    y = MakeToggle(panel, "Enable Auto Heal", y, false, function(v) Settings.AutoHealEnabled = v end)
+    y = MakeButton(panel, "Heal Now", "Manual trigger", y, function() Funcs.TriggerAutoHeal() end)
     y = y + 6
-    y = MakeSectionLabel(wrap, "AUTO QUEST", y)
-    y = MakeToggle(wrap, "Enable Auto Quest", y, false, function(v) Settings.AutoQuestEnabled = v end)
+    y = MakeSectionLabel(panel, "AUTO QUEST", y)
+    y = MakeToggle(panel, "Enable Auto Quest", y, false, function(v) Settings.AutoQuestEnabled = v end)
     y = y + 6
-    y = MakeSectionLabel(wrap, "SETTINGS", y)
-    y = MakeSlider(wrap, "Orbit Speed", y, 100, 500, 300, " s/s", function(v) Settings.AutoFarmOrbitSpeed = v end)
-    y = MakeSlider(wrap, "Hover Height", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmHoverHeight = v end)
-    y = MakeSlider(wrap, "Orbit Radius", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmOrbitRadius = v end)
-    y = MakeSlider(wrap, "Safe Distance", y, 50, 200, 100, " studs", function(v) Settings.AutoFarmSafeDistance = v end)
+    y = MakeSectionLabel(panel, "SETTINGS", y)
+    y = MakeSlider(panel, "Orbit Speed", y, 100, 500, 300, " s/s", function(v) Settings.AutoFarmOrbitSpeed = v end)
+    y = MakeSlider(panel, "Hover Height", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmHoverHeight = v end)
+    y = MakeSlider(panel, "Orbit Radius", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmOrbitRadius = v end)
+    y = MakeSlider(panel, "Safe Distance", y, 50, 200, 100, " studs", function(v) Settings.AutoFarmSafeDistance = v end)
+    panel.CanvasSize = UDim2.new(0,0,0,y+20)
 end
 
--- TAB 4: CHAT
+-- TAB 4: ANNOUNCE (populated by 15_Announcements)
+GUI.AnnounceTabPanel = tabPanels[4]
+
+-- TAB 5: CONFIG
 do
-    local panel = tabPanels[4]
-    local wrap = SectionWrapper(panel, 1)
-    local y = 0
-    y = MakeSectionLabel(wrap, "VENTURE CHAT", y)
-    y = MakeButton(wrap, "Open Chat Window", "Global chat with all scripters", y, function()
-        local ChatWindow = _G.Venture.ChatWindow
-        if ChatWindow and ChatWindow.Toggle then
-            ChatWindow.Toggle()
-        end
-    end)
-    y = y + 6
-    y = MakeSectionLabel(wrap, "INFO", y)
-    New("TextLabel", {
-        Position = UDim2.new(0, 4, 0, y),
-        Size = UDim2.new(1, -8, 0, 120),
-        BackgroundTransparency = 1,
-        Text = "Chat opens as a separate window.\nClick the C button in the top bar\nor press Y to open it.\n\nAll messages are anonymous.\nYour name shows as DEV_xxx.",
-        TextColor3 = Theme.Get().SubText,
-        TextSize = 11,
-        Font = Enum.Font.Gotham,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Top,
-        TextWrapped = true,
-        ZIndex = 8,
-    }, wrap)
-    GUI.ChatTabPanel = panel
-end
-
--- TAB 5: ONLINE (populated by 13_OnlineTab)
-GUI.OnlineTabPanel = tabPanels[5]
-
--- TAB 6: ANNOUNCE (populated by 15_Announcements)
-GUI.AnnounceTabPanel = tabPanels[6]
-
--- TAB 7: CONFIG — 4 секции с нормальным скроллом
-do
-    local panel = tabPanels[7]
+    local panel = tabPanels[5]
     local T = Theme.Get()
-
-    -- Убираем дефолтный UIListLayout, если он есть (у нас MakePanel его добавил)
-    local defaultLayout = panel:FindFirstChildOfClass("UIListLayout")
-    if defaultLayout then
-        defaultLayout.Padding = UDim.new(0, 12)
-    end
 
     local function MakeSection(title, order)
         local sec = New("Frame", {
@@ -817,7 +756,9 @@ do
     GUI.KeybindTabPanel = MakeSection("KEYBINDS", 1)
     GUI.SecurityTabPanel = MakeSection("SECURITY", 2)
     GUI.ThemeTabPanel = MakeSection("THEME", 3)
-    GUI.DebugTabPanel = MakeSection("DEBUG", 4)
+    GUI.StreamerTabPanel = MakeSection("STREAMER MODE", 4)
+    GUI.DebugTabPanel = MakeSection("DEBUG", 5)
+    GUI.MiscTabPanel = MakeSection("MISC", 6)
 
     -- THEME
     do
@@ -827,6 +768,29 @@ do
         y = MakeButton(p, "Purple", "Neon purple theme", y, function() Theme.Apply("Purple", true) end)
         y = MakeButton(p, "Red", "Aggressive red theme", y, function() Theme.Apply("Red", true) end)
         y = MakeButton(p, "White", "Light minimalist theme", y, function() Theme.Apply("White", true) end)
+    end
+
+    -- MISC: Copy Discord + Anti-AFK toggle
+    do
+        local y = 0
+        local p = GUI.MiscTabPanel
+        y = MakeButton(p, "Copy Discord Link", "discord.gg/UHCwX78Npc", y, function()
+            if setclipboard then
+                setclipboard("discord.gg/UHCwX78Npc")
+                Utils.Notify("Copied", "Discord link copied", 3)
+            elseif toclipboard then
+                toclipboard("discord.gg/UHCwX78Npc")
+                Utils.Notify("Copied", "Discord link copied", 3)
+            else
+                Utils.Notify("No clipboard", "Copy manually: discord.gg/UHCwX78Npc", 5)
+            end
+        end)
+        y = MakeToggle(p, "Anti-AFK", y, false, function(v)
+            local AntiAFK = _G.Venture.AntiAFK
+            if AntiAFK then
+                if v then AntiAFK.Enable() else AntiAFK.Disable() end
+            end
+        end)
     end
 
     -- DEBUG
@@ -849,7 +813,7 @@ do
     end
 end
 
--- DRAG (перетаскивание за DragArea)
+-- DRAG
 do
     local dragging, dragStart, startPos = false, nil, nil
     DragArea.InputBegan:Connect(function(input)
@@ -945,13 +909,6 @@ end
 HideBtn.MouseButton1Click:Connect(GUI.HideToIcon)
 OpenBtn.MouseButton1Click:Connect(GUI.OpenFromIcon)
 
-ChatBtn.MouseButton1Click:Connect(function()
-    local ChatWindow = _G.Venture.ChatWindow
-    if ChatWindow and ChatWindow.Toggle then
-        ChatWindow.Toggle()
-    end
-end)
-
 CloseBtn.MouseButton1Click:Connect(function()
     Funcs.ResetAllHitboxes()
     Funcs.StopNoclip()
@@ -972,8 +929,6 @@ HideBtn.MouseEnter:Connect(function() Tween(HideBtn, 0.18, {BackgroundColor3 = C
 HideBtn.MouseLeave:Connect(function() Tween(HideBtn, 0.18, {BackgroundColor3 = Theme.Get().CloseBtnBg}); Tween(HideBtn, 0.18, {TextColor3 = Theme.Get().CloseBtnText}) end)
 OpenBtn.MouseEnter:Connect(function() Tween(OpenBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(35,32,55)}) end)
 OpenBtn.MouseLeave:Connect(function() Tween(OpenBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(20,22,36)}) end)
-ChatBtn.MouseEnter:Connect(function() Tween(ChatBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(60,32,90)}) end)
-ChatBtn.MouseLeave:Connect(function() Tween(ChatBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(40,22,60)}) end)
 SidebarToggle.MouseEnter:Connect(function() Tween(SidebarToggle, 0.18, {BackgroundColor3 = Color3.fromRGB(80,60,160)}) end)
 SidebarToggle.MouseLeave:Connect(function() Tween(SidebarToggle, 0.18, {BackgroundColor3 = Theme.Get().TabBgActive}) end)
 
