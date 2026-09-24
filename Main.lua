@@ -2,31 +2,42 @@ local REPO_USER = "icewinrage"
 local REPO_NAME = "Roblox"
 local REPO_BRANCH = "main"
 
+-- ============================================
+-- ANTI RE-INJECT
+-- ============================================
+if _G.VentureLoaded then
+    pcall(function()
+        game:GetService("StarterGui"):SetCore("SendNotification", {
+            Title = "Venture AOT",
+            Text = "Already injected! Close old instance first.",
+            Duration = 6,
+        })
+    end)
+    local pg = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
+    local existing = pg and pg:FindFirstChild("VentureAOT_GUI")
+    local existingFluent = pg and pg:FindFirstChild("Venture_FluentUI")
+    if existing or existingFluent then
+        warn("[Venture] Script already running. Aborting re-inject.")
+        return
+    else
+        _G.VentureLoaded = false
+    end
+end
+_G.VentureLoaded = true
+
+local START_TIME = tick()
+
 local BASE_URL = string.format(
     "https://raw.githubusercontent.com/%s/%s/%s/",
     REPO_USER, REPO_NAME, REPO_BRANCH
 )
 
-local START_TIME = tick()
-
-local MODULES = {
-    "00_CursorBoot",
-    "01_Shared",
-    "02_Config",
-    "03_Utils",
-    "04_Theme",
-    "05_Functions",
-    "06_GUI",
-    "07_Keybinds",
-    "08_Security",
-    "09_Supabase",
-    "11_Cursor",
-    "12_AntiMod",
-    "13_OnlineTab",
-    "15_Announcements",
-    "17_Streamer",
-    "18_AntiAFK",
-    "10_Init",
+-- Слои загрузки (параллельно внутри слоя, слои по порядку)
+local LAYERS = {
+    {"00_CursorBoot", "01_Shared", "02_Config", "03_Utils", "04_Theme"},
+    {"05_Functions", "07_Keybinds", "08_Security", "11_Cursor", "17_Streamer", "18_AntiAFK", "19_FluentUI"},
+    {"06_GUI", "09_Supabase", "13_OnlineTab", "15_Announcements"},
+    {"10_Init"},
 }
 
 local AUTO_EXEC_CODE = [[
@@ -34,9 +45,6 @@ local AUTO_EXEC_CODE = [[
     loadstring(game:HttpGet("https://raw.githubusercontent.com/]] .. REPO_USER .. [[/]] .. REPO_NAME .. [[/]] .. REPO_BRANCH .. [[/Main.lua"))()
 ]]
 
--- ============================================
--- AUTO EXEC (queue_on_teleport для всех экзекьюторов)
--- ============================================
 local function RegisterQueue()
     if syn and syn.queue_on_teleport then
         pcall(function() syn.queue_on_teleport(AUTO_EXEC_CODE) end)
@@ -53,19 +61,13 @@ local function RegisterQueue()
     if SX and SX.queue_on_teleport then
         pcall(function() SX.queue_on_teleport(AUTO_EXEC_CODE) end)
     end
-    if secure_call then
-        pcall(function() secure_call(queue_on_teleport, AUTO_EXEC_CODE) end)
-    end
 end
 
 RegisterQueue()
 
--- ПЕРЕРЕГИСТРАЦИЯ перед каждым телепортом
-local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- Периодически перерегистрируем (если Roblox сбрасывает)
 task.spawn(function()
     while true do
         task.wait(30)
@@ -73,31 +75,6 @@ task.spawn(function()
     end
 end)
 
--- Autoexec функция (запись в autoexec-папку если поддерживается)
-local function TryInstallAutoExec()
-    local possiblePaths = {
-        "autoexec/Main.lua",
-        "autoexec/main.lua",
-        "workspace/autoexec/Main.lua",
-    }
-
-    for _, path in ipairs(possiblePaths) do
-        if writefile then
-            local ok = pcall(function()
-                writefile(path, AUTO_EXEC_CODE)
-            end)
-            if ok then
-                print("[Venture] AutoExec installed: " .. path)
-                return true
-            end
-        end
-    end
-    return false
-end
-
--- ============================================
--- HTTP
--- ============================================
 _G.Venture = _G.Venture or {}
 
 local function httpGet(url)
@@ -147,12 +124,43 @@ local function loadModule(name)
     return result
 end
 
-for _, name in ipairs(MODULES) do
-    pcall(loadModule, name)
-    task.wait(0.05)
+-- ============================================
+-- LAYERED PARALLEL LOADING
+-- ============================================
+local totalModules = 0
+for _, layer in ipairs(LAYERS) do
+    totalModules = totalModules + #layer
 end
 
-task.wait(0.3)
+local loadedCount = 0
+local loadStart = tick()
+
+for layerIndex, layer in ipairs(LAYERS) do
+    local layerDone = 0
+    local layerTotal = #layer
+
+    for _, name in ipairs(layer) do
+        task.spawn(function()
+            pcall(loadModule, name)
+            layerDone = layerDone + 1
+            loadedCount = loadedCount + 1
+        end)
+    end
+
+    -- Ждём завершения слоя (макс 5 сек на слой)
+    local layerWaitStart = tick()
+    while layerDone < layerTotal and tick() - layerWaitStart < 5 do
+        task.wait(0.02)
+    end
+
+    local layerTime = tick() - loadStart
+    print(string.format("[Venture] Layer %d (%d modules) loaded in %.2fs", layerIndex, layerTotal, layerTime))
+end
+
+local totalLoadTime = tick() - loadStart
+print(string.format("[Venture] All %d modules loaded in %.2fs", loadedCount, totalLoadTime))
+
+task.wait(0.1)
 
 local Init = _G.Venture.Init
 if Init and Init.Run then
@@ -165,7 +173,7 @@ end
 -- ============================================
 -- SUCCESS NOTIFICATION
 -- ============================================
-task.wait(0.3)
+task.wait(0.2)
 
 local LOAD_TIME = tick() - START_TIME
 local timeStr = string.format("%.2f", LOAD_TIME)
@@ -264,49 +272,5 @@ task.spawn(function()
     hideTween.Completed:Wait()
     gui:Destroy()
 end)
-
--- ============================================
--- FIX REJOIN — перерегистрация перед телепортом
--- ============================================
--- Патчим TeleportService, чтобы при любом телепорте
--- скрипт гарантированно перезапустился
-local oldTeleport = TeleportService.Teleport
-local oldTeleportToPlaceInstance = TeleportService.TeleportToPlaceInstance
-
-if not getgenv or not getgenv().Venture_TeleportPatched then
-    if getgenv then getgenv().Venture_TeleportPatched = true end
-
-    -- Перехватываем через hookfunction если есть
-    if hookfunction and oldTeleport then
-        pcall(function()
-            local newTeleport = hookfunction(oldTeleport, function(...)
-                pcall(RegisterQueue)
-                task.wait(0.1)
-                return oldTeleport(...)
-            end)
-        end)
-    end
-
-    if hookfunction and oldTeleportToPlaceInstance then
-        pcall(function()
-            local newTP = hookfunction(oldTeleportToPlaceInstance, function(...)
-                pcall(RegisterQueue)
-                task.wait(0.1)
-                return oldTeleportToPlaceInstance(...)
-            end)
-        end)
-    end
-end
-
--- Метод через game:GetService — на случай если hookfunction нет
-if not getgenv or not getgenv().Venture_ServicePatched then
-    if getgenv then getgenv().Venture_ServicePatched = true end
-    -- Перерегистрируем queue на каждый PlayerRemoving (обычно это происходит при телепорте)
-    Players.PlayerRemoving:Connect(function(pl)
-        if pl == LocalPlayer then
-            pcall(RegisterQueue)
-        end
-    end)
-end
 
 print("[Venture] Main loaded in " .. timeStr .. "s")
