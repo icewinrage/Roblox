@@ -116,8 +116,8 @@ local HeaderDivider = New("Frame", {
 }, Header)
 Theme.Register("Misc", {Obj = HeaderDivider, Keys = {"Accent"}})
 
-local Title = New("TextLabel", {Position = UDim2.new(0,60,0,18), Size = UDim2.new(1,-160,0,24), BackgroundTransparency = 1, Text = "VENTURE  AOT", TextColor3 = Color3.fromRGB(248,247,255), TextSize = 18, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
-local Subtitle = New("TextLabel", {Position = UDim2.new(0,60,0,38), Size = UDim2.new(1,-160,0,14), BackgroundTransparency = 1, Text = "by __TheDark  |  v1.5", TextColor3 = Color3.fromRGB(153,157,178), TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
+local Title = New("TextLabel", {Position = UDim2.new(0,60,0,18), Size = UDim2.new(1,-140,0,24), BackgroundTransparency = 1, Text = "VENTURE  AOT", TextColor3 = Color3.fromRGB(248,247,255), TextSize = 18, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
+local Subtitle = New("TextLabel", {Position = UDim2.new(0,60,0,38), Size = UDim2.new(1,-140,0,14), BackgroundTransparency = 1, Text = "by __TheDark  |  v1.5", TextColor3 = Color3.fromRGB(153,157,178), TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
 GUI.Title = Title
 GUI.Subtitle = Subtitle
 Theme.Register("Misc", {Obj = Title, Keys = {"TitleText"}})
@@ -129,7 +129,6 @@ New("UICorner", {CornerRadius = UDim.new(0,10)}, CloseBtn)
 local HideBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-56,0,14), Size = UDim2.fromOffset(32,32), BackgroundColor3 = Color3.fromRGB(28,30,44), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "_", TextColor3 = Color3.fromRGB(185,187,205), TextSize = 18, Font = Enum.Font.GothamBold, ZIndex = 10}, Header)
 New("UICorner", {CornerRadius = UDim.new(0,10)}, HideBtn)
 
--- Drag area
 local DragArea = New("TextButton", {
     Position = UDim2.new(0, 56, 0, 0),
     Size = UDim2.new(1, -140, 0, 58),
@@ -599,7 +598,6 @@ do
     y = MakeButton(panel, "Force Reset", "Clear current state", y, function()
         Funcs.ForceResetState()
     end)
-    panel.CanvasSize = UDim2.new(0,0,0,y+20)
 end
 
 -- TAB 2: TITAN
@@ -646,7 +644,6 @@ do
         Settings.FPSBoosterEnabled = v
         if v then Funcs.EnableFPSBooster() else Funcs.DisableFPSBooster() end
     end)
-    panel.CanvasSize = UDim2.new(0,0,0,y+20)
 end
 
 -- TAB 3: AUTO
@@ -685,7 +682,6 @@ do
     y = MakeSlider(panel, "Hover Height", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmHoverHeight = v end)
     y = MakeSlider(panel, "Orbit Radius", y, 30, 150, 80, " studs", function(v) Settings.AutoFarmOrbitRadius = v end)
     y = MakeSlider(panel, "Safe Distance", y, 50, 200, 100, " studs", function(v) Settings.AutoFarmSafeDistance = v end)
-    panel.CanvasSize = UDim2.new(0,0,0,y+20)
 end
 
 -- TAB 4: ANNOUNCE (populated by 15_Announcements)
@@ -723,7 +719,7 @@ do
         }, inner)
         New("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
-            Padding = UDim.new(0, 6),
+            Padding = UDim.new(0, 8),
         }, inner)
 
         New("TextLabel", {
@@ -747,7 +743,7 @@ do
         }, inner)
         New("UIListLayout", {
             SortOrder = Enum.SortOrder.LayoutOrder,
-            Padding = UDim.new(0, 4),
+            Padding = UDim.new(0, 6),
         }, body)
 
         return body
@@ -757,8 +753,8 @@ do
     GUI.SecurityTabPanel = MakeSection("SECURITY", 2)
     GUI.ThemeTabPanel = MakeSection("THEME", 3)
     GUI.StreamerTabPanel = MakeSection("STREAMER MODE", 4)
-    GUI.DebugTabPanel = MakeSection("DEBUG", 5)
-    GUI.MiscTabPanel = MakeSection("MISC", 6)
+    GUI.MiscTabPanel = MakeSection("MISC", 5)
+    GUI.DebugTabPanel = MakeSection("DEBUG", 6)
 
     -- THEME
     do
@@ -770,10 +766,21 @@ do
         y = MakeButton(p, "White", "Light minimalist theme", y, function() Theme.Apply("White", true) end)
     end
 
-    -- MISC: Copy Discord + Anti-AFK toggle
+    -- MISC
     do
         local y = 0
         local p = GUI.MiscTabPanel
+
+        y = MakeSectionLabel(p, "INTERFACE STYLE", y)
+        y = MakeButton(p, "Venture Classic", "Default interface", y, function()
+            GUI.SwitchInterface("classic")
+        end)
+        y = MakeButton(p, "Fluent UI", "Alternative interface", y, function()
+            GUI.SwitchInterface("fluent")
+        end)
+
+        y = y + 6
+        y = MakeSectionLabel(p, "LINKS", y)
         y = MakeButton(p, "Copy Discord Link", "discord.gg/UHCwX78Npc", y, function()
             if setclipboard then
                 setclipboard("discord.gg/UHCwX78Npc")
@@ -782,14 +789,21 @@ do
                 toclipboard("discord.gg/UHCwX78Npc")
                 Utils.Notify("Copied", "Discord link copied", 3)
             else
-                Utils.Notify("No clipboard", "Copy manually: discord.gg/UHCwX78Npc", 5)
+                Utils.Notify("No clipboard", "discord.gg/UHCwX78Npc", 5)
             end
         end)
-        y = MakeToggle(p, "Anti-AFK", y, false, function(v)
+
+        y = y + 6
+        y = MakeSectionLabel(p, "ANTI-AFK", y)
+        y = MakeToggle(p, "Enable Anti-AFK", y, false, function(v)
             local AntiAFK = _G.Venture.AntiAFK
             if AntiAFK then
                 if v then AntiAFK.Enable() else AntiAFK.Disable() end
             end
+        end)
+        y = MakeDropdown(p, "Anti-AFK Mode", {"Jump", "Move", "Both"}, y, "Jump", function(v)
+            local AntiAFK = _G.Venture.AntiAFK
+            if AntiAFK then AntiAFK.Mode = v end
         end)
     end
 
@@ -811,6 +825,32 @@ do
             print("Executor:", GUI.ExecutorName)
         end)
     end
+end
+
+-- SWITCH INTERFACE
+function GUI.SwitchInterface(mode)
+    Config.Settings.Interface = mode
+
+    if writefile then
+        pcall(function()
+            writefile("VentureAOT_Interface.json",
+                game:GetService("HttpService"):JSONEncode({Interface = mode}))
+        end)
+    end
+
+    local FluentUI = _G.Venture.FluentUI
+
+    if mode == "fluent" then
+        if GUI.ScreenGui then GUI.ScreenGui.Enabled = false end
+        if GUI.KeybindListGui then GUI.KeybindListGui.Enabled = false end
+        if FluentUI then FluentUI.Build() end
+    else
+        if GUI.ScreenGui then GUI.ScreenGui.Enabled = true end
+        if GUI.KeybindListGui then GUI.KeybindListGui.Enabled = true end
+        if FluentUI then FluentUI.Destroy() end
+    end
+
+    Utils.Notify("Interface", "Switched to: " .. mode, 3)
 end
 
 -- DRAG
@@ -881,8 +921,7 @@ GUI.HideToIcon = function()
     Tween(MainStroke, 0.35, {Transparency = 1})
     task.delay(0.4, function()
         Main.Visible = false
-        OpenBtn.Visible = true
-        OpenBtn.BackgroundTransparency = 1
+        OpenBtn.Visible = true        OpenBtn.BackgroundTransparency = 1
         OpenBtn.TextTransparency = 1
         Tween(OpenBtn, 0.35, {BackgroundTransparency = 0.1, TextTransparency = 0}, Enum.EasingStyle.Back)
     end)
@@ -920,6 +959,7 @@ CloseBtn.MouseButton1Click:Connect(function()
     task.wait(0.6)
     ScreenGui:Destroy()
     KeybindListGui:Destroy()
+    _G.VentureLoaded = false
     if not UserInputService.TouchEnabled then UserInputService.MouseIconEnabled = true end
 end)
 
