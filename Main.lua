@@ -32,12 +32,26 @@ local BASE_URL = string.format(
     REPO_USER, REPO_NAME, REPO_BRANCH
 )
 
--- Слои загрузки (параллельно внутри слоя, слои по порядку)
-local LAYERS = {
-    {"00_CursorBoot", "01_Shared", "02_Config", "03_Utils", "04_Theme"},
-    {"05_Functions", "07_Keybinds", "08_Security", "11_Cursor", "17_Streamer", "18_AntiAFK", "19_FluentUI"},
-    {"06_GUI", "09_Supabase", "13_OnlineTab", "15_Announcements"},
-    {"10_Init"},
+-- Последовательный список модулей (важен порядок!)
+local MODULES = {
+    "00_CursorBoot",
+    "01_Shared",
+    "02_Config",
+    "03_Utils",
+    "04_Theme",
+    "05_Functions",
+    "06_GUI",
+    "07_Keybinds",
+    "08_Security",
+    "09_Supabase",
+    "11_Cursor",
+    "12_AntiMod",
+    "13_OnlineTab",
+    "15_Announcements",
+    "17_Streamer",
+    "18_AntiAFK",
+    "19_FluentUI",
+    "10_Init",
 }
 
 local AUTO_EXEC_CODE = [[
@@ -77,6 +91,9 @@ end)
 
 _G.Venture = _G.Venture or {}
 
+-- ============================================
+-- HTTP GET
+-- ============================================
 local function httpGet(url)
     if syn and syn.request then
         local ok, res = pcall(syn.request, {Url = url, Method = "GET"})
@@ -97,64 +114,48 @@ local function httpGet(url)
     return nil
 end
 
+-- ============================================
+-- LOAD MODULE
+-- ============================================
 local function loadModule(name)
     local url = BASE_URL .. name .. ".lua"
     local code = httpGet(url)
     if not code or #code == 0 then
         warn("[Venture] Failed to fetch: " .. name)
-        return nil
+        return false
     end
     if #code < 60 and code:lower():find("404") then
         warn("[Venture] Module not found: " .. name)
-        return nil
+        return false
     end
 
     local fn, err = loadstring(code, "@" .. name)
     if not fn then
         warn("[Venture] Syntax error in " .. name .. ": " .. tostring(err))
-        return nil
+        return false
     end
 
     local ok, result = pcall(fn)
     if not ok then
         warn("[Venture] Runtime error in " .. name .. ": " .. tostring(result))
-        return nil
+        return false
     end
 
-    return result
+    return true
 end
 
 -- ============================================
--- LAYERED PARALLEL LOADING
+-- SEQUENTIAL LOADING (стабильная)
 -- ============================================
-local totalModules = 0
-for _, layer in ipairs(LAYERS) do
-    totalModules = totalModules + #layer
-end
-
 local loadedCount = 0
 local loadStart = tick()
 
-for layerIndex, layer in ipairs(LAYERS) do
-    local layerDone = 0
-    local layerTotal = #layer
-
-    for _, name in ipairs(layer) do
-        task.spawn(function()
-            pcall(loadModule, name)
-            layerDone = layerDone + 1
-            loadedCount = loadedCount + 1
-        end)
-    end
-
-    -- Ждём завершения слоя (макс 5 сек на слой)
-    local layerWaitStart = tick()
-    while layerDone < layerTotal and tick() - layerWaitStart < 5 do
-        task.wait(0.02)
-    end
-
-    local layerTime = tick() - loadStart
-    print(string.format("[Venture] Layer %d (%d modules) loaded in %.2fs", layerIndex, layerTotal, layerTime))
+for _, name in ipairs(MODULES) do
+    local before = tick()
+    local ok = pcall(loadModule, name)
+    local took = tick() - before
+    loadedCount = loadedCount + 1
+    print(string.format("[Venture] %s (%d/%d) - %.2fs", name, loadedCount, #MODULES, took))
 end
 
 local totalLoadTime = tick() - loadStart
@@ -162,12 +163,17 @@ print(string.format("[Venture] All %d modules loaded in %.2fs", loadedCount, tot
 
 task.wait(0.1)
 
+-- ============================================
+-- INIT
+-- ============================================
 local Init = _G.Venture.Init
 if Init and Init.Run then
     local ok, err = pcall(Init.Run)
     if not ok then
         warn("[Venture] Init.Run failed: " .. tostring(err))
     end
+else
+    warn("[Venture] Init module missing!")
 end
 
 -- ============================================
