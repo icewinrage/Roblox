@@ -14,8 +14,13 @@ FluentUI.Library = nil
 FluentUI.Window = nil
 FluentUI.Loaded = false
 
--- ОРИГИНАЛЬНЫЙ FLUENT (живой репозиторий)
-local LIB_URL = "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"
+-- Мульти-URL fallback (если один не работает — пробуем следующий)
+local LIB_URLS = {
+    "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua",
+    "https://cdn.jsdelivr.net/gh/dawid-scripts/Fluent@master/main.lua",
+    "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/main.lua",
+    "https://cdn.jsdelivr.net/gh/dawid-scripts/Fluent@master/Release.lua",
+}
 
 local function httpGet(url)
     if syn and syn.request then
@@ -40,13 +45,21 @@ end
 function FluentUI.LoadLibrary()
     if FluentUI.Library then return FluentUI.Library end
 
-    local code = httpGet(LIB_URL)
-    if not code or #code == 0 then
-        Notify("Fluent UI", "Failed to fetch library", 5)
-        return nil
+    local code = nil
+    local usedUrl = nil
+
+    for _, url in ipairs(LIB_URLS) do
+        local fetched = httpGet(url)
+        if fetched and #fetched > 1000 then
+            code = fetched
+            usedUrl = url
+            print("[Fluent] Loaded from: " .. url .. " (" .. #fetched .. " bytes)")
+            break
+        end
     end
-    if #code < 200 then
-        Notify("Fluent UI", "Library too small: " .. #code .. " bytes", 5)
+
+    if not code then
+        Notify("Fluent UI", "All library URLs failed", 5)
         return nil
     end
 
@@ -69,17 +82,17 @@ end
 function FluentUI.Build()
     if FluentUI.Loaded then return end
 
-    local Lib = FluentUI.LoadLibrary()
-    if not Lib then return end
+    local Fluent = FluentUI.LoadLibrary()
+    if not Fluent then return end
 
     local Settings = Config.Settings
 
-    local Window = Lib:CreateWindow({
+    local Window = Fluent:CreateWindow({
         Title = "Venture AOT",
         SubTitle = "v1.5 | by __TheDark",
         TabWidth = 160,
         Size = UDim2.fromOffset(580, 460),
-        Acrylic = true,
+        Acrylic = false,
         Theme = "Dark",
         MinimizeKey = Enum.KeyCode.LeftControl,
     })
@@ -95,6 +108,7 @@ function FluentUI.Build()
 
     -- ===== MAIN =====
     local MainGroup = Tabs.Main:AddGroup("Titan Control")
+
     MainGroup:AddButton({
         Title = "Find Nearest Titan",
         Description = "Lock onto nearest target",
@@ -119,6 +133,7 @@ function FluentUI.Build()
 
     -- ===== TITAN =====
     local HitboxGroup = Tabs.Titan:AddGroup("Hitbox Expander")
+
     HitboxGroup:AddToggle("HitboxExpand", {
         Title = "Expand Hitbox",
         Default = Settings.HitboxExpand,
@@ -187,6 +202,7 @@ function FluentUI.Build()
 
     -- ===== AUTO =====
     local AutoGroup = Tabs.Auto:AddGroup("AutoFarm")
+
     AutoGroup:AddToggle("AutoFarm", {
         Title = "Enable AutoFarm",
         Default = Settings.AutoFarmEnabled,
@@ -213,13 +229,13 @@ function FluentUI.Build()
     AutoGroup:AddSlider("OrbitSpeed", {
         Title = "Orbit Speed",
         Default = Settings.AutoFarmOrbitSpeed,
-        Min = 100, Max = 500,
+        Min = 100, Max = 500, Rounding = 0,
         Callback = function(v) Settings.AutoFarmOrbitSpeed = v end,
     })
     AutoGroup:AddSlider("HoverHeight", {
         Title = "Hover Height",
         Default = Settings.AutoFarmHoverHeight,
-        Min = 30, Max = 150,
+        Min = 30, Max = 150, Rounding = 0,
         Callback = function(v) Settings.AutoFarmHoverHeight = v end,
     })
 
@@ -240,6 +256,7 @@ function FluentUI.Build()
     -- ===== STREAMER =====
     local Streamer = _G.Venture.Streamer
     local SGroup = Tabs.Streamer:AddGroup("Streamer Mode")
+
     SGroup:AddToggle("StreamerMode", {
         Title = "Enable Streamer Mode",
         Default = Streamer and Streamer.Enabled or false,
@@ -264,6 +281,7 @@ function FluentUI.Build()
     SGroup:AddInput("FakeXP", {
         Title = "Fake XP",
         Default = tostring(Streamer and Streamer.FakeXP or 1000000),
+        Numeric = true,
         Callback = function(text)
             if Streamer then
                 Streamer.FakeXP = tonumber(text) or 1000000
@@ -274,6 +292,7 @@ function FluentUI.Build()
     SGroup:AddInput("FakeLevel", {
         Title = "Fake Level",
         Default = tostring(Streamer and Streamer.FakeLevel or 1000),
+        Numeric = true,
         Callback = function(text)
             if Streamer then
                 Streamer.FakeLevel = tonumber(text) or 1000
@@ -284,6 +303,7 @@ function FluentUI.Build()
     SGroup:AddInput("FakeMoney", {
         Title = "Fake Money",
         Default = tostring(Streamer and Streamer.FakeMoney or 1000000),
+        Numeric = true,
         Callback = function(text)
             if Streamer then
                 Streamer.FakeMoney = tonumber(text) or 1000000
@@ -309,6 +329,7 @@ function FluentUI.Build()
         Title = "Theme",
         Values = {"Dark", "Purple", "Red", "White"},
         Default = Settings.Theme,
+        Multi = false,
         Callback = function(v)
             Settings.Theme = v
             if Theme then Theme.Apply(v, true) end
@@ -317,6 +338,7 @@ function FluentUI.Build()
 
     local AFKGroup = Tabs.Misc:AddGroup("Anti-AFK")
     local AntiAFK = _G.Venture.AntiAFK
+
     AFKGroup:AddToggle("AntiAFK", {
         Title = "Enable Anti-AFK",
         Default = AntiAFK and AntiAFK.Enabled or false,
@@ -330,6 +352,7 @@ function FluentUI.Build()
         Title = "Mode",
         Values = {"Jump", "Move", "Both"},
         Default = AntiAFK and AntiAFK.Mode or "Jump",
+        Multi = false,
         Callback = function(v)
             if AntiAFK then AntiAFK.Mode = v end
         end,
@@ -378,13 +401,19 @@ function FluentUI.Build()
     })
 
     FluentUI.Loaded = true
-    Notify("Fluent UI", "Interface loaded!", 4)
+    Fluent:Notify({
+        Title = "Fluent UI",
+        Content = "Interface loaded!",
+        Duration = 4,
+    })
 end
 
 function FluentUI.Destroy()
     if FluentUI.Window then
         pcall(function()
-            FluentUI.Window:Destroy()
+            if FluentUI.Library and FluentUI.Library.Unload then
+                FluentUI.Library:Unload()
+            end
         end)
         FluentUI.Window = nil
     end
@@ -400,6 +429,7 @@ function FluentUI.Toggle()
 end
 
 function FluentUI.Init()
+    -- Не запускаем автоматически
 end
 
 _G.Venture = _G.Venture or {}
