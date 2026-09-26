@@ -13,10 +13,9 @@ local FluentUI = {}
 FluentUI.Library = nil
 FluentUI.Window = nil
 FluentUI.Loaded = false
-FluentUI.Tabs = {}
 
--- ОРИГИНАЛЬНЫЙ FLUENT от dawid-scripts
-local LIB_URL = "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Release.lua"
+-- ОРИГИНАЛЬНЫЙ FLUENT (живой репозиторий)
+local LIB_URL = "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"
 
 local function httpGet(url)
     if syn and syn.request then
@@ -43,7 +42,7 @@ function FluentUI.LoadLibrary()
 
     local code = httpGet(LIB_URL)
     if not code or #code == 0 then
-        Notify("Fluent UI", "Failed to fetch library (size=0)", 5)
+        Notify("Fluent UI", "Failed to fetch library", 5)
         return nil
     end
     if #code < 200 then
@@ -75,13 +74,13 @@ function FluentUI.Build()
 
     local Settings = Config.Settings
 
-    local Window = Lib:Window({
+    local Window = Lib:CreateWindow({
         Title = "Venture AOT",
         SubTitle = "v1.5 | by __TheDark",
         TabWidth = 160,
         Size = UDim2.fromOffset(580, 460),
-        Theme = "Dark",
         Acrylic = true,
+        Theme = "Dark",
         MinimizeKey = Enum.KeyCode.LeftControl,
     })
     FluentUI.Window = Window
@@ -93,7 +92,6 @@ function FluentUI.Build()
         Streamer = Window:AddTab({ Title = "Streamer", Icon = "eye-off" }),
         Misc = Window:AddTab({ Title = "Misc", Icon = "settings" }),
     }
-    FluentUI.Tabs = Tabs
 
     -- ===== MAIN =====
     local MainGroup = Tabs.Main:AddGroup("Titan Control")
@@ -402,7 +400,6 @@ function FluentUI.Toggle()
 end
 
 function FluentUI.Init()
-    -- Не запускаем автоматически
 end
 
 _G.Venture = _G.Venture or {}
