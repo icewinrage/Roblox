@@ -1,27 +1,3 @@
---[[
-    ═══════════════════════════════════════════════════════════════════════════
-    VENTURE AOT v3.0 — Universal GUI Engine (GUI1.lua)
-    ═══════════════════════════════════════════════════════════════════════════
-    Автор: Data Hub Team
-    Совместимость: Xeno / Delta / Solara / Wave / Arceus X / Codex / Oxygen /
-                   Krnl / Fluxus / Synapse / SirHurt / Hydrogen / AWP
-    Возможности:
-        • 5 тем + кастомный акцент
-        • Mobile-friendly (touch + scale)
-        • Поиск по настройкам
-        • Тултипы при наведении
-        • Watermark (FPS / Ping / Time / Executor)
-        • Множество конфигов (Save/Load/Delete)
-        • Keybind-система (GUI toggle + функции)
-        • Уведомления с иконками
-        • Плавные анимации (TweenService)
-        • Без внешних зависимостей
-    ═══════════════════════════════════════════════════════════════════════════
---]]
-
--- ═══════════════════════════════════════════════════════════════
--- SERVICES
--- ═══════════════════════════════════════════════════════════════
 local Players          = game:GetService("Players")
 local RunService       = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -33,9 +9,6 @@ local LocalPlayer      = Players.LocalPlayer
 local PlayerGui        = LocalPlayer:WaitForChild("PlayerGui")
 local Camera           = workspace.CurrentCamera
 
--- ═══════════════════════════════════════════════════════════════
--- GLOBAL HOOK
--- ═══════════════════════════════════════════════════════════════
 _G.Venture = _G.Venture or {}
 local F = _G.Venture.F or { Settings = {}, State = {} }
 local S = F.Settings or {}
