@@ -28,8 +28,9 @@ local CONFIG = {
 
     -- Файлы (порядок загрузки важен)
     MODULES = {
-        { name = "Functions", file = "Functions.lua", required = true  },
-        { name = "GUI1",      file = "GUI1.lua",      required = true  },
+        { name = "Functions", file = "Functions.lua", required = true },
+        { name = "GUI1",      file = "GUI1.lua",      required = true },
+        { name = "GUI2",      file = "GUI2.lua",      required = true },
     },
 
     -- Place ID (false = запуск на любом месте)
