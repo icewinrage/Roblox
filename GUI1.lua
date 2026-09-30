@@ -1,3 +1,21 @@
+-- Venture AOT v3.0 - Universal GUI Engine (GUI1.lua)
+-- Author: Data Hub Team
+-- Compatible: Xeno / Delta / Solara / Wave / Arceus X / Codex / Oxygen /
+--             Krnl / Fluxus / Synapse / SirHurt / Hydrogen / AWP
+-- Features:
+--   - 5 themes + custom accent
+--   - Mobile friendly (touch + scale)
+--   - Search, tooltips
+--   - Watermark (FPS / Ping / Time / Executor)
+--   - Multiple configs (Save / Load / Delete)
+--   - Keybind system
+--   - Notifications with icons
+--   - Smooth animations (TweenService)
+--   - No external dependencies
+
+-- ===============================================================
+-- SERVICES
+-- ===============================================================
 local Players          = game:GetService("Players")
 local RunService       = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -9,14 +27,17 @@ local LocalPlayer      = Players.LocalPlayer
 local PlayerGui        = LocalPlayer:WaitForChild("PlayerGui")
 local Camera           = workspace.CurrentCamera
 
+-- ===============================================================
+-- GLOBAL HOOK
+-- ===============================================================
 _G.Venture = _G.Venture or {}
 local F = _G.Venture.F or { Settings = {}, State = {} }
 local S = F.Settings or {}
 _G.Venture.F = F
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- UTILS
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 local UI = {}
 UI.__index = UI
 
@@ -73,9 +94,9 @@ local function IsSafeExecutor()
     return pcall(function() return game:GetService("CoreGui").Name end)
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- THEMES
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 local Themes = {
     Dark = {
         Background = Color3.fromRGB(14, 14, 20),
@@ -144,9 +165,9 @@ local Themes = {
     },
 }
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- CONFIG
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 local CONFIG_FOLDER = "VentureAOT_Configs"
 local Config = {
     Theme = "Dark",
@@ -219,14 +240,14 @@ end
 
 LoadConfig("default")
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- THEME STATE
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 local CurrentTheme = Themes[Config.Theme] or Themes.Dark
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- LIBRARY OBJECT
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 local Library = {
     Theme = CurrentTheme,
     Themes = Themes,
@@ -269,15 +290,15 @@ function Library:RefreshTheme()
     end
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- NOTIFICATION SYSTEM
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 function Library:Notify(opts)
     opts = opts or {}
     local title = opts.Title or "Venture"
     local text  = opts.Content or opts.Text or ""
     local dur   = opts.Duration or 4
-    local kind  = opts.Type or "info" -- info | success | warning | danger
+    local kind  = opts.Type or "info"
 
     local accent = self.Theme.Accent
     if kind == "success" then accent = self.Theme.Success
@@ -297,7 +318,6 @@ function Library:Notify(opts)
     Round(n, 10)
     Stroke(n, accent, 1.5, 0.2)
 
-    -- Accent bar
     local bar = New("Frame", {
         Size = UDim2.new(0, 4, 1, 0),
         BackgroundColor3 = accent,
@@ -306,15 +326,14 @@ function Library:Notify(opts)
     })
     Round(bar, 10)
 
-    -- Icon
     local icon = New("TextLabel", {
         Size = UDim2.new(0, 22, 0, 22),
         Position = UDim2.new(0, 14, 0, 12),
         BackgroundTransparency = 1,
-        Text = kind == "success" and "✓"
+        Text = kind == "success" and "+"
             or kind == "warning" and "!"
-            or kind == "danger" and "✕"
-            or "ℹ",
+            or kind == "danger" and "x"
+            or "i",
         TextColor3 = accent,
         TextSize = 18,
         Font = Enum.Font.GothamBold,
@@ -367,16 +386,16 @@ function Library:Notify(opts)
     end)
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- TOOLTIP
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 local function AttachTooltip(element, text)
     if not text or text == "" then return end
     local tooltip
     element.MouseEnter:Connect(function()
         if tooltip then return end
         local isMobile = IsMobile()
-        if isMobile then return end -- tooltip on mobile is annoying
+        if isMobile then return end
         tooltip = New("TextLabel", {
             Size = UDim2.new(0, 0, 0, 24),
             AutomaticSize = Enum.AutomaticSize.X,
@@ -400,9 +419,9 @@ local function AttachTooltip(element, text)
     end)
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- SEARCH
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 function Library:Search(query)
     query = (query or ""):lower()
     for _, tab in ipairs(self.Tabs) do
@@ -415,9 +434,9 @@ function Library:Search(query)
     end
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- WATERMARK
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 function Library:MakeWatermark(text)
     local wm = New("Frame", {
         Size = UDim2.new(0, 200, 0, 24),
@@ -452,16 +471,14 @@ function Library:MakeWatermark(text)
                 wm.Visible = false
             else
                 wm.Visible = true
-                local fps = math.floor(1 / math.max(RunService.RenderStepped:Wait(), 0.001))
-                -- better FPS calc
-                local frames, t0 = 0, tick()
+                local frames = 0
                 local conn
                 conn = RunService.RenderStepped:Connect(function()
                     frames = frames + 1
                 end)
                 task.wait(1)
                 if conn then conn:Disconnect() end
-                fps = frames
+                local fps = frames
                 local ping = 0
                 pcall(function() ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue()) end)
                 local time = os.date("%H:%M:%S")
@@ -474,9 +491,9 @@ function Library:MakeWatermark(text)
     return wm
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- DRAG (mouse + touch)
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 function Library:MakeDraggable(handle, frame)
     local dragging, dragStart, startPos
     handle.InputBegan:Connect(function(input)
@@ -507,9 +524,9 @@ function Library:MakeDraggable(handle, frame)
     end)
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- WINDOW
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 function Library:MakeWindow(opts)
     opts = opts or {}
     local title = opts.Title or "VENTURE AOT"
@@ -525,7 +542,6 @@ function Library:MakeWindow(opts)
     if not ok or not gui.Parent then gui.Parent = PlayerGui end
     self.ScreenGui = gui
 
-    -- Mobile scale
     local isMobile = IsMobile()
     local scale = isMobile and 0.85 or 1
     local w = Config.Size[1] * scale * (isMobile and Config.MobileScale or 1)
@@ -545,7 +561,6 @@ function Library:MakeWindow(opts)
     Stroke(main, self.Theme.Stroke, 1, 0.4)
     self.MainFrame = main
 
-    -- Drop shadow (image, works everywhere)
     local shadow = New("ImageLabel", {
         Size = UDim2.new(1, 20, 1, 20),
         Position = UDim2.new(0.5, 0, 0.5, 0),
@@ -561,7 +576,7 @@ function Library:MakeWindow(opts)
     })
     self.Shadow = shadow
 
-    -- ═══ HEADER ═══
+    -- HEADER
     local header = New("Frame", {
         Name = "Header",
         Size = UDim2.new(1, 0, 0, 44),
@@ -598,7 +613,6 @@ function Library:MakeWindow(opts)
         Parent = header,
     })
 
-    -- Search
     local searchBox = New("TextBox", {
         Size = UDim2.new(0, 160, 0, 26),
         Position = UDim2.new(1, -290, 0.5, -13),
@@ -618,12 +632,11 @@ function Library:MakeWindow(opts)
     end)
     self.SearchBox = searchBox
 
-    -- Minimize
     local minBtn = New("TextButton", {
         Size = UDim2.new(0, 28, 0, 28),
         Position = UDim2.new(1, -70, 0.5, -14),
         BackgroundColor3 = self.Theme.Element,
-        Text = "—", TextColor3 = self.Theme.Text, TextSize = 16,
+        Text = "-", TextColor3 = self.Theme.Text, TextSize = 16,
         Font = Enum.Font.GothamBold,
         AutoButtonColor = false, BorderSizePixel = 0,
         Parent = header,
@@ -634,12 +647,11 @@ function Library:MakeWindow(opts)
     minBtn.MouseButton1Click:Connect(function() self:ToggleMinimize() end)
     self.MinBtn = minBtn
 
-    -- Close
     local closeBtn = New("TextButton", {
         Size = UDim2.new(0, 28, 0, 28),
         Position = UDim2.new(1, -36, 0.5, -14),
         BackgroundColor3 = self.Theme.Element,
-        Text = "✕", TextColor3 = self.Theme.Text, TextSize = 14,
+        Text = "x", TextColor3 = self.Theme.Text, TextSize = 14,
         Font = Enum.Font.GothamBold,
         AutoButtonColor = false, BorderSizePixel = 0,
         Parent = header,
@@ -649,7 +661,7 @@ function Library:MakeWindow(opts)
     closeBtn.MouseLeave:Connect(function() Tween(closeBtn, 0.15, { BackgroundColor3 = self.Theme.Element }) end)
     closeBtn.MouseButton1Click:Connect(function() self:Hide() end)
 
-    -- ═══ SIDEBAR ═══
+    -- SIDEBAR
     local sidebar = New("Frame", {
         Name = "Sidebar",
         Size = UDim2.new(0, 150, 1, -66),
@@ -679,7 +691,7 @@ function Library:MakeWindow(opts)
     self.Sidebar = sidebar
     self.SideScroll = sideScroll
 
-    -- ═══ CONTENT ═══
+    -- CONTENT
     local content = New("Frame", {
         Name = "Content",
         Size = UDim2.new(1, -150, 1, -66),
@@ -712,7 +724,7 @@ function Library:MakeWindow(opts)
     self.Scroll = scroll
     self.ScrollLayout = layout
 
-    -- ═══ FOOTER ═══
+    -- FOOTER
     local footer = New("Frame", {
         Size = UDim2.new(1, 0, 0, 22),
         Position = UDim2.new(0, 0, 1, -22),
@@ -747,7 +759,6 @@ function Library:MakeWindow(opts)
         if input.KeyCode == self.ToggleKey then self:Toggle() end
     end)
 
-    -- Watermark
     if self.WatermarkVisible then
         self:MakeWatermark("VENTURE AOT")
     end
@@ -819,9 +830,9 @@ function Library:Destroy()
     if self.ScreenGui then self.ScreenGui:Destroy() end
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- TAB
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 function Library:MakeTab(name)
     local tab = {
         Name = name, Elements = {}, _active = false,
@@ -891,9 +902,9 @@ function Library:MakeTab(name)
     return tab
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- SECTION (collapsible)
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 function Library:MakeSection(tab, name)
     local section = New("Frame", {
         Size = UDim2.new(1, 0, 0, 32),
@@ -907,7 +918,7 @@ function Library:MakeSection(tab, name)
     local arrow = New("TextLabel", {
         Size = UDim2.new(0, 20, 1, 0),
         Position = UDim2.new(0, 8, 0, 0),
-        BackgroundTransparency = 1, Text = "▼",
+        BackgroundTransparency = 1, Text = "v",
         TextColor3 = self.Theme.Accent, TextSize = 12,
         Font = Enum.Font.GothamBold, Parent = section,
     })
@@ -970,11 +981,11 @@ function Library:MakeSection(tab, name)
     return container
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- ELEMENTS
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 
--- ░░░ TOGGLE ░░░
+-- TOGGLE
 function Library:MakeToggle(parent, opts)
     opts = opts or {}
     local name = opts.Name or "Toggle"
@@ -1046,7 +1057,7 @@ function Library:MakeToggle(parent, opts)
     return el
 end
 
--- ░░░ BUTTON ░░░
+-- BUTTON
 function Library:MakeButton(parent, opts)
     opts = opts or {}
     local name = opts.Name or "Button"
@@ -1114,7 +1125,7 @@ function Library:MakeButton(parent, opts)
     return el
 end
 
--- ░░░ SLIDER ░░░
+-- SLIDER
 function Library:MakeSlider(parent, opts)
     opts = opts or {}
     local name = opts.Name or "Slider"
@@ -1229,7 +1240,7 @@ function Library:MakeSlider(parent, opts)
     return el
 end
 
--- ░░░ DROPDOWN ░░░
+-- DROPDOWN
 function Library:MakeDropdown(parent, opts)
     opts = opts or {}
     local name = opts.Name or "Dropdown"
@@ -1258,7 +1269,7 @@ function Library:MakeDropdown(parent, opts)
     local arrow = New("TextLabel", {
         Size = UDim2.new(0, 20, 0, 20),
         Position = UDim2.new(1, -30, 0, 4),
-        BackgroundTransparency = 1, Text = "▼",
+        BackgroundTransparency = 1, Text = "v",
         TextColor3 = self.Theme.Accent, TextSize = 12,
         Font = Enum.Font.GothamBold, Parent = row,
     })
@@ -1359,11 +1370,11 @@ function Library:MakeDropdown(parent, opts)
     return el
 end
 
--- ░░░ TEXTBOX ░░░
+-- TEXTBOX
 function Library:MakeTextbox(parent, opts)
     opts = opts or {}
     local name = opts.Name or "Input"
-    local placeholder = opts.Placeholder or "Введите..."
+    local placeholder = opts.Placeholder or "Enter..."
     local default = opts.Default or ""
     local callback = opts.Callback or function() end
     local tooltip = opts.Tooltip
@@ -1416,7 +1427,7 @@ function Library:MakeTextbox(parent, opts)
     return el
 end
 
--- ░░░ KEYBIND ░░░
+-- KEYBIND
 function Library:MakeKeybind(parent, opts)
     opts = opts or {}
     local name = opts.Name or "Keybind"
@@ -1488,7 +1499,7 @@ function Library:MakeKeybind(parent, opts)
     return el
 end
 
--- ░░░ COLORPICKER ░░░
+-- COLORPICKER
 function Library:MakeColorpicker(parent, opts)
     opts = opts or {}
     local name = opts.Name or "Color"
@@ -1644,7 +1655,7 @@ function Library:MakeColorpicker(parent, opts)
     return el
 end
 
--- ░░░ LABEL ░░░
+-- LABEL
 function Library:MakeLabel(parent, text)
     local lbl = New("TextLabel", {
         Size = UDim2.new(1, 0, 0, 22),
@@ -1662,7 +1673,7 @@ function Library:MakeLabel(parent, text)
     return el
 end
 
--- ░░░ DIVIDER ░░░
+-- DIVIDER
 function Library:MakeDivider(parent)
     local div = New("Frame", {
         Size = UDim2.new(1, 0, 0, 1),
@@ -1675,14 +1686,14 @@ function Library:MakeDivider(parent)
     return div
 end
 
--- ░░░ CONFIG UI (готовая секция) ░░░
+-- CONFIG UI
 function Library:BuildConfigSection(tab)
-    local section = self:MakeSection(tab, "💾 Configs")
+    local section = self:MakeSection(tab, "Configs")
     local currentName = "default"
 
     local nameBox = self:MakeTextbox(section, {
         Name = "Config Name", Default = "default",
-        Placeholder = "имя конфига",
+        Placeholder = "config name",
         Callback = function(v) currentName = v end,
     })
 
@@ -1700,43 +1711,42 @@ function Library:BuildConfigSection(tab)
     })
 
     self:MakeButton(section, {
-        Name = "💾 Save",
+        Name = "Save",
         Callback = function()
             if SaveConfig(currentName) then
                 listDropdown:SetOptions(self.Configs())
                 self:Notify({Title = "Config", Content = "Saved: " .. currentName, Type = "success"})
             else
-                self:Notify({Title = "Config", Content = "FileIO недоступен", Type = "warning"})
+                self:Notify({Title = "Config", Content = "FileIO unavailable", Type = "warning"})
             end
         end,
     })
 
     self:MakeButton(section, {
-        Name = "🗑️ Delete",
+        Name = "Delete",
         Danger = true,
         Callback = function()
             if DeleteConfig(currentName) then
                 listDropdown:SetOptions(self.Configs())
                 self:Notify({Title = "Config", Content = "Deleted: " .. currentName, Type = "success"})
             else
-                self:Notify({Title = "Config", Content = "Не найдено", Type = "warning"})
+                self:Notify({Title = "Config", Content = "Not found", Type = "warning"})
             end
         end,
     })
 
     self:MakeButton(section, {
-        Name = "🔄 Refresh List",
+        Name = "Refresh List",
         Callback = function() listDropdown:SetOptions(self.Configs()) end,
     })
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 -- EXPORT
--- ═══════════════════════════════════════════════════════════════
+-- ===============================================================
 _G.Venture.GUI = Library
 _G.Venture.UI = UI
 
--- Если Functions.lua уже загружен — создаём окно и табы
 if F.Settings then
     S = F.Settings
 end
