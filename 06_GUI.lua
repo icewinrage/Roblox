@@ -622,6 +622,13 @@ do
         Funcs.ApplyHitboxToAll()
     end)
     y = MakeMultiSelect(panel, "TARGET PARTS", {"Nape","Eyes","LeftArm","LeftLeg","RightArm","RightLeg"}, y)
+    
+    -- НОВАЯ КНОПКА ВИЗУАЛА
+    y = MakeToggle(panel, "Show Visual", y, Settings.HitboxShowVisual or false, function(v)
+        Settings.HitboxShowVisual = v
+        if Funcs.ApplyHitboxToAll then Funcs.ApplyHitboxToAll() end
+    end)
+
     y = MakeDropdown(panel, "Shape", {"Block","Ball","Cylinder"}, y, "Block", function(v)
         Settings.HitboxShape = v
         Funcs.ApplyHitboxToAll()
