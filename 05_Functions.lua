@@ -115,8 +115,11 @@ function Functions.FindBladeState()
 end
 
 local function ApplyHitboxToPart(part, partName)
-    if not Settings.HitboxParts[partName] then return end
+    if not F.Settings.HitboxParts[partName] then return end
     if not part or not part.Parent or not part:IsA("BasePart") then return end
+    local S = F.State
+    
+    -- Сохраняем оригинальные данные
     if not S.originalPartData[part] then
         S.originalPartData[part] = {
             Size = part.Size, Shape = part.Shape,
@@ -125,25 +128,36 @@ local function ApplyHitboxToPart(part, partName)
             CanTouch = part.CanTouch, CanQuery = part.CanQuery
         }
     end
+    
     pcall(function()
-        part.Size = Settings.HitboxSize
-        if Settings.HitboxShape == "Ball" then part.Shape = Enum.PartType.Ball
-        elseif Settings.HitboxShape == "Cylinder" then part.Shape = Enum.PartType.Cylinder
+        -- Меняем размер и форму
+        part.Size = F.Settings.HitboxSize
+        if F.Settings.HitboxShape == "Ball" then part.Shape = Enum.PartType.Ball
+        elseif F.Settings.HitboxShape == "Cylinder" then part.Shape = Enum.PartType.Cylinder
         else part.Shape = Enum.PartType.Block end
-        if Settings.HitboxShowVisual then
-            part.Transparency = Settings.HitboxTransparency
-            part.Color = Settings.HitboxColor
-        else
-            if S.originalPartData[part] then
-                part.Transparency = S.originalPartData[part].Transparency
-                part.Color = S.originalPartData[part].Color
-            end
-        end
+        
         part.CanCollide = false
         part.Massless = true
         part.CanTouch = true
         part.CanQuery = true
+        
+        -- === ВИЗУАЛИЗАЦИЯ ===
+        local oldVisual = part:FindFirstChild("VentureHitboxVisual")
+        if oldVisual then oldVisual:Destroy() end
+        
+        if F.Settings.HitboxShowVisual then
+            local box = Instance.new("SelectionBox")
+            box.Name = "VentureHitboxVisual"
+            box.Adornee = part
+            box.Color3 = F.Settings.HitboxVisualColor or Color3.fromRGB(255, 100, 200)
+            box.SurfaceColor3 = F.Settings.HitboxVisualColor or Color3.fromRGB(255, 100, 200)
+            box.SurfaceTransparency = F.Settings.HitboxVisualTransparency or 0.5
+            box.LineThickness = 0.1
+            box.Transparency = 0.2
+            box.Parent = part
+        end
     end)
+    
     S.expandedParts[part] = true
 end
 
