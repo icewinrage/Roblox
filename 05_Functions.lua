@@ -194,16 +194,6 @@ function Functions.EnableFPSBooster()
             pcall(function() S.fpsOriginalData[o] = o.Transparency; o.Transparency = 1 end)
         end
     end
-    local Terrain = Workspace:FindFirstChildOfClass("Terrain")
-    if Terrain then
-        pcall(function()
-            Terrain.Decoration = false
-            Terrain.WaterWaveSize = 0
-            Terrain.WaterWaveSpeed = 0
-            Terrain.WaterReflectance = 0
-            Terrain.WaterTransparency = 1
-        end)
-    end
 end
 
 function Functions.DisableFPSBooster()
