@@ -2,104 +2,68 @@ local REPO_USER = "icewinrage"
 local REPO_NAME = "Roblox"
 local REPO_BRANCH = "main"
 
--- ============================================
--- ПОЛНАЯ ПЕРЕЗАГРУЗКА (Re-inject)
--- ============================================
-if _G.VentureLoaded then
-    print("[Venture] Найдена старая сессия. Выгружаем...")
-    
-    -- 1. Выключаем StressTest (бесконечный газ/клинки), если он был включен
-    pcall(function()
-        workspace:SetAttribute("StressTest", false)
-    end)
-
-    -- 2. Удаляем старые окна и меню
-    local pg = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
-    if pg then
-        local oldGui = pg:FindFirstChild("VentureAOT_GUI")
-        if oldGui then oldGui:Destroy() end
-
-        local oldKb = pg:FindFirstChild("VentureKeybindList")
-        if oldKb then oldKb:Destroy() end
-
-        local oldNotice = pg:FindFirstChild("VentureLoadedNotice")
-        if oldNotice then oldNotice:Destroy() end
-    end
-
-    -- 3. Сбрасываем глобальные флаги
-    _G.VentureLoaded = false
-    _G.Venture = nil
-
-    -- Даем время на очистку
-    task.wait(0.5)
-    print("[Venture] Старая сессия очищена. Запускаем заново...")
-end
-
-_G.VentureLoaded = true
-local START_TIME = tick()
-
 local BASE_URL = string.format(
     "https://raw.githubusercontent.com/%s/%s/%s/",
     REPO_USER, REPO_NAME, REPO_BRANCH
 )
 
--- Последовательный список модулей (важен порядок!)
+-- НАЧАЛО ОТСЧЁТА
+local START_TIME = tick()
+
 local MODULES = {
-    "00_CursorBoot", "01_Shared", "02_Config", "03_Utils", "04_Theme",
-    "05_Functions", "06_GUI", "07_Keybinds", "08_Security", "09_Supabase",
-    "11_Cursor", "12_AntiMod", "13_OnlineTab", "15_Announcements", "17_Streamer",
-    "18_AntiAFK", "19_FluentUI", "10_Init",
+    "00_CursorBoot",
+    "01_Shared",
+    "02_Config",
+    "03_Utils",
+    "04_Theme",
+    "05_Functions",
+    "06_GUI",
+    "07_Keybinds",
+    "08_Security",
+    "09_Supabase",
+    "11_Cursor",
+    "12_AntiMod",
+    "13_OnlineTab",
+    "15_Announcements",
+    "16_ChatWindow",
+    "17_Streamer",
+    "10_Init",
 }
 
--- Очередь на телепорт
 local AUTO_EXEC_CODE = [[
     wait(0.5)
     loadstring(game:HttpGet("https://raw.githubusercontent.com/]] .. REPO_USER .. [[/]] .. REPO_NAME .. [[/]] .. REPO_BRANCH .. [[/Main.lua"))()
 ]]
 
-local function RegisterQueue()
-    if syn and syn.queue_on_teleport then
-        pcall(function() syn.queue_on_teleport(AUTO_EXEC_CODE) end)
-    end
-    if fluxus and fluxus.queue_on_teleport then
-        pcall(function() fluxus.queue_on_teleport(AUTO_EXEC_CODE) end)
-    end
-    if Krnl and Krnl.queue_on_teleport then
-        pcall(function() Krnl.queue_on_teleport(AUTO_EXEC_CODE) end)
-    end
-    if queue_on_teleport then
-        pcall(function() queue_on_teleport(AUTO_EXEC_CODE) end)
-    end
-    if SX and SX.queue_on_teleport then
-        pcall(function() SX.queue_on_teleport(AUTO_EXEC_CODE) end)
-    end
+if syn and syn.queue_on_teleport then
+    pcall(function() syn.queue_on_teleport(AUTO_EXEC_CODE) end)
 end
-
-RegisterQueue()
-
-task.spawn(function()
-    while true do
-        task.wait(30)
-        pcall(RegisterQueue)
-    end
-end)
+if fluxus and fluxus.queue_on_teleport then
+    pcall(function() fluxus.queue_on_teleport(AUTO_EXEC_CODE) end)
+end
+if Krnl and Krnl.queue_on_teleport then
+    pcall(function() Krnl.queue_on_teleport(AUTO_EXEC_CODE) end)
+end
+if queue_on_teleport then
+    pcall(function() queue_on_teleport(AUTO_EXEC_CODE) end)
+end
+if SX and SX.queue_on_teleport then
+    pcall(function() SX.queue_on_teleport(AUTO_EXEC_CODE) end)
+end
 
 _G.Venture = _G.Venture or {}
 
--- ============================================
--- HTTP GET
--- ============================================
 local function httpGet(url)
     if syn and syn.request then
-        local ok, res = pcall(syn.request, { Url = url, Method = "GET" })
+        local ok, res = pcall(syn.request, {Url = url, Method = "GET"})
         if ok and res and res.Body then return res.Body end
     end
     if request then
-        local ok, res = pcall(request, { Url = url, Method = "GET" })
+        local ok, res = pcall(request, {Url = url, Method = "GET"})
         if ok and res and res.Body then return res.Body end
     end
     if http_request then
-        local ok, res = pcall(http_request, { Url = url, Method = "GET" })
+        local ok, res = pcall(http_request, {Url = url, Method = "GET"})
         if ok and res and res.Body then return res.Body end
     end
     local ok, res = pcall(function()
@@ -109,75 +73,64 @@ local function httpGet(url)
     return nil
 end
 
--- ============================================
--- LOAD MODULE
--- ============================================
 local function loadModule(name)
     local url = BASE_URL .. name .. ".lua"
     local code = httpGet(url)
     if not code or #code == 0 then
         warn("[Venture] Failed to fetch: " .. name)
-        return false
+        return nil
     end
     if #code < 60 and code:lower():find("404") then
         warn("[Venture] Module not found: " .. name)
-        return false
+        return nil
     end
+
     local fn, err = loadstring(code, "@" .. name)
     if not fn then
         warn("[Venture] Syntax error in " .. name .. ": " .. tostring(err))
-        return false
+        return nil
     end
+
     local ok, result = pcall(fn)
     if not ok then
         warn("[Venture] Runtime error in " .. name .. ": " .. tostring(result))
-        return false
+        return nil
     end
-    return true
-end
 
--- ============================================
--- SEQUENTIAL LOADING (стабильная)
--- ============================================
-local loadedCount = 0
-local loadStart = tick()
+    return result
+end
 
 for _, name in ipairs(MODULES) do
-    local before = tick()
-    local ok = pcall(loadModule, name)
-    local took = tick() - before
-    loadedCount = loadedCount + 1
-    print(string.format("[Venture] %s (%d/%d) - %.2fs", name, loadedCount, #MODULES, took))
+    pcall(loadModule, name)
+    task.wait(0.05)
 end
 
-local totalLoadTime = tick() - loadStart
-print(string.format("[Venture] All %d modules loaded in %.2fs", loadedCount, totalLoadTime))
-task.wait(0.1)
+task.wait(0.3)
 
--- ============================================
--- INIT
--- ============================================
 local Init = _G.Venture.Init
 if Init and Init.Run then
     local ok, err = pcall(Init.Run)
     if not ok then
         warn("[Venture] Init.Run failed: " .. tostring(err))
     end
-else
-    warn("[Venture] Init module missing!")
 end
 
 -- ============================================
 -- SUCCESS NOTIFICATION
 -- ============================================
-task.wait(0.2)
+task.wait(0.3)
+
 local LOAD_TIME = tick() - START_TIME
+
+-- Форматируем: 1.23 сек
 local timeStr = string.format("%.2f", LOAD_TIME)
 
 local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 local PlayerGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+local LocalPlayer = game:GetService("Players").LocalPlayer
 
+-- 1) SetCore Notification (стандартное)
 pcall(function()
     StarterGui:SetCore("SendNotification", {
         Title = "Successfully Loaded",
@@ -186,6 +139,7 @@ pcall(function()
     })
 end)
 
+-- 2) Красивая плашка сверху
 task.spawn(function()
     local gui = Instance.new("ScreenGui")
     gui.Name = "VentureLoadedNotice"
@@ -222,6 +176,7 @@ task.spawn(function()
     grad.Rotation = 0
     grad.Parent = frame
 
+    -- Титул
     local title = Instance.new("TextLabel")
     title.Position = UDim2.new(0, 20, 0, 12)
     title.Size = UDim2.new(1, -40, 0, 26)
@@ -233,6 +188,7 @@ task.spawn(function()
     title.TextXAlignment = Enum.TextXAlignment.Left
     title.Parent = frame
 
+    -- Время загрузки
     local subtitle = Instance.new("TextLabel")
     subtitle.Position = UDim2.new(0, 20, 0, 40)
     subtitle.Size = UDim2.new(1, -40, 0, 18)
@@ -244,6 +200,7 @@ task.spawn(function()
     subtitle.TextXAlignment = Enum.TextXAlignment.Left
     subtitle.Parent = frame
 
+    -- Thanks
     local thanks = Instance.new("TextLabel")
     thanks.Position = UDim2.new(0, 20, 0, 62)
     thanks.Size = UDim2.new(1, -40, 0, 18)
@@ -255,12 +212,13 @@ task.spawn(function()
     thanks.TextXAlignment = Enum.TextXAlignment.Left
     thanks.Parent = frame
 
+    -- Появление сверху вниз
     TweenService:Create(frame, TweenInfo.new(0.6, Enum.EasingStyle.Back), {
         Position = UDim2.new(0.5, 0, 0, 20)
     }):Play()
 
+    -- Автоскрытие через 5 сек
     task.wait(5)
-
     local hideTween = TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {
         Position = UDim2.new(0.5, 0, 0, -120),
         BackgroundTransparency = 1,
@@ -269,5 +227,3 @@ task.spawn(function()
     hideTween.Completed:Wait()
     gui:Destroy()
 end)
-
-print("[Venture] Main loaded in " .. timeStr .. "s")
