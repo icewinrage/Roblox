@@ -34,6 +34,7 @@ Functions.State = {
 
 local S = Functions.State
 
+-- ФИКС: Добавляем переопределение визуала при старте
 function Functions.GetTitans()
     local titans = {}
     local titansFolder = Workspace:FindFirstChild("Titans")
@@ -114,11 +115,11 @@ function Functions.FindBladeState()
     return nil
 end
 
+-- ФИКС: Правильные ссылки на Settings и S, добавлен визуал
 local function ApplyHitboxToPart(part, partName)
-    if not F.Settings.HitboxParts[partName] then return end
+    if not Settings.HitboxParts[partName] then return end
     if not part or not part.Parent or not part:IsA("BasePart") then return end
-    local S = F.State
-    
+
     -- Сохраняем оригинальные данные
     if not S.originalPartData[part] then
         S.originalPartData[part] = {
@@ -128,36 +129,35 @@ local function ApplyHitboxToPart(part, partName)
             CanTouch = part.CanTouch, CanQuery = part.CanQuery
         }
     end
-    
+
     pcall(function()
-        -- Меняем размер и форму
-        part.Size = F.Settings.HitboxSize
-        if F.Settings.HitboxShape == "Ball" then part.Shape = Enum.PartType.Ball
-        elseif F.Settings.HitboxShape == "Cylinder" then part.Shape = Enum.PartType.Cylinder
+        part.Size = Settings.HitboxSize
+        if Settings.HitboxShape == "Ball" then part.Shape = Enum.PartType.Ball
+        elseif Settings.HitboxShape == "Cylinder" then part.Shape = Enum.PartType.Cylinder
         else part.Shape = Enum.PartType.Block end
-        
+
         part.CanCollide = false
         part.Massless = true
         part.CanTouch = true
         part.CanQuery = true
-        
+
         -- === ВИЗУАЛИЗАЦИЯ ===
         local oldVisual = part:FindFirstChild("VentureHitboxVisual")
         if oldVisual then oldVisual:Destroy() end
-        
-        if F.Settings.HitboxShowVisual then
+
+        if Settings.HitboxShowVisual then
             local box = Instance.new("SelectionBox")
             box.Name = "VentureHitboxVisual"
             box.Adornee = part
-            box.Color3 = F.Settings.HitboxVisualColor or Color3.fromRGB(255, 100, 200)
-            box.SurfaceColor3 = F.Settings.HitboxVisualColor or Color3.fromRGB(255, 100, 200)
-            box.SurfaceTransparency = F.Settings.HitboxVisualTransparency or 0.5
+            box.Color3 = Settings.HitboxVisualColor or Color3.fromRGB(255, 100, 200)
+            box.SurfaceColor3 = Settings.HitboxVisualColor or Color3.fromRGB(255, 100, 200)
+            box.SurfaceTransparency = Settings.HitboxVisualTransparency or 0.5
             box.LineThickness = 0.1
             box.Transparency = 0.2
             box.Parent = part
         end
     end)
-    
+
     S.expandedParts[part] = true
 end
 
@@ -187,6 +187,9 @@ local function ResetHitboxPart(part)
             part.CanTouch = orig.CanTouch; part.CanQuery = orig.CanQuery
         end
     end)
+    local visual = part:FindFirstChild("VentureHitboxVisual")
+    if visual then visual:Destroy() end
+    
     S.expandedParts[part] = nil
 end
 
