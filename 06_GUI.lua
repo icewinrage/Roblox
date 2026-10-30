@@ -18,13 +18,13 @@ local GUI = {}
 GUI.ExecutorName = Utils.DetectExecutor()
 
 -- ==========================================
--- НАСТРОЙКИ ПО УМОЛЧАНИЮ (Под твои требования)
+-- НАСТРОЙКИ ПО УМОЛЧАНИЮ (Как ты просил)
 -- ==========================================
 Settings.HitboxSize = Vector3.new(100, 100, 100)
 Settings.HitboxShape = "Ball"
 Settings.HitboxShowVisual = true
-Settings.AutoFarmOrbitRadius = 30  -- Урезано в 2 раза
-Settings.AutoFarmHoverHeight = 20  -- Урезано в 2 раза
+Settings.AutoFarmOrbitRadius = 30
+Settings.AutoFarmHoverHeight = 20
 Settings.AutoFarmSafeDistance = 50
 Settings.AutoFarmResponsiveness = 60
 
@@ -127,8 +127,8 @@ local HeaderDivider = New("Frame", {
 }, Header)
 Theme.Register("Misc", {Obj = HeaderDivider, Keys = {"Accent"}})
 
-local Title = New("TextLabel", {Position = UDim2.new(0,60,0,18), Size = UDim2.new(1,-160,0,24), BackgroundTransparency = 1, Text = "VENTURE  AOT", TextColor3 = Color3.fromRGB(248,247,255), TextSize = 18, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
-local Subtitle = New("TextLabel", {Position = UDim2.new(0,60,0,38), Size = UDim2.new(1,-160,0,14), BackgroundTransparency = 1, Text = "by __TheDark  |  v1.5", TextColor3 = Color3.fromRGB(153,157,178), TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
+local Title = New("TextLabel", {Position = UDim2.new(0,60,0,18), Size = UDim2.new(1,-200,0,24), BackgroundTransparency = 1, Text = "VENTURE  AOT", TextColor3 = Color3.fromRGB(248,247,255), TextSize = 18, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
+local Subtitle = New("TextLabel", {Position = UDim2.new(0,60,0,38), Size = UDim2.new(1,-200,0,14), BackgroundTransparency = 1, Text = "by __TheDark  |  v1.5", TextColor3 = Color3.fromRGB(153,157,178), TextSize = 10, Font = Enum.Font.Gotham, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 6}, Header)
 GUI.Title = Title
 GUI.Subtitle = Subtitle
 Theme.Register("Misc", {Obj = Title, Keys = {"TitleText"}})
@@ -140,10 +140,13 @@ New("UICorner", {CornerRadius = UDim.new(0,10)}, CloseBtn)
 local HideBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-56,0,14), Size = UDim2.fromOffset(32,32), BackgroundColor3 = Color3.fromRGB(28,30,44), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "_", TextColor3 = Color3.fromRGB(185,187,205), TextSize = 18, Font = Enum.Font.GothamBold, ZIndex = 10}, Header)
 New("UICorner", {CornerRadius = UDim.new(0,10)}, HideBtn)
 
--- Drag area
+local ChatBtn = New("TextButton", {AnchorPoint = Vector2.new(1,0), Position = UDim2.new(1,-94,0,14), Size = UDim2.fromOffset(32,32), BackgroundColor3 = Color3.fromRGB(40,22,60), BackgroundTransparency = 0.15, BorderSizePixel = 0, AutoButtonColor = false, Text = "C", TextColor3 = Color3.fromRGB(255,200,255), TextSize = 16, Font = Enum.Font.GothamBold, ZIndex = 10}, Header)
+New("UICorner", {CornerRadius = UDim.new(0,10)}, ChatBtn)
+
+-- Drag area (перетаскивание за header)
 local DragArea = New("TextButton", {
     Position = UDim2.new(0, 56, 0, 0),
-    Size = UDim2.new(1, -140, 0, 58),
+    Size = UDim2.new(1, -200, 0, 58),
     BackgroundTransparency = 1,
     Text = "",
     AutoButtonColor = false,
@@ -152,6 +155,7 @@ local DragArea = New("TextButton", {
 
 GUI.CloseBtn = CloseBtn
 GUI.HideBtn = HideBtn
+GUI.ChatBtn = ChatBtn
 Theme.Register("Misc", {Obj = CloseBtn, Keys = {"CloseBtnBg"}})
 Theme.Register("Misc", {Obj = HideBtn, Keys = {"CloseBtnBg"}})
 
@@ -184,10 +188,11 @@ New("UIPadding", {
     PaddingRight = UDim.new(0, 6),
 }, Sidebar)
 
--- ОБНОВЛЕННЫЕ ВКЛАДКИ
 local SIDEBAR_TABS = {
     {Name = "MAIN"},
     {Name = "ESP"},
+    {Name = "CHAT"},
+    {Name = "ONLINE"},
     {Name = "ANNOUNCE"},
     {Name = "CONFIG"},
 }
@@ -308,7 +313,7 @@ SidebarToggle.MouseButton1Click:Connect(function()
     end
 end)
 
--- ELEMENTS (Без изменений, из твоего кода)
+-- ELEMENTS
 local function MakeSectionLabel(parent, text, y)
     local T = Theme.Get()
     local lbl = New("TextLabel", {
@@ -594,15 +599,32 @@ GUI.MakeSlider = MakeSlider
 GUI.MakeMultiSelect = MakeMultiSelect
 GUI.MakeDropdown = MakeDropdown
 
+-- Утилита: обёртка раздела (LayoutOrder)
+local function SectionWrapper(parent, order)
+    local wrapper = New("Frame", {
+        Size = UDim2.new(1, 0, 0, 0),
+        BackgroundTransparency = 1,
+        AutomaticSize = Enum.AutomaticSize.Y,
+        LayoutOrder = order or 1,
+        ZIndex = 8,
+    }, parent)
+    New("UIListLayout", {
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 4),
+    }, wrapper)
+    return wrapper
+end
+
 -- ==========================================
--- TAB 1: MAIN
+-- TAB 1: MAIN (Хитбокс, Автофарм, Инф, Хил)
 -- ==========================================
 do
     local panel = tabPanels[1]
+    local wrap = SectionWrapper(panel, 1)
     local y = 0
-    
-    y = MakeSectionLabel(panel, "AUTO FARM", y)
-    y = MakeToggle(panel, "Enable AutoFarm", y, Settings.AutoFarmEnabled, function(v)
+
+    y = MakeSectionLabel(wrap, "AUTO FARM", y)
+    y = MakeToggle(wrap, "Enable AutoFarm", y, Settings.AutoFarmEnabled, function(v)
         Settings.AutoFarmEnabled = v
         if v then
             if not Settings.HitboxExpand then Settings.HitboxExpand = true; Funcs.ApplyHitboxToAll() end
@@ -613,46 +635,45 @@ do
             Funcs.State.FarmState.CurrentTitan = nil
         end
     end)
-    y = MakeSlider(panel, "Orbit Speed", y, 100, 500, Settings.AutoFarmOrbitSpeed, " s/s", function(v) Settings.AutoFarmOrbitSpeed = v end)
-    y = MakeSlider(panel, "Hover Height", y, 10, 150, Settings.AutoFarmHoverHeight, " studs", function(v) Settings.AutoFarmHoverHeight = v end)
-    y = MakeSlider(panel, "Orbit Radius", y, 10, 150, Settings.AutoFarmOrbitRadius, " studs", function(v) Settings.AutoFarmOrbitRadius = v end)
+    y = MakeSlider(wrap, "Orbit Speed", y, 100, 500, Settings.AutoFarmOrbitSpeed or 220, " s/s", function(v) Settings.AutoFarmOrbitSpeed = v end)
+    y = MakeSlider(wrap, "Hover Height", y, 10, 150, Settings.AutoFarmHoverHeight, " studs", function(v) Settings.AutoFarmHoverHeight = v end)
+    y = MakeSlider(wrap, "Orbit Radius", y, 10, 150, Settings.AutoFarmOrbitRadius, " studs", function(v) Settings.AutoFarmOrbitRadius = v end)
 
-    y = MakeSectionLabel(panel, "AUTO HEAL", y)
-    y = MakeToggle(panel, "Enable Auto Heal", y, Settings.AutoHealEnabled, function(v) Settings.AutoHealEnabled = v end)
-    y = MakeSlider(panel, "Heal Threshold", y, 10, 100, Settings.AutoHealThreshold or 80, "%", function(v) Settings.AutoHealThreshold = v end)
+    y = MakeSectionLabel(wrap, "AUTO HEAL", y)
+    y = MakeToggle(wrap, "Enable Auto Heal", y, Settings.AutoHealEnabled, function(v) Settings.AutoHealEnabled = v end)
+    y = MakeSlider(wrap, "Heal Threshold", y, 10, 100, Settings.AutoHealThreshold or 80, "%", function(v) Settings.AutoHealThreshold = v end)
 
-    y = MakeSectionLabel(panel, "HITBOX EXPANDER", y)
-    y = MakeToggle(panel, "Enable Hitbox", y, Settings.HitboxExpand, function(v)
+    y = MakeSectionLabel(wrap, "HITBOX EXPANDER", y)
+    y = MakeToggle(wrap, "Enable Hitbox", y, Settings.HitboxExpand, function(v)
         Settings.HitboxExpand = v
         if v then Funcs.ApplyHitboxToAll() else Funcs.ResetAllHitboxes() end
     end)
-    y = MakeToggle(panel, "Show Visual", y, Settings.HitboxShowVisual, function(v)
+    y = MakeToggle(wrap, "Show Visual", y, Settings.HitboxShowVisual, function(v)
         Settings.HitboxShowVisual = v
         if Funcs.ApplyHitboxToAll then Funcs.ApplyHitboxToAll() end
     end)
-    y = MakeSlider(panel, "Size", y, 50, 500, 100, " studs", function(v)
+    y = MakeSlider(wrap, "Size", y, 50, 500, 100, " studs", function(v)
         Settings.HitboxSize = Vector3.new(v, v, v)
         if Funcs.ApplyHitboxToAll then Funcs.ApplyHitboxToAll() end
     end)
-    y = MakeDropdown(panel, "Shape", {"Block","Ball","Cylinder"}, y, "Ball", function(v)
+    y = MakeDropdown(wrap, "Shape", {"Block","Ball","Cylinder"}, y, "Ball", function(v)
         Settings.HitboxShape = v
         Funcs.ApplyHitboxToAll()
     end)
-    y = MakeMultiSelect(panel, "TARGET PARTS", {"Nape","Eyes","LeftArm","LeftLeg","RightArm","RightLeg"}, y)
+    y = MakeMultiSelect(wrap, "TARGET PARTS", {"Nape","Eyes","LeftArm","LeftLeg","RightArm","RightLeg"}, y)
 
-    y = MakeSectionLabel(panel, "PERFORMANCE & EXPLOITS", y)
-    y = MakeToggle(panel, "FPS Booster", y, Settings.FPSBoosterEnabled, function(v)
+    y = MakeSectionLabel(wrap, "PERFORMANCE & EXPLOITS", y)
+    y = MakeToggle(wrap, "FPS Booster", y, Settings.FPSBoosterEnabled, function(v)
         Settings.FPSBoosterEnabled = v
         if v then Funcs.EnableFPSBooster() else Funcs.DisableFPSBooster() end
     end)
-    y = MakeToggle(panel, "Infinite Gas & Blades", y, false, function(v)
-        Funcs.ToggleInfiniteSupplies(v)
+    y = MakeToggle(wrap, "Infinite Gas & Blades", y, false, function(v)
+        workspace:SetAttribute("StressTest", v)
     end)
-    y = MakeToggle(panel, "Noclip", y, Settings.Noclip, function(v)
+    y = MakeToggle(wrap, "Noclip", y, Settings.Noclip, function(v)
         Settings.Noclip = v
         if v then Funcs.StartNoclip() else Funcs.StopNoclip() end
     end)
-    panel.CanvasSize = UDim2.new(0,0,0,y+20)
 end
 
 -- ==========================================
@@ -660,45 +681,123 @@ end
 -- ==========================================
 do
     local panel = tabPanels[2]
+    local wrap = SectionWrapper(panel, 1)
     local y = 0
-    y = MakeSectionLabel(panel, "ESP TOGGLES", y)
-    y = MakeToggle(panel, "Titan + Refill ESP", y, Settings.ESP, function(v) Settings.ESP = v end)
-    y = MakeToggle(panel, "Player ESP", y, Settings.PlayerESP, function(v) Settings.PlayerESP = v end)
-    y = MakeToggle(panel, "Shifter ESP", y, Settings.ShifterESP, function(v) Settings.ShifterESP = v end)
-    panel.CanvasSize = UDim2.new(0,0,0,y+20)
+    y = MakeSectionLabel(wrap, "ESP TOGGLES", y)
+    y = MakeToggle(wrap, "Titan + Refill ESP", y, Settings.ESP, function(v) Settings.ESP = v end)
+    y = MakeToggle(wrap, "Player ESP", y, Settings.PlayerESP, function(v) Settings.PlayerESP = v end)
+    y = MakeToggle(wrap, "Shifter ESP", y, Settings.ShifterESP, function(v) Settings.ShifterESP = v end)
 end
 
 -- ==========================================
--- TAB 3: ANNOUNCE
--- ==========================================
-GUI.AnnounceTabPanel = tabPanels[3]
-
--- ==========================================
--- TAB 4: CONFIG
+-- TAB 3: CHAT
 -- ==========================================
 do
-    local panel = tabPanels[4]
+    local panel = tabPanels[3]
+    local wrap = SectionWrapper(panel, 1)
+    local y = 0
+    y = MakeSectionLabel(wrap, "VENTURE CHAT", y)
+    y = MakeButton(wrap, "Open Chat Window", "Global chat with all scripters", y, function()
+        local ChatWindow = _G.Venture.ChatWindow
+        if ChatWindow and ChatWindow.Toggle then
+            ChatWindow.Toggle()
+        end
+    end)
+    y = y + 6
+    y = MakeSectionLabel(wrap, "INFO", y)
+    New("TextLabel", {
+        Position = UDim2.new(0, 4, 0, y),
+        Size = UDim2.new(1, -8, 0, 120),
+        BackgroundTransparency = 1,
+        Text = "Chat opens as a separate window.\nClick the C button in the top bar\nor press Y to open it.\n\nAll messages are anonymous.\nYour name shows as DEV_xxx.",
+        TextColor3 = Theme.Get().SubText,
+        TextSize = 11,
+        Font = Enum.Font.Gotham,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top,
+        TextWrapped = true,
+        ZIndex = 8,
+    }, wrap)
+    GUI.ChatTabPanel = panel
+end
+
+-- TAB 4: ONLINE (populated by 13_OnlineTab)
+GUI.OnlineTabPanel = tabPanels[4]
+
+-- TAB 5: ANNOUNCE (populated by 15_Announcements)
+GUI.AnnounceTabPanel = tabPanels[5]
+
+-- TAB 6: CONFIG
+do
+    local panel = tabPanels[6]
     local T = Theme.Get()
 
+    local defaultLayout = panel:FindFirstChildOfClass("UIListLayout")
+    if defaultLayout then
+        defaultLayout.Padding = UDim.new(0, 12)
+    end
+
     local function MakeSection(title, order)
-        local sec = New("Frame", {Size = UDim2.new(1, 0, 0, 0), BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = order, ZIndex = 8}, panel)
-        local inner = New("Frame", {Size = UDim2.new(1, 0, 0, 0), BackgroundColor3 = T.BtnBg, BackgroundTransparency = 0.6, BorderSizePixel = 0, AutomaticSize = Enum.AutomaticSize.Y, ZIndex = 9}, sec)
+        local sec = New("Frame", {
+            Size = UDim2.new(1, 0, 0, 0),
+            BackgroundTransparency = 1,
+            AutomaticSize = Enum.AutomaticSize.Y,
+            LayoutOrder = order,
+            ZIndex = 8,
+        }, panel)
+
+        local inner = New("Frame", {
+            Size = UDim2.new(1, 0, 0, 0),
+            BackgroundColor3 = T.BtnBg,
+            BackgroundTransparency = 0.6,
+            BorderSizePixel = 0,
+            AutomaticSize = Enum.AutomaticSize.Y,
+            ZIndex = 9,
+        }, sec)
         New("UICorner", {CornerRadius = UDim.new(0, 10)}, inner)
         New("UIStroke", {Color = T.BtnStroke, Thickness = 1, Transparency = 0.3}, inner)
-        New("UIPadding", {PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 10), PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8)}, inner)
-        New("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 6)}, inner)
-        New("TextLabel", {Size = UDim2.new(1, 0, 0, 18), BackgroundTransparency = 1, Text = "  " .. string.upper(title), TextColor3 = T.SectionText, TextSize = 12, Font = Enum.Font.GothamBold, TextXAlignment = Enum.TextXAlignment.Left, LayoutOrder = 0, ZIndex = 10}, inner)
-        local body = New("Frame", {Size = UDim2.new(1, 0, 0, 0), BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 1, ZIndex = 10}, inner)
-        New("UIListLayout", {SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 4)}, body)
+        New("UIPadding", {
+            PaddingLeft = UDim.new(0, 10),
+            PaddingRight = UDim.new(0, 10),
+            PaddingTop = UDim.new(0, 8),
+            PaddingBottom = UDim.new(0, 8),
+        }, inner)
+        New("UIListLayout", {
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDim.new(0, 6),
+        }, inner)
+
+        New("TextLabel", {
+            Size = UDim2.new(1, 0, 0, 18),
+            BackgroundTransparency = 1,
+            Text = "  " .. string.upper(title),
+            TextColor3 = T.SectionText,
+            TextSize = 12,
+            Font = Enum.Font.GothamBold,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            LayoutOrder = 0,
+            ZIndex = 10,
+        }, inner)
+
+        local body = New("Frame", {
+            Size = UDim2.new(1, 0, 0, 0),
+            BackgroundTransparency = 1,
+            AutomaticSize = Enum.AutomaticSize.Y,
+            LayoutOrder = 1,
+            ZIndex = 10,
+        }, inner)
+        New("UIListLayout", {
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDim.new(0, 4),
+        }, body)
+
         return body
     end
 
     GUI.KeybindTabPanel = MakeSection("KEYBINDS", 1)
     GUI.SecurityTabPanel = MakeSection("SECURITY", 2)
     GUI.ThemeTabPanel = MakeSection("THEME", 3)
-    GUI.StreamerTabPanel = MakeSection("STREAMER MODE", 4)
-    GUI.DebugTabPanel = MakeSection("DEBUG", 5)
-    GUI.MiscTabPanel = MakeSection("MISC", 6)
+    GUI.DebugTabPanel = MakeSection("DEBUG", 4)
 
     -- THEME
     do
@@ -710,29 +809,6 @@ do
         y = MakeButton(p, "White", "Light minimalist theme", y, function() Theme.Apply("White", true) end)
     end
 
-    -- MISC
-    do
-        local y = 0
-        local p = GUI.MiscTabPanel
-        y = MakeButton(p, "Copy Discord Link", "discord.gg/UHCwX78Npc", y, function()
-            if setclipboard then
-                setclipboard("discord.gg/UHCwX78Npc")
-                Utils.Notify("Copied", "Discord link copied", 3)
-            elseif toclipboard then
-                toclipboard("discord.gg/UHCwX78Npc")
-                Utils.Notify("Copied", "Discord link copied", 3)
-            else
-                Utils.Notify("No clipboard", "Copy manually: discord.gg/UHCwX78Npc", 5)
-            end
-        end)
-        y = MakeToggle(p, "Anti-AFK", y, false, function(v)
-            local AntiAFK = _G.Venture.AntiAFK
-            if AntiAFK then
-                if v then AntiAFK.Enable() else AntiAFK.Disable() end
-            end
-        end)
-    end
-
     -- DEBUG
     do
         local y = 0
@@ -741,6 +817,11 @@ do
             local t = Funcs.GetTitans()
             print("Titans:", #t)
             for i, x in ipairs(t) do if i > 15 then break end; print(i..". "..x.Model.Name.." | "..math.floor(x.Distance)) end
+        end)
+        y = MakeButton(p, "List Refills", "Print to console", y, function()
+            local r = Funcs.GetRefills()
+            print("Refills:", #r)
+            for i, x in ipairs(r) do if i > 15 then break end; print(i..". "..x.Model.Name.." | "..math.floor(x.Distance)) end
         end)
         y = MakeButton(p, "Executor Info", "Print to console", y, function()
             print("Executor:", GUI.ExecutorName)
@@ -844,6 +925,13 @@ end
 HideBtn.MouseButton1Click:Connect(GUI.HideToIcon)
 OpenBtn.MouseButton1Click:Connect(GUI.OpenFromIcon)
 
+ChatBtn.MouseButton1Click:Connect(function()
+    local ChatWindow = _G.Venture.ChatWindow
+    if ChatWindow and ChatWindow.Toggle then
+        ChatWindow.Toggle()
+    end
+end)
+
 CloseBtn.MouseButton1Click:Connect(function()
     Funcs.ResetAllHitboxes()
     Funcs.StopNoclip()
@@ -864,6 +952,8 @@ HideBtn.MouseEnter:Connect(function() Tween(HideBtn, 0.18, {BackgroundColor3 = C
 HideBtn.MouseLeave:Connect(function() Tween(HideBtn, 0.18, {BackgroundColor3 = Theme.Get().CloseBtnBg}); Tween(HideBtn, 0.18, {TextColor3 = Theme.Get().CloseBtnText}) end)
 OpenBtn.MouseEnter:Connect(function() Tween(OpenBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(35,32,55)}) end)
 OpenBtn.MouseLeave:Connect(function() Tween(OpenBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(20,22,36)}) end)
+ChatBtn.MouseEnter:Connect(function() Tween(ChatBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(60,32,90)}) end)
+ChatBtn.MouseLeave:Connect(function() Tween(ChatBtn, 0.18, {BackgroundColor3 = Color3.fromRGB(40,22,60)}) end)
 SidebarToggle.MouseEnter:Connect(function() Tween(SidebarToggle, 0.18, {BackgroundColor3 = Color3.fromRGB(80,60,160)}) end)
 SidebarToggle.MouseLeave:Connect(function() Tween(SidebarToggle, 0.18, {BackgroundColor3 = Theme.Get().TabBgActive}) end)
 
