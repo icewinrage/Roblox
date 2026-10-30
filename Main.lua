@@ -3,28 +3,39 @@ local REPO_NAME = "Roblox"
 local REPO_BRANCH = "main"
 
 -- ============================================
--- ANTI RE-INJECT
+-- ПОЛНАЯ ПЕРЕЗАГРУЗКА (Re-inject)
 -- ============================================
 if _G.VentureLoaded then
+    print("[Venture] Найдена старая сессия. Выгружаем...")
+    
+    -- 1. Выключаем StressTest (бесконечный газ/клинки), если он был включен
     pcall(function()
-        game:GetService("StarterGui"):SetCore("SendNotification", {
-            Title = "Venture AOT",
-            Text = "Already injected! Close old instance first.",
-            Duration = 6,
-        })
+        workspace:SetAttribute("StressTest", false)
     end)
-    local pg = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
-    local existing = pg and pg:FindFirstChild("VentureAOT_GUI")
-    local existingFluent = pg and pg:FindFirstChild("Venture_FluentUI")
-    if existing or existingFluent then
-        warn("[Venture] Script already running. Aborting re-inject.")
-        return
-    else
-        _G.VentureLoaded = false
-    end
-end
-_G.VentureLoaded = true
 
+    -- 2. Удаляем старые окна и меню
+    local pg = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
+    if pg then
+        local oldGui = pg:FindFirstChild("VentureAOT_GUI")
+        if oldGui then oldGui:Destroy() end
+
+        local oldKb = pg:FindFirstChild("VentureKeybindList")
+        if oldKb then oldKb:Destroy() end
+
+        local oldNotice = pg:FindFirstChild("VentureLoadedNotice")
+        if oldNotice then oldNotice:Destroy() end
+    end
+
+    -- 3. Сбрасываем глобальные флаги
+    _G.VentureLoaded = false
+    _G.Venture = nil
+
+    -- Даем время на очистку
+    task.wait(0.5)
+    print("[Venture] Старая сессия очищена. Запускаем заново...")
+end
+
+_G.VentureLoaded = true
 local START_TIME = tick()
 
 local BASE_URL = string.format(
@@ -34,26 +45,13 @@ local BASE_URL = string.format(
 
 -- Последовательный список модулей (важен порядок!)
 local MODULES = {
-    "00_CursorBoot",
-    "01_Shared",
-    "02_Config",
-    "03_Utils",
-    "04_Theme",
-    "05_Functions",
-    "06_GUI",
-    "07_Keybinds",
-    "08_Security",
-    "09_Supabase",
-    "11_Cursor",
-    "12_AntiMod",
-    "13_OnlineTab",
-    "15_Announcements",
-    "17_Streamer",
-    "18_AntiAFK",
-    "19_FluentUI",
-    "10_Init",
+    "00_CursorBoot", "01_Shared", "02_Config", "03_Utils", "04_Theme",
+    "05_Functions", "06_GUI", "07_Keybinds", "08_Security", "09_Supabase",
+    "11_Cursor", "12_AntiMod", "13_OnlineTab", "15_Announcements", "17_Streamer",
+    "18_AntiAFK", "19_FluentUI", "10_Init",
 }
 
+-- Очередь на телепорт
 local AUTO_EXEC_CODE = [[
     wait(0.5)
     loadstring(game:HttpGet("https://raw.githubusercontent.com/]] .. REPO_USER .. [[/]] .. REPO_NAME .. [[/]] .. REPO_BRANCH .. [[/Main.lua"))()
@@ -79,9 +77,6 @@ end
 
 RegisterQueue()
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
 task.spawn(function()
     while true do
         task.wait(30)
@@ -96,15 +91,15 @@ _G.Venture = _G.Venture or {}
 -- ============================================
 local function httpGet(url)
     if syn and syn.request then
-        local ok, res = pcall(syn.request, {Url = url, Method = "GET"})
+        local ok, res = pcall(syn.request, { Url = url, Method = "GET" })
         if ok and res and res.Body then return res.Body end
     end
     if request then
-        local ok, res = pcall(request, {Url = url, Method = "GET"})
+        local ok, res = pcall(request, { Url = url, Method = "GET" })
         if ok and res and res.Body then return res.Body end
     end
     if http_request then
-        local ok, res = pcall(http_request, {Url = url, Method = "GET"})
+        local ok, res = pcall(http_request, { Url = url, Method = "GET" })
         if ok and res and res.Body then return res.Body end
     end
     local ok, res = pcall(function()
@@ -128,19 +123,16 @@ local function loadModule(name)
         warn("[Venture] Module not found: " .. name)
         return false
     end
-
     local fn, err = loadstring(code, "@" .. name)
     if not fn then
         warn("[Venture] Syntax error in " .. name .. ": " .. tostring(err))
         return false
     end
-
     local ok, result = pcall(fn)
     if not ok then
         warn("[Venture] Runtime error in " .. name .. ": " .. tostring(result))
         return false
     end
-
     return true
 end
 
@@ -160,7 +152,6 @@ end
 
 local totalLoadTime = tick() - loadStart
 print(string.format("[Venture] All %d modules loaded in %.2fs", loadedCount, totalLoadTime))
-
 task.wait(0.1)
 
 -- ============================================
@@ -180,13 +171,12 @@ end
 -- SUCCESS NOTIFICATION
 -- ============================================
 task.wait(0.2)
-
 local LOAD_TIME = tick() - START_TIME
 local timeStr = string.format("%.2f", LOAD_TIME)
 
 local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local PlayerGui = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 
 pcall(function()
     StarterGui:SetCore("SendNotification", {
@@ -270,6 +260,7 @@ task.spawn(function()
     }):Play()
 
     task.wait(5)
+
     local hideTween = TweenService:Create(frame, TweenInfo.new(0.5, Enum.EasingStyle.Quart), {
         Position = UDim2.new(0.5, 0, 0, -120),
         BackgroundTransparency = 1,
