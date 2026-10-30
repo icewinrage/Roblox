@@ -14,27 +14,20 @@ local Settings = Config.Settings
 local Functions = {}
 
 Functions.State = {
-    currentTarget = nil,
-    currentAlignPos = nil,
-    currentAttachments = {},
-    isReleasing = false,
-
     FarmState = {CurrentTitan=nil, LastKillTime=0, IsAttacking=false, OrbitAngle=0, AlignPos=nil, Attachments={}},
     HealerState = {IsHealing=false, SavedPosition=nil, LastHealTime=0},
-    RefillState = {IsRefilling=false, SavedPosition=nil, LastRefillTime=0},
-    QuestState = {LastQuestNPCPos=nil, IsDoingQuest=false, CurrentNPC=nil},
     SecurityState = {ModsInServer={}, IsPaused=false},
-
     originalPartData = {},
     expandedParts = {},
     noclipConnection = nil,
     fpsOriginalData = {},
-    originalHitboxData = {},
+    ESPObjects = {},
+    PlayerESPObjects = {},
+    ShifterESPObjects = {}
 }
 
 local S = Functions.State
 
--- ФИКС: Добавляем переопределение визуала при старте
 function Functions.GetTitans()
     local titans = {}
     local titansFolder = Workspace:FindFirstChild("Titans")
@@ -51,8 +44,7 @@ function Functions.GetTitans()
                 local humanoid = model:FindFirstChildOfClass("Humanoid")
                 if nape and nape:IsA("BasePart") then
                     local alive = true
-                    if humanoid then alive = humanoid.Health > 0
-                    else alive = model.Parent == aliveFolder end
+                    if humanoid then alive = humanoid.Health > 0 else alive = model.Parent == aliveFolder end
                     if model:GetAttribute("Dead") == true then alive = false end
                     if model:GetAttribute("HeadChopped") == true then alive = false end
                     if alive then
@@ -72,55 +64,10 @@ function Functions.GetTitans()
     return titans
 end
 
-function Functions.GetRefills()
-    local refills = {}
-    local folder = Workspace:FindFirstChild("Refills")
-    if not folder then return refills end
-    local ch = LocalPlayer.Character
-    local root = ch and ch:FindFirstChild("HumanoidRootPart")
-    for _, model in ipairs(folder:GetChildren()) do
-        if model.Name:lower():find("blade") or model.Name:lower():find("refill") then
-            local part = model.PrimaryPart
-            if not part then
-                for _, p in ipairs(model:GetDescendants()) do
-                    if p:IsA("BasePart") then part = p; break end
-                end
-            end
-            if part then
-                local dist = 9999
-                if root then dist = (root.Position - part.Position).Magnitude end
-                table.insert(refills, {Model = model, Part = part, Distance = dist})
-            end
-        end
-    end
-    table.sort(refills, function(a, b) return a.Distance < b.Distance end)
-    return refills
-end
-
-function Functions.FindBladeState()
-    if Settings.BladeStateValue and Settings.BladeStateValue.Parent then
-        return Settings.BladeStateValue
-    end
-    local ch = LocalPlayer.Character
-    if not ch then return nil end
-    for _, obj in ipairs(ch:GetDescendants()) do
-        if obj:IsA("NumberValue") or obj:IsA("IntValue") then
-            local n = obj.Name:lower()
-            if n:find("blade") and (n:find("state") or n:find("sharp") or n:find("dura")) then
-                Settings.BladeStateValue = obj
-                return obj
-            end
-        end
-    end
-    return nil
-end
-
--- ФИКС: Правильные ссылки на Settings и S, добавлен визуал
 local function ApplyHitboxToPart(part, partName)
     if not Settings.HitboxParts[partName] then return end
     if not part or not part.Parent or not part:IsA("BasePart") then return end
 
-    -- Сохраняем оригинальные данные
     if not S.originalPartData[part] then
         S.originalPartData[part] = {
             Size = part.Size, Shape = part.Shape,
@@ -141,7 +88,6 @@ local function ApplyHitboxToPart(part, partName)
         part.CanTouch = true
         part.CanQuery = true
 
-        -- === ВИЗУАЛИЗАЦИЯ ===
         local oldVisual = part:FindFirstChild("VentureHitboxVisual")
         if oldVisual then oldVisual:Destroy() end
 
@@ -187,9 +133,6 @@ local function ResetHitboxPart(part)
             part.CanTouch = orig.CanTouch; part.CanQuery = orig.CanQuery
         end
     end)
-    local visual = part:FindFirstChild("VentureHitboxVisual")
-    if visual then visual:Destroy() end
-    
     S.expandedParts[part] = nil
 end
 
@@ -383,131 +326,6 @@ function Functions.CleanupFarm()
     S.FarmState.OrbitAngle = 0
 end
 
-function Functions.TriggerAutoRefill()
-    if S.RefillState.IsRefilling then return false end
-    local ch = LocalPlayer.Character
-    local root = ch and ch:FindFirstChild("HumanoidRootPart")
-    if not root then return false end
-    local refills = Functions.GetRefills()
-    if #refills == 0 then return false end
-
-    Settings.AutoFarmEnabled = false
-    S.FarmState.IsAttacking = false
-    S.FarmState.CurrentTitan = nil
-    Functions.CleanupFarm()
-
-    S.RefillState.SavedPosition = root.CFrame
-    S.RefillState.IsRefilling = true
-    local r = refills[1]
-    root.CFrame = CFrame.new(r.Part.Position + Vector3.new(0, 5, 0))
-    root.Velocity = Vector3.zero
-    root.AssemblyLinearVelocity = Vector3.zero
-
-    task.spawn(function()
-        task.wait(Settings.AutoBladeRefillReturnDelay)
-        local r2 = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if r2 and S.RefillState.SavedPosition then
-            r2.CFrame = S.RefillState.SavedPosition
-            r2.Velocity = Vector3.zero
-            r2.AssemblyLinearVelocity = Vector3.zero
-        end
-        S.RefillState.IsRefilling = false
-        S.RefillState.SavedPosition = nil
-        S.RefillState.LastRefillTime = tick()
-        task.wait(0.3)
-        Settings.AutoFarmEnabled = true
-    end)
-    return true
-end
-
-task.spawn(function()
-    while true do
-        task.wait(0.5)
-        if Settings.AutoRefillEnabled and not S.RefillState.IsRefilling then
-            if tick() - S.RefillState.LastRefillTime < 5 then continue end
-            local bv = Functions.FindBladeState()
-            if bv and bv.Value <= Settings.AutoBladeRefillThreshold then
-                Functions.TriggerAutoRefill()
-            end
-        end
-    end
-end)
-
-local function FindQuestNPCs()
-    local q = Workspace:FindFirstChild("Quests")
-    if not q then return {} end
-    local npcs = {}
-    for _, o in ipairs(q:GetChildren()) do
-        if o:IsA("Model") then table.insert(npcs, o) end
-    end
-    return npcs
-end
-
-local function TriggerQuestNPC(npc)
-    if not npc then return end
-    local ch = LocalPlayer.Character
-    local root = ch and ch:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-    S.QuestState.LastQuestNPCPos = root.CFrame
-    S.QuestState.CurrentNPC = npc
-    local np = npc:GetPivot().Position
-    root.CFrame = CFrame.new(np + Vector3.new(0, 3, 0))
-    root.Velocity = Vector3.zero
-    task.wait(0.5)
-    for i = 1, 3 do Functions.PressE(); task.wait(0.3) end
-end
-
-do
-    local RS = game:GetService("ReplicatedStorage")
-    local Remotes = RS:WaitForChild("Remotes", 10)
-    if Remotes then
-        local Mission = Remotes:FindFirstChild("Mission")
-        if Mission then
-            local ed = Mission:FindFirstChild("Ended")
-            if ed then
-                ed.OnClientEvent:Connect(function()
-                    Settings.AutoFarmEnabled = false
-                    task.wait(0.5)
-                    if S.QuestState.LastQuestNPCPos then
-                        local r = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                        if r then r.CFrame = S.QuestState.LastQuestNPCPos end
-                        task.wait(0.5)
-                        if S.QuestState.CurrentNPC then
-                            for i = 1, 3 do Functions.PressE(); task.wait(0.3) end
-                        end
-                    end
-                    S.QuestState.IsDoingQuest = false
-                    Settings.AutoQuestEnabled = false
-                end)
-            end
-        end
-    end
-end
-
-task.spawn(function()
-    while true do
-        task.wait(0.5)
-        if Settings.AutoQuestEnabled and not S.QuestState.IsDoingQuest then
-            local npcs = FindQuestNPCs()
-            if #npcs > 0 then
-                local target = npcs[1]
-                if Settings.AutoQuestSelected then
-                    for _, npc in ipairs(npcs) do
-                        if npc.Name:lower():find(Settings.AutoQuestSelected:lower()) then
-                            target = npc
-                            break
-                        end
-                    end
-                end
-                S.QuestState.IsDoingQuest = true
-                TriggerQuestNPC(target)
-                task.wait(2)
-                Settings.AutoFarmEnabled = true
-            end
-        end
-    end
-end)
-
 local function GetNearestTitanDist()
     local ch = LocalPlayer.Character
     local root = ch and ch:FindFirstChild("HumanoidRootPart")
@@ -571,7 +389,6 @@ local function HoverAroundTitan(titan)
             local dt = RunService.Heartbeat:Wait()
             if not Settings.AutoFarmEnabled then break end
             if S.SecurityState.IsPaused then break end
-            if S.RefillState.IsRefilling then break end
             if not root.Parent or not titan.Nape.Parent then break end
             if S.FarmState.CurrentTitan ~= titan then break end
             if IsTitanDead(titan) then break end
@@ -619,7 +436,7 @@ task.spawn(function()
             S.FarmState.CurrentTitan = nil
             continue
         end
-        if S.SecurityState.IsPaused or S.RefillState.IsRefilling then continue end
+        if S.SecurityState.IsPaused then continue end
         if tick() - S.FarmState.LastKillTime < Settings.AutoFarmDelay then continue end
         if S.FarmState.CurrentTitan and IsTitanDead(S.FarmState.CurrentTitan) then
             S.FarmState.LastKillTime = tick()
@@ -638,130 +455,92 @@ task.spawn(function()
     end
 end)
 
-function Functions.ForceResetState()
-    local ch = LocalPlayer.Character
-    if ch then
-        for _, obj in ipairs(ch:GetDescendants()) do
-            if obj:IsA("AlignPosition") or obj:IsA("AlignOrientation") or obj:IsA("BodyVelocity") then
-                if obj.Name:find("VentureAOT") or obj.Name == "BodyVelocity" then
-                    pcall(function() obj:Destroy() end)
+function Functions.UpdateESP()
+    local titans = Functions.GetTitans()
+    local aliveTitans = {}
+    for _, t in ipairs(titans) do
+        aliveTitans[t.Model] = true
+        if Settings.ESP then
+            if not S.ESPObjects[t.Model] then
+                local hl = Instance.new("Highlight")
+                hl.FillTransparency = 0.5
+                hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                hl.Adornee = t.Model
+                hl.Parent = t.Model
+                S.ESPObjects[t.Model] = hl
+            end
+            S.ESPObjects[t.Model].FillColor = Settings.ESPColor or Color3.fromRGB(255, 60, 60)
+            S.ESPObjects[t.Model].OutlineColor = Settings.ESPColor or Color3.fromRGB(255, 60, 60)
+            S.ESPObjects[t.Model].Enabled = true
+        end
+    end
+    for m, hl in pairs(S.ESPObjects) do
+        if not aliveTitans[m] or not Settings.ESP then
+            hl:Destroy()
+            S.ESPObjects[m] = nil
+        end
+    end
+
+    local alivePlayers = {}
+    for _, pl in ipairs(Players:GetPlayers()) do
+        if pl ~= LocalPlayer and pl.Character then
+            alivePlayers[pl.Character] = true
+            if Settings.PlayerESP then
+                if not S.PlayerESPObjects[pl.Character] then
+                    local hl = Instance.new("Highlight")
+                    hl.FillColor = Color3.fromRGB(0, 255, 0)
+                    hl.OutlineColor = Color3.fromRGB(0, 255, 0)
+                    hl.FillTransparency = 0.5
+                    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                    hl.Adornee = pl.Character
+                    hl.Parent = pl.Character
+                    S.PlayerESPObjects[pl.Character] = hl
+                end
+                S.PlayerESPObjects[pl.Character].Enabled = true
+            end
+        end
+    end
+    for m, hl in pairs(S.PlayerESPObjects) do
+        if not alivePlayers[m] or not Settings.PlayerESP then
+            hl:Destroy()
+            S.PlayerESPObjects[m] = nil
+        end
+    end
+    
+    local aliveShifters = {}
+    local chars = Workspace:FindFirstChild("Characters")
+    if chars then
+        for _, model in ipairs(chars:GetChildren()) do
+            if model:GetAttribute("IsPlayerShifter") then
+                aliveShifters[model] = true
+                if Settings.ShifterESP then
+                    if not S.ShifterESPObjects[model] then
+                        local hl = Instance.new("Highlight")
+                        hl.FillColor = Color3.fromRGB(255, 165, 0)
+                        hl.OutlineColor = Color3.fromRGB(255, 165, 0)
+                        hl.FillTransparency = 0.5
+                        hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                        hl.Adornee = model
+                        hl.Parent = model
+                        S.ShifterESPObjects[model] = hl
+                    end
+                    S.ShifterESPObjects[model].Enabled = true
                 end
             end
         end
-        local hum = ch:FindFirstChildOfClass("Humanoid")
-        local root = ch:FindFirstChild("HumanoidRootPart")
-        if hum then
-            hum.PlatformStand = false
-            hum.AutoRotate = true
-            pcall(function()
-                Camera.CameraSubject = hum
-                Camera.CameraType = Enum.CameraType.Custom
-            end)
+    end
+    for m, hl in pairs(S.ShifterESPObjects) do
+        if not aliveShifters[m] or not Settings.ShifterESP then
+            hl:Destroy()
+            S.ShifterESPObjects[m] = nil
         end
-        if root then
-            root.Velocity = Vector3.zero
-            root.AssemblyLinearVelocity = Vector3.zero
-        end
-    end
-    S.currentTarget = nil
-    S.currentAlignPos = nil
-    S.currentAttachments = {}
-    S.isReleasing = false
-end
-
-function Functions.CleanupStick(safeRelease)
-    local ch = LocalPlayer.Character
-    local hum = ch and ch:FindFirstChildOfClass("Humanoid")
-    local root = ch and ch:FindFirstChild("HumanoidRootPart")
-    if hum then
-        pcall(function()
-            Camera.CameraSubject = hum
-            Camera.CameraType = Enum.CameraType.Custom
-        end)
-        hum.PlatformStand = false
-        hum.AutoRotate = true
-    end
-    if S.currentAlignPos then pcall(function() S.currentAlignPos:Destroy() end); S.currentAlignPos = nil end
-    for _, a in ipairs(S.currentAttachments) do
-        if a and a.Parent then pcall(function() a:Destroy() end) end
-    end
-    S.currentAttachments = {}
-    if root then
-        root.Velocity = Vector3.zero
-        root.AssemblyLinearVelocity = Vector3.zero
-    end
-    if safeRelease and root and not S.isReleasing then
-        S.isReleasing = true
-        local away = Vector3.new(0, 1, 0)
-        if S.currentTarget and S.currentTarget.Nape and S.currentTarget.Nape.Parent then
-            away = (root.Position - S.currentTarget.Nape.Position).Unit
-            if math.abs(away.Y) > 0.9 then
-                away = (away + Vector3.new(math.random(-1, 1), 0, math.random(-1, 1))).Unit
-            end
-        end
-        local up = Vector3.new(0, Settings.ReleaseUpVelocity, 0)
-        local side = away * Settings.ReleaseSideVelocity
-        root.Velocity = up + side
-        root.AssemblyLinearVelocity = up + side
-        local bv = Instance.new("BodyVelocity")
-        bv.Velocity = up + side
-        bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-        bv.P = 10000
-        bv.Parent = root
-        task.delay(0.2, function()
-            if bv and bv.Parent then bv:Destroy() end
-            S.isReleasing = false
-        end)
     end
 end
 
-function Functions.StickToTitan(titan)
-    if not titan or not titan.Nape or not titan.Nape.Parent then
-        Functions.CleanupStick(true)
-        return false
-    end
-    Functions.ForceResetState()
-    local ch = LocalPlayer.Character
-    if not ch then return false end
-    local root = ch:FindFirstChild("HumanoidRootPart")
-    local hum = ch:FindFirstChildOfClass("Humanoid")
-    if not root or not hum then return false end
-    S.currentTarget = titan
-    local np = titan.Nape.Position
-    local ncf = titan.Nape.CFrame
-    local standPos = np - ncf.LookVector * Settings.BackOffset + ncf.RightVector * Settings.SideOffset + Vector3.new(0, Settings.UpOffset, 0)
-    root.CFrame = CFrame.new(standPos, np)
-    root.Velocity = Vector3.zero
-    root.AssemblyLinearVelocity = Vector3.zero
-    hum.PlatformStand = true
-    local na = Instance.new("Attachment"); na.Name = "VentureAOT_NapeAtt"; na.Parent = titan.Nape
-    table.insert(S.currentAttachments, na)
-    local ra = Instance.new("Attachment"); ra.Name = "VentureAOT_RootAttPos"; ra.Parent = root
-    table.insert(S.currentAttachments, ra)
-    local ao = Instance.new("AlignPosition")
-    ao.Attachment0 = ra
-    ao.Attachment1 = na
-    ao.Mode = Enum.PositionAlignmentMode.TwoAttachment
-    ao.Responsiveness = 200
-    ao.MaxVelocity = math.huge
-    ao.MaxForce = math.huge
-    ao.Position = Vector3.new(Settings.SideOffset, Settings.UpOffset, Settings.BackOffset)
-    ao.Parent = root
-    S.currentAlignPos = ao
-    return true
-end
+RunService.RenderStepped:Connect(function() pcall(Functions.UpdateESP) end)
 
-function Functions.TeleportToRefill(refill)
-    if not refill or not refill.Part or not refill.Part.Parent then return false end
-    Functions.ForceResetState()
-    local ch = LocalPlayer.Character
-    if not ch then return false end
-    local root = ch:FindFirstChild("HumanoidRootPart")
-    if not root then return false end
-    root.CFrame = CFrame.new(refill.Part.Position + Vector3.new(0, 5, 0))
-    root.Velocity = Vector3.zero
-    root.AssemblyLinearVelocity = Vector3.zero
-    return true
+function Functions.ToggleInfiniteSupplies(state)
+    Workspace:SetAttribute("StressTest", state)
 end
 
 _G.Venture = _G.Venture or {}
